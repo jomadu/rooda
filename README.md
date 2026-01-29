@@ -1,6 +1,6 @@
 # Ralph Wiggum OODA
 
-An autonomous AI coding methodology using composable OODA-based prompts to maintain fresh context across iterations.
+An autonomous AI coding methodology using composable [OODA-based](ooda-loop.md) prompts to maintain fresh context across iterations.
 
 ## Core Concept
 
@@ -8,14 +8,16 @@ Each loop iteration: **observe → orient → decide → act → clear context �
 
 Fresh context each iteration keeps the AI in its "smart zone" (40-60% context utilization). File-based memory (AGENTS.md, PLAN.md) persists learnings between iterations.
 
+This methodology evolved from the [Ralph Loop](ralph-loop.md) by Geoff Huntley, applying the OODA framework to create composable prompt components.
+
 ## The Loop Mechanism
 
 ```bash
-./ooda --observe prompts/observe_X.md \
-       --orient prompts/orient_Y.md \
-       --decide prompts/decide_Z.md \
-       --act prompts/act_W.md \
-       [--max-iterations N]
+./ooda.sh --observe prompts/observe_X.md \
+          --orient prompts/orient_Y.md \
+          --decide prompts/decide_Z.md \
+          --act prompts/act_W.md \
+          [--max-iterations N]
 ```
 
 The script interpolates the 4 prompt components into a template and feeds it to an LLM agent. Each iteration:
@@ -29,31 +31,19 @@ Exits when max iterations reached.
 
 ## OODA Phase Responsibilities
 
-### Observe - Gather information from environment
-- Read specs, implementation, PLAN.md, AGENTS.md, test results
-- Surface raw data without interpretation
-- Variants read different sources (specs, implementation, gaps, quality metrics)
+### Planning Tasks (Tasks 2-5)
 
-### Orient - Analyze and synthesize based on mental models
-- Discover/verify AGENTS.md (create if missing based on codebase inspection)
-- Discover/verify PLAN.md accuracy
-- Apply refactoring criteria (cohesion, coupling, complexity, completeness)
-- Gap analysis between specs and implementation
-- Synthesize observations into understanding
-- **This is the "heavy" phase with most logic**
+1. **Observe** - Gather information from specs, implementation, PLAN.md, and AGENTS.md
+2. **Orient** - Analyze observations using task-specific criteria and synthesize understanding
+3. **Decide** - Determine plan structure, priorities, and tasks for PLAN.md
+4. **Act** - Write the plan to PLAN.md
 
-### Decide - Determine course of action
-- Pick highest priority task from analysis
-- Decide what to write to PLAN.md
-- For building: decide which task to implement
-- For planning: decide plan structure and priorities
+### Building Tasks (Task 1)
 
-### Act - Execute the decision
-- Write to PLAN.md (for planning tasks)
-- Implement code + run tests (for building tasks)
-- Commit changes
-- Update PLAN.md with progress
-- **Backpressure lives here** (tests, lints, type checks)
+1. **Observe** - Gather information from PLAN.md, AGENTS.md, specs, and implementation
+2. **Orient** - Understand task requirements and identify what needs to be built
+3. **Decide** - Pick highest priority task and determine implementation approach
+4. **Act** - Implement task, run quality checks per AGENTS.md, commit when passing, update PLAN.md
 
 ## Task Types
 
@@ -70,11 +60,13 @@ The methodology supports multiple task types through prompt composition:
    - Gap analysis: what's in code but not in specs
 
 4. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
-   - Orient applies boolean criteria (cohesion, coupling, completeness, complexity)
-   - Triggers on threshold failures or human markers (TODOs, comments, "REFACTORME")
+   - Orient applies boolean criteria (e.g. clarity, completeness, consistency, testability, human markers)
+   - Triggers on threshold failures
+   - Proposes refactoring in PLAN.md, doesn't execute
 
 5. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
-   - Same criteria as spec refactoring
+   - Orient applies boolean criteria (e.g. cohesion, coupling, complexity, maintainability, human markers)
+   - Triggers on threshold failures
    - Proposes refactoring in PLAN.md, doesn't execute
 
 ## Key Principles
@@ -92,17 +84,49 @@ The methodology supports multiple task types through prompt composition:
 - Definition of what constitutes "specification" vs "implementation"
 - Created by orient phase if missing
 - Assumed inaccurate/incomplete until verified empirically
+- Updated in the case of discovered errors
 
 **PLAN.md** - Prioritized task list and progress tracking
 - Generated and updated by act phase
 - Can contain refactoring proposals with criteria scores
-- Assumed inaccurate until verified
+- Assumed inaccurate until verified empirically
+- Updated in the case of discovered errors
+
+**specs/** - Specification documents (optional, see [specs.md](specs.md))
+- One spec per topic of concern using [spec-template.md](spec-template.md)
+- Source of truth for requirements
+- Acceptance criteria define backpressure for act phase
+- Implementation Mapping bridges specs ↔ code for gap analysis
 
 **prompts/** - OODA phase component library
 - `prompts/observe_*.md` - Different observation sources
 - `prompts/orient_*.md` - Different analysis types
 - `prompts/decide_*.md` - Different decision strategies
 - `prompts/act_*.md` - Different execution modes
+
+## Sample Repository Structure
+
+```
+project-root/
+├── ooda.sh                    # Loop script
+├── AGENTS.md                  # Operational guide (generated/verified by orient)
+├── PLAN.md                    # Task list and progress (generated/updated by act)
+├── prompts/                   # OODA phase components
+│   ├── observe_specs.md
+│   ├── observe_implementation.md
+│   ├── observe_gaps.md
+│   ├── orient_gap_analysis.md
+│   ├── orient_refactoring.md
+│   ├── decide_planning.md
+│   ├── decide_building.md
+│   ├── act_plan.md
+│   └── act_build.md
+├── specs/                     # Requirements (if using spec-driven approach)
+│   ├── feature-a.md
+│   └── feature-b.md
+└── src/                       # Implementation
+    └── ...
+```
 
 ### Context Management
 - 200K tokens advertised ≈ 176K usable
@@ -118,11 +142,9 @@ The methodology supports multiple task types through prompt composition:
 
 ### Refactoring Triggers
 Boolean criteria scored as PASS/FAIL in orient phase:
-- **Cohesion** - Do related things belong together?
-- **Coupling** - Are dependencies minimized?
-- **Completeness** - Are specs/implementation complete?
-- **Complexity** - Is it unnecessarily complex?
-- **Human markers** - TODOs, comments, "REFACTORME", spec phrases
+- Quality metrics (cohesion, coupling, complexity, completeness, etc)
+- Human markers (TODOs, comments, "REFACTORME", spec phrases)
+- Custom criteria defined in prompt variants
 
 When criteria fail threshold, decide/act write refactoring proposal to PLAN.md. Future iteration with building task executes it.
 
