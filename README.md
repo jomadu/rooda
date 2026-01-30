@@ -139,8 +139,8 @@ The methodology supports multiple task types through prompt composition:
 project-root/
 ├── ooda.sh                    # Loop script
 ├── ooda-tasks.yml             # Task compositions
-├── AGENTS.md                  # Operational guide (generated/verified by orient)
-├── PLAN.md                    # Task list and progress (generated/updated by act)
+├── AGENTS.md                  # Operational guide
+├── PLAN.md                    # Task list and progress
 ├── prompts/                   # OODA phase components
 │   ├── observe_*.md           # Observation variants
 │   ├── orient_*.md            # Analysis variants
