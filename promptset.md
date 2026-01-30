@@ -154,32 +154,64 @@
 
 ---
 
+### Task 6: Plan feature-to-spec
+
+**OBSERVE**
+- Study AGENTS.md (what is specification/implementation)
+- Study FEATURE.md (the feature to be incorporated)
+- Study PLAN.md (current plan state - may not exist on first iteration)
+- Study specifications (per AGENTS.md definition)
+- Study implementation (per AGENTS.md definition, file tree, symbols)
+
+**ORIENT**
+- Analyze the feature from FEATURE.md (scope, requirements, integration points)
+- Understand existing spec structure and patterns
+- Determine how the feature should be incorporated (create new specs, update existing, refactor)
+- If PLAN.md exists: critique it (completeness, accuracy, priorities, clarity)
+- Identify what tasks are needed for proper incorporation
+
+**DECIDE**
+- Generate a complete plan for incorporating the feature into specs
+- Structure the plan by priority (most important tasks first)
+- Break incorporation into tight, actionable tasks
+- Determine task dependencies and which specs need creation/updates
+
+**ACT**
+- Write PLAN.md with prioritized bullet-point task list
+- Update AGENTS.md if learned something new (capture the why, keep it up to date)
+- Commit changes
+
+---
+
 ## Prompt Component Set
 
-**OBSERVE (4 variants)**
+**OBSERVE (5 variants)**
 1. `observe_bootstrap.md` - Repository structure, docs, implementation patterns
 2. `observe_plan_specs_impl.md` - AGENTS.md + PLAN.md + specifications + implementation
 3. `observe_specs.md` - AGENTS.md + specifications
 4. `observe_impl.md` - AGENTS.md + implementation
+5. `observe_feature_specs_impl.md` - AGENTS.md + FEATURE.md + PLAN.md + specifications + implementation
 
-**ORIENT (4 variants)**
+**ORIENT (5 variants)**
 1. `orient_bootstrap.md` - Identify project type, determine definitions, synthesize understanding
 2. `orient_build.md` - Understand task, identify what to build
 3. `orient_gap.md` - Compare sources, identify gaps, assess completeness/accuracy
 4. `orient_quality.md` - Apply criteria, identify markers, score PASS/FAIL
+5. `orient_feature_incorporation.md` - Analyze feature, determine incorporation strategy, critique existing plan
 
-**DECIDE (4 variants)**
+**DECIDE (5 variants)**
 1. `decide_bootstrap.md` - Determine AGENTS.md structure and content
 2. `decide_build.md` - Pick task, determine approach, identify files
 3. `decide_gap_plan.md` - Structure plan, break gaps into tasks, determine dependencies/updates
 4. `decide_refactor_plan.md` - If threshold fails: propose refactoring, structure plan, prioritize
+5. `decide_feature_plan.md` - Generate complete plan for feature incorporation, structure by priority
 
 **ACT (3 variants)**
 1. `act_bootstrap.md` - Create AGENTS.md, commit
 2. `act_build.md` - Implement, test, update PLAN.md/AGENTS.md, commit if passing
 3. `act_plan.md` - Write PLAN.md, update AGENTS.md, commit
 
-**Total: 15 prompt files** (4+4+4+3)
+**Total: 18 prompt files** (5+5+5+3)
 
 ---
 
@@ -193,6 +225,7 @@
 | 3. Plan impl-to-spec | plan_specs_impl | gap | gap_plan | plan |
 | 4. Plan spec refactoring | specs | quality | refactor_plan | plan |
 | 5. Plan impl refactoring | impl | quality | refactor_plan | plan |
+| 6. Plan feature-to-spec | feature_specs_impl | feature_incorporation | feature_plan | plan |
 
 ---
 
@@ -206,4 +239,4 @@
 - **Capture the why** - Update AGENTS.md with learnings, keep it up to date
 - **Tight tasks** - 1 task per loop = 100% smart zone utilization
 - **Commit after updates** - All file modifications complete before commit
-- **Composability** - 15 files generate 6 task types through different combinations
+- **Composability** - 18 files generate 7 task types through different combinations

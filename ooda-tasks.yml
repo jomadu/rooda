@@ -42,3 +42,10 @@ plan-impl-refactor:
   decide: prompts/decide_refactor_plan.md
   act: prompts/act_plan.md
   default_iterations: 1
+
+plan-feature-to-spec:
+  observe: prompts/observe_feature_specs_impl.md
+  orient: prompts/orient_feature_incorporation.md
+  decide: prompts/decide_feature_plan.md
+  act: prompts/act_plan.md
+  default_iterations: 5

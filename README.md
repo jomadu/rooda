@@ -31,9 +31,9 @@ Exits when max iterations reached.
 
 ## OODA Phase Responsibilities
 
-### Planning Tasks (Tasks 2-5)
+### Planning Tasks (Tasks 2-6)
 
-1. **Observe** - Gather information from specs, implementation, PLAN.md, and AGENTS.md
+1. **Observe** - Gather information from specs, implementation, PLAN.md, FEATURE.md (if applicable), and AGENTS.md
 2. **Orient** - Analyze observations using task-specific criteria and synthesize understanding
 3. **Decide** - Determine plan structure, priorities, tasks for PLAN.md, and necessary AGENTS.md updates
 4. **Act** - Write the plan to PLAN.md and update AGENTS.md
@@ -78,6 +78,12 @@ The methodology supports multiple task types through prompt composition:
    - Triggers on threshold failures
    - Proposes refactoring in PLAN.md, doesn't execute
 
+6. **Plan feature-to-spec** - Create plan to incorporate new feature into specifications
+   - Iteratively converges on proper feature incorporation
+   - Analyzes FEATURE.md and existing specs/implementation
+   - Each iteration critiques and improves the plan
+   - Runs until plan stabilizes or max iterations reached
+
 ## Key Principles
 
 ### Composable Prompts
@@ -109,16 +115,21 @@ The methodology supports multiple task types through prompt composition:
 - Assumed inaccurate until verified empirically
 - Updated in the case of discovered errors
 
+**FEATURE.md** - New feature description (optional)
+- Created through human conversation with agent
+- Used by plan-feature-to-spec task to incorporate features into specs
+- Lives at repository root
+
 **specs/** - Specification documents (optional, see [specs.md](specs.md))
 - One spec per topic of concern using [spec-template.md](spec-template.md)
 - Source of truth for requirements
 - Acceptance criteria define backpressure for act phase
 - Implementation Mapping bridges specs ↔ code for gap analysis
 
-**prompts/** - OODA phase component library (15 files)
-- `prompts/observe_*.md` - Different observation sources (4 variants)
-- `prompts/orient_*.md` - Different analysis types (4 variants)
-- `prompts/decide_*.md` - Different decision strategies (4 variants)
+**prompts/** - OODA phase component library (18 files)
+- `prompts/observe_*.md` - Different observation sources (5 variants)
+- `prompts/orient_*.md` - Different analysis types (5 variants)
+- `prompts/decide_*.md` - Different decision strategies (5 variants)
 - `prompts/act_*.md` - Different execution modes (3 variants)
 
 ## Sample Repository Structure
