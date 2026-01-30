@@ -147,8 +147,9 @@ project-root/
 │   ├── decide_*.md            # Decision variants
 │   └── act_*.md               # Execution variants
 ├── specs/                     # Requirements (if using spec-driven approach)
-│   ├── feature-a.md
-│   └── feature-b.md
+│   ├── README.md              # Index of JTBDs, topics, and specs
+│   ├── TEMPLATE.md            # Template for new specs
+│   └── topic-name.md          # One spec per topic of concern
 └── src/                       # Implementation
     └── ...
 ```
