@@ -142,10 +142,10 @@ project-root/
 ├── PLAN.md                    # Task list and progress (generated/updated by act)
 ├── prompts/                   # OODA phase components (18 files)
 │   ├── README.md              # Prompt composition guide
-│   ├── observe_*.md           # 5 observation variants
-│   ├── orient_*.md            # 5 analysis variants
-│   ├── decide_*.md            # 5 decision variants
-│   └── act_*.md               # 3 execution variants
+│   ├── observe_*.md           # Observation variants
+│   ├── orient_*.md            # Analysis variants
+│   ├── decide_*.md            # Decision variants
+│   └── act_*.md               # Execution variants
 ├── specs/                     # Requirements (if using spec-driven approach)
 │   ├── feature-a.md
 │   └── feature-b.md
