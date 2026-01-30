@@ -1,5 +1,12 @@
 # OODA Task Compositions
-# Usage: ./ooda.sh --task <name> [--max-iterations N]
+# Usage: ./ooda.sh <task> [--max-iterations N]
+
+bootstrap:
+  observe: prompts/observe_bootstrap.md
+  orient: prompts/orient_bootstrap.md
+  decide: prompts/decide_bootstrap.md
+  act: prompts/act_bootstrap.md
+  default_iterations: 1
 
 build:
   observe: prompts/observe_plan_specs_impl.md

@@ -1,10 +1,10 @@
-Read AGENTS.md first to understand:
+Study AGENTS.md first to understand:
 - What constitutes "specification" in this repository
 - What constitutes "implementation" in this repository
 - How to build and test
 
-Then observe:
-- PLAN.md (current state and next tasks)
+Then study:
+- PLAN.md (current state and most important task)
 - Specifications (per AGENTS.md definition)
 - Implementation (per AGENTS.md definition)
 

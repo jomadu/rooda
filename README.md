@@ -41,41 +41,58 @@ Exits when max iterations reached.
 ### Building Tasks (Task 1)
 
 1. **Observe** - Gather information from PLAN.md, AGENTS.md, specs, and implementation
-2. **Orient** - Understand task requirements and identify what needs to be built
-3. **Decide** - Pick highest priority task from PLAN.md, determine implementation approach, and identify AGENTS.md updates
-4. **Act** - Implement task, run quality checks per AGENTS.md, update PLAN.md and AGENTS.md, commit when passing
+2. **Orient** - Understand task requirements, search codebase (don't assume not implemented), identify what needs to be built
+3. **Decide** - Pick most important task from PLAN.md, determine implementation approach using parallel subagents, identify AGENTS.md updates
+4. **Act** - Implement using parallel subagents (only 1 for build/tests), run tests (backpressure), update PLAN.md and AGENTS.md, commit when passing
 
 ## Task Types
 
 The methodology supports multiple task types through prompt composition:
 
+0. **Bootstrap** - Create AGENTS.md operational guide
+   - Studies repository structure, tech stack, build files
+   - Determines what constitutes "specification" vs "implementation"
+   - Identifies build/test/run commands empirically
+   - Run first if AGENTS.md doesn't exist
+
 1. **Building from plan** - Implement tasks from PLAN.md
    - Only task type that modifies implementation code
+   - Uses parallel subagents (only 1 for build/tests)
    - Backpressure from tests ensures correctness
 
 2. **Plan spec-to-impl** - Create plan to make implementation match specifications
    - Gap analysis: what's in specs but not in code
+   - Searches codebase (don't assume not implemented)
 
 3. **Plan impl-to-spec** - Create plan to make specifications match implementation
    - Gap analysis: what's in code but not in specs
+   - Searches codebase thoroughly
 
 4. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
-   - Orient applies boolean criteria (e.g. clarity, completeness, consistency, testability, human markers)
+   - Orient applies boolean criteria (clarity, completeness, consistency, testability, human markers)
    - Triggers on threshold failures
    - Proposes refactoring in PLAN.md, doesn't execute
 
 5. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
-   - Orient applies boolean criteria (e.g. cohesion, coupling, complexity, maintainability, human markers)
+   - Orient applies boolean criteria (cohesion, coupling, complexity, maintainability, human markers)
    - Triggers on threshold failures
    - Proposes refactoring in PLAN.md, doesn't execute
 
 ## Key Principles
 
 ### Composable Prompts
-- Minimal yet complete set of prompt variants per phase
+- Minimal yet complete set of prompt variants per phase (15 files total)
 - Most variants in observe (different data sources) and orient (different analysis types)
 - Decide/act more stable across task types
 - Same orient variant can be reused with different observe inputs
+
+### Ralph Loop Language Patterns
+- "study" not "read" - Active, intentional engagement
+- "don't assume not implemented" - Critical Achilles' heel, always search first
+- "using parallel subagents" - Main agent as scheduler (only 1 for build/tests)
+- "capture the why, keep it up to date" - AGENTS.md learnings
+- "most important task" - Priority-driven execution
+- "tight tasks" - 1 task per loop = 100% smart zone utilization
 
 ### File-Based State
 
@@ -98,11 +115,11 @@ The methodology supports multiple task types through prompt composition:
 - Acceptance criteria define backpressure for act phase
 - Implementation Mapping bridges specs ↔ code for gap analysis
 
-**prompts/** - OODA phase component library
-- `prompts/observe_*.md` - Different observation sources
-- `prompts/orient_*.md` - Different analysis types
-- `prompts/decide_*.md` - Different decision strategies
-- `prompts/act_*.md` - Different execution modes
+**prompts/** - OODA phase component library (15 files)
+- `prompts/observe_*.md` - Different observation sources (4 variants)
+- `prompts/orient_*.md` - Different analysis types (4 variants)
+- `prompts/decide_*.md` - Different decision strategies (4 variants)
+- `prompts/act_*.md` - Different execution modes (3 variants)
 
 ## Sample Repository Structure
 
@@ -111,16 +128,22 @@ project-root/
 ├── ooda.sh                    # Loop script
 ├── AGENTS.md                  # Operational guide (generated/verified by orient)
 ├── PLAN.md                    # Task list and progress (generated/updated by act)
-├── prompts/                   # OODA phase components
+├── prompts/                   # OODA phase components (15 files)
+│   ├── observe_bootstrap.md
+│   ├── observe_plan_specs_impl.md
 │   ├── observe_specs.md
-│   ├── observe_implementation.md
-│   ├── observe_gaps.md
-│   ├── orient_gap_analysis.md
-│   ├── orient_refactoring.md
-│   ├── decide_planning.md
-│   ├── decide_building.md
-│   ├── act_plan.md
-│   └── act_build.md
+│   ├── observe_impl.md
+│   ├── orient_bootstrap.md
+│   ├── orient_build.md
+│   ├── orient_gap.md
+│   ├── orient_quality.md
+│   ├── decide_bootstrap.md
+│   ├── decide_build.md
+│   ├── decide_gap_plan.md
+│   ├── decide_refactor_plan.md
+│   ├── act_bootstrap.md
+│   ├── act_build.md
+│   └── act_plan.md
 ├── specs/                     # Requirements (if using spec-driven approach)
 │   ├── feature-a.md
 │   └── feature-b.md
