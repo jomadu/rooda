@@ -1,150 +1,358 @@
 # Ralph Wiggum OODA Loop
 
-An autonomous AI coding methodology using composable [OODA-based](ooda-loop.md) prompts to maintain fresh context across iterations.
+Autonomous AI coding that maintains fresh context across iterations using composable OODA prompts.
 
-## Core Concept
+Evolved from the [Ralph Loop](https://ghuntley.com/ralph/) by Geoff Huntley, applying the OODA framework to break monolithic prompts into composable components.
 
-Each loop iteration: **observe > orient > decide > act > clear context > repeat**
-
-Fresh context each iteration keeps the AI in its "smart zone" (40-60% context utilization). File-based memory (AGENTS.md, PLAN.md) persists learnings between iterations.
-
-This methodology evolved from the [Ralph Loop](ralph-loop.md) by Geoff Huntley. It applies the OODA framework to break the monolithic prompt into discrete phases, creating composable prompt components.
-
-## The Loop Mechanism
+## TL;DR
 
 ```bash
-./ooda.sh TASK-123 <procedure> \
-          [--max-iterations N]
+# 1. Bootstrap: create operational guide
+./ooda.sh TASK-123 bootstrap
+
+# 2. Work with agent to create tasks/TASK-123/STORY.md
+
+# 3. Plan: incorporate story into specs
+./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+
+# 4. Build: implement the specs
+./ooda.sh TASK-123 build --max-iterations 5
+
+# 5. Refactor implementation (new task)
+./ooda.sh TASK-456 plan-impl-refactor
+./ooda.sh TASK-456 build --max-iterations 5
+./ooda.sh TASK-456 plan-impl-to-spec
+./ooda.sh TASK-456 build --max-iterations 5
+
+# 6. Refactor specs (new task)
+./ooda.sh TASK-789 plan-spec-refactor
+./ooda.sh TASK-789 build --max-iterations 5
 ```
 
-Or with explicit prompt files:
+Each iteration clears context. File-based memory persists. AI stays in its "smart zone" (40-60% utilization) indefinitely.
+
+**What you get:** Autonomous coding without context degradation. Tests must pass before commit. Eventual consistency through iteration.
+
+## What You Get
+
+**8 Procedure Types**
+- Bootstrap your repository (creates operational guide)
+- Build from plan (only procedure that modifies code)
+- Gap analysis (spec ↔ implementation)
+- Quality assessment (refactoring triggers)
+- Story/bug incorporation (iterative convergence)
+
+**Composable Architecture**
+- Prompt files combine into 8 procedures
+- Same components reused in different combinations
+- Customize by editing prompts or creating new compositions
+
+**Built-in Quality Control**
+- Tests/lints reject invalid work (backpressure)
+- Boolean quality criteria trigger refactoring
+- "Don't assume not implemented" - always searches first
+- Parallel subagents (main agent as scheduler)
+
+## How It Works
+
+### The Loop
 
 ```bash
-./ooda.sh TASK-123 \
-          --observe prompts/observe_X.md \
-          --orient prompts/orient_Y.md \
-          --decide prompts/decide_Z.md \
-          --act prompts/act_W.md \
-          [--max-iterations N]
+./ooda.sh TASK-123 <procedure> [--max-iterations N]
 ```
 
-The script interpolates the 4 prompt components into a template and feeds it to an LLM agent. Each iteration:
-1. Loads prompt template with 4 OODA phase components
-2. Injects task-specific context (task ID, file paths)
-3. Agent executes observe > orient > decide > act
-4. Updates task files on disk
-5. Exits (context cleared)
+Each iteration:
+1. Loads 4 OODA prompt components (observe, orient, decide, act)
+2. Injects task context (task ID, file paths)
+3. Agent executes: **observe > orient > decide > act**
+4. Updates files on disk (PLAN.md, AGENTS.md, code)
+5. Exits - **context cleared**
 6. Loop restarts with fresh context
 
-Exits when max iterations reached.
+**Why fresh context?** LLMs degrade as context fills. 200K advertised ≈ 176K usable. At 40-60% utilization, quality stays high. Fresh context each iteration prevents degradation.
 
-## OODA Phase Responsibilities
+### OODA Phases
 
-### Planning Procedures (Procedures 2-7)
+**Observe** - Gather information
+- Study AGENTS.md (how to build/test, what is spec/implementation)
+- Study plan file, specs, implementation
+- Study story/bug file (if applicable)
 
-1. **Observe** - Gather information from specs, implementation, plan file, story/bug file (if applicable), and AGENTS.md
-2. **Orient** - Analyze observations using procedure-specific criteria and synthesize understanding
-3. **Decide** - Determine plan structure, priorities, tasks for plan file, and necessary AGENTS.md updates
-4. **Act** - Write the plan to plan file and update AGENTS.md
+**Orient** - Analyze and synthesize
+- Gap analysis (compare specs ↔ code)
+- Quality assessment (apply boolean criteria)
+- Understand task requirements
+- Search codebase (don't assume not implemented)
 
-### Building Procedures (Procedure 1)
+**Decide** - Determine course of action
+- Pick most important task from plan
+- Structure plan by priority
+- Determine implementation approach
+- Identify files to modify
 
-1. **Observe** - Gather information from plan file, AGENTS.md, specs, and implementation
-2. **Orient** - Understand task requirements, search codebase (don't assume not implemented), identify what needs to be built
-3. **Decide** - Pick most important task from plan file, determine implementation approach using parallel subagents, identify AGENTS.md updates
-4. **Act** - Implement using parallel subagents (only 1 for build/tests), run tests (backpressure), update plan file and AGENTS.md, commit when passing
+**Act** - Execute
+- Implement using parallel subagents (only 1 for build/tests)
+- Run tests (backpressure)
+- Write/update plan file
+- Update AGENTS.md (capture the why)
+- Commit when tests pass
 
-## Procedure Types
+### Example Iteration
 
-The methodology supports multiple procedure types through prompt composition:
+```bash
+./ooda.sh TASK-123 build
+```
 
-0. **Bootstrap** - Create AGENTS.md operational guide
-   - Studies repository structure, tech stack, build files
-   - Determines what constitutes "specification" vs "implementation"
-   - Identifies build/test/run commands empirically
-   - Run first if AGENTS.md doesn't exist
+1. **Observe:** Reads AGENTS.md, PLAN.md, specs/, src/
+2. **Orient:** "Most important task: implement user authentication. Search shows auth/ directory exists but missing password reset."
+3. **Decide:** "Implement password reset flow. Modify auth/reset.go, add tests."
+4. **Act:** Spawns subagent to implement, runs tests, updates PLAN.md, commits
+5. **Exit:** Context cleared
+6. **Loop:** Restarts, picks next task
 
-1. **Building from plan** - Implement tasks from plan file
-   - Only procedure type that modifies implementation code
-   - Uses parallel subagents (only 1 for build/tests)
-   - Backpressure from tests ensures correctness
+## The 8 Procedures
 
-2. **Plan spec-to-impl** - Create plan to make implementation match specifications
-   - Gap analysis: what's in specs but not in code
-   - Searches codebase (don't assume not implemented)
+### 0. Bootstrap
+**When:** First time in a repository, or AGENTS.md doesn't exist  
+**What:** Creates AGENTS.md operational guide  
+**Output:** AGENTS.md with build/test commands, spec/implementation definitions, quality criteria
 
-3. **Plan impl-to-spec** - Create plan to make specifications match implementation
-   - Gap analysis: what's in code but not in specs
-   - Searches codebase thoroughly
+```bash
+./ooda.sh TASK-123 bootstrap
+```
 
-4. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
-   - Orient applies boolean criteria (clarity, completeness, consistency, testability, human markers)
-   - Triggers on threshold failures
-   - Proposes refactoring in plan file, doesn't execute
+### 1. Build
+**When:** You have a plan and want to implement it  
+**What:** Implements tasks from PLAN.md (only procedure that modifies code)  
+**Output:** Code changes, test runs, updated PLAN.md
 
-5. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
-   - Orient applies boolean criteria (cohesion, coupling, complexity, maintainability, human markers)
-   - Triggers on threshold failures
-   - Proposes refactoring in plan file, doesn't execute
+```bash
+./ooda.sh TASK-123 build --max-iterations 5
+```
 
-6. **Plan story-to-spec** - Create plan to incorporate new story into specifications
-   - Iteratively converges on proper incorporation
-   - Analyzes story file and existing specs/implementation
-   - Each iteration critiques and improves the plan
-   - Runs until plan stabilizes or max iterations reached
+### 2. Plan Spec-to-Impl
+**When:** You have specs and want a plan to implement them  
+**What:** Gap analysis - what's in specs but not in code  
+**Output:** PLAN.md with prioritized implementation tasks
 
-7. **Plan bug-to-spec** - Create plan to adjust specs to drive bug fix
-   - Analyzes bug symptoms and root cause
-   - Determines spec adjustments needed (acceptance criteria, edge cases, clarifications)
-   - Focuses on preventing bug recurrence through better specs
-   - Runs until plan stabilizes or max iterations reached
+```bash
+./ooda.sh TASK-123 plan-spec-to-impl
+```
 
-## Key Principles
+### 3. Plan Impl-to-Spec
+**When:** You have code and want specs to document it  
+**What:** Gap analysis - what's in code but not in specs  
+**Output:** PLAN.md with prioritized documentation tasks
 
-### Composable Prompts
-- Minimal yet complete set of prompt variants per phase (21 files total)
-- Most variants in observe (different data sources) and orient (different analysis types)
-- Decide/act more stable across task types
-- Same orient variant can be reused with different observe inputs
-- See [prompts/README.md](prompts/README.md) for detailed breakdown
+```bash
+./ooda.sh TASK-123 plan-impl-to-spec
+```
 
-### Ralph Loop Language Patterns
-- "study" not "read" - Active, intentional engagement
-- "don't assume not implemented" - Critical Achilles' heel, always search first
-- "using parallel subagents" - Main agent as scheduler (only 1 for build/tests)
-- "capture the why, keep it up to date" - AGENTS.md learnings
-- "most important task" - Priority-driven execution
-- "tight tasks" - 1 task per loop = 100% smart zone utilization
+### 4. Plan Spec Refactoring
+**When:** Your specs feel unclear or incomplete  
+**What:** Quality assessment using boolean criteria (clarity, completeness, consistency, testability)  
+**Output:** PLAN.md with spec refactoring tasks (if criteria fail threshold)
 
-### File-Based State
+```bash
+./ooda.sh TASK-123 plan-spec-refactor
+```
 
-**AGENTS.md** - Operational guide for the repository
-- How to build/run/test the project
-- Definition of what constitutes "specification" vs "implementation"
-- Created by orient phase if missing
-- Assumed inaccurate/incomplete until verified empirically
-- Updated in the case of discovered errors
+### 5. Plan Impl Refactoring
+**When:** Your code feels messy or hard to maintain  
+**What:** Quality assessment using boolean criteria (cohesion, coupling, complexity, maintainability)  
+**Output:** PLAN.md with implementation refactoring tasks (if criteria fail threshold)
 
-**tasks/{task-id}/** - Task-specific working directory
+```bash
+./ooda.sh TASK-123 plan-impl-refactor
+```
+
+### 6. Plan Story-to-Spec
+**When:** You have a new feature/story to incorporate  
+**What:** Iteratively converges on how to incorporate story into specs  
+**Output:** PLAN.md with tasks to update/create specs
+
+```bash
+# Create tasks/TASK-123/STORY.md first
+./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+```
+
+### 7. Plan Bug-to-Spec
+**When:** You have a bug and want specs to drive the fix  
+**What:** Determines spec adjustments needed (acceptance criteria, edge cases)  
+**Output:** PLAN.md with spec changes to prevent bug recurrence
+
+```bash
+# Create tasks/TASK-123/BUG.md first
+./ooda.sh TASK-123 plan-bug-to-spec --max-iterations 3
+```
+
+## File-Based State
+
+### AGENTS.md
+Operational guide for the repository. Created by bootstrap, updated by all procedures.
+
+**Contains:**
+- How to build/run/test (specific commands)
+- What constitutes "specification" (file paths/patterns)
+- What constitutes "implementation" (file paths/patterns)
+- Quality criteria definitions
+
+**Philosophy:** Assumed inaccurate until verified empirically. Updated when errors discovered.
+
+### tasks/{task-id}/
+
+Task-specific working directory.
+
+**Files:**
 - `PLAN.md` - Prioritized task list and progress tracking
-- `STORY.md` - Story/feature description (for feature work)
-- `BUG.md` - Bug description (for bug fixes)
-- Generated and updated by act phase
-- Assumed inaccurate until verified empirically
-- Updated in the case of discovered errors
+- `STORY.md` - Feature description (optional, for procedure 6)
+- `BUG.md` - Bug description (optional, for procedure 7)
 
-**specs/** - Specification documents (optional, see [specs.md](specs.md))
+**Philosophy:** Generated and updated by act phase. Assumed inaccurate until verified. Disposable - regenerate if trajectory goes wrong.
+
+### specs/
+
+Specification documents (optional, see [specs.md](specs.md)).
+
+**Structure:**
 - One spec per topic of concern using [spec-template.md](spec-template.md)
 - Source of truth for requirements
 - Acceptance criteria define backpressure for act phase
-- Implementation Mapping bridges specs ↔ code for gap analysis
+- Implementation Mapping bridges specs ↔ code
 
-**prompts/** - OODA phase component library (21 files)
-- `prompts/observe_*.md` - Different observation sources (6 variants)
-- `prompts/orient_*.md` - Different analysis types (6 variants)
-- `prompts/decide_*.md` - Different decision strategies (6 variants)
-- `prompts/act_*.md` - Different execution modes (3 variants)
-- The loop script injects task-specific file paths into prompts
+### prompts/
+
+OODA phase component library.
+
+**Organization:**
+- `observe_*.md` - Different data sources
+- `orient_*.md` - Different analysis types
+- `decide_*.md` - Different decision strategies
+- `act_*.md` - Different execution modes
+
+**Composition:** See [prompts/README.md](prompts/README.md) for how these combine into procedures.
+
+## Composable Architecture
+
+### How Procedures Compose
+
+Each procedure = observe + orient + decide + act prompt files
+
+**Example: Build procedure**
+```yaml
+build:
+  observe: prompts/observe_plan_specs_impl.md
+  orient: prompts/orient_build.md
+  decide: prompts/decide_build.md
+  act: prompts/act_build.md
+```
+
+**Reuse:** Same `observe_plan_specs_impl.md` used by build, plan-spec-to-impl, and plan-impl-to-spec procedures. Different orient/decide/act create different behaviors.
+
+### Custom Procedures
+
+Create your own by editing `ooda-procedures.yml`:
+
+```yaml
+my-custom-procedure:
+  observe: prompts/observe_specs.md
+  orient: prompts/orient_quality.md
+  decide: prompts/decide_refactor_plan.md
+  act: prompts/act_plan.md
+  default_iterations: 1
+```
+
+Or specify prompts directly:
+
+```bash
+./ooda.sh TASK-123 \
+  --observe prompts/observe_specs.md \
+  --orient prompts/orient_gap.md \
+  --decide prompts/decide_gap_plan.md \
+  --act prompts/act_plan.md \
+  --max-iterations 1
+```
+
+### The Prompt Files
+
+**Observe**
+1. `observe_bootstrap.md` - Repository structure, docs, patterns
+2. `observe_plan_specs_impl.md` - AGENTS.md + plan + specs + implementation
+3. `observe_specs.md` - AGENTS.md + specs only
+4. `observe_impl.md` - AGENTS.md + implementation only
+5. `observe_story_specs_impl.md` - AGENTS.md + story + plan + specs + implementation
+6. `observe_bug_specs_impl.md` - AGENTS.md + bug + plan + specs + implementation
+
+**Orient**
+1. `orient_bootstrap.md` - Identify project type, determine definitions
+2. `orient_build.md` - Understand task, identify what to build
+3. `orient_gap.md` - Compare sources, identify gaps
+4. `orient_quality.md` - Apply criteria, score PASS/FAIL
+5. `orient_story_incorporation.md` - Analyze story, determine incorporation strategy
+6. `orient_bug_incorporation.md` - Analyze bug, determine spec adjustments
+
+**Decide**
+1. `decide_bootstrap.md` - Determine AGENTS.md structure
+2. `decide_build.md` - Pick task, determine approach
+3. `decide_gap_plan.md` - Structure plan, break gaps into tasks
+4. `decide_refactor_plan.md` - Propose refactoring if threshold fails
+5. `decide_story_plan.md` - Generate plan for story incorporation
+6. `decide_bug_plan.md` - Generate plan for spec adjustments
+
+**Act**
+1. `act_bootstrap.md` - Create AGENTS.md, commit
+2. `act_build.md` - Implement, test, update files, commit if passing
+3. `act_plan.md` - Write plan file, update AGENTS.md, commit
+
+## Key Principles
+
+### Ralph Loop Language Patterns
+
+These specific phrases matter (from [Ralph Loop](ralph-loop.md) by Geoff Huntley):
+
+- **"study" not "read"** - Active, intentional engagement with code
+- **"don't assume not implemented"** - Critical Achilles' heel. Always search codebase first
+- **"using parallel subagents"** - Main agent as scheduler, subagents do work
+- **"only 1 subagent for build/tests"** - Prevents parallel test conflicts
+- **"capture the why, keep it up to date"** - AGENTS.md stores learnings and rationale
+- **"most important task"** - Priority-driven execution, not sequential
+- **"tight tasks"** - 1 task per loop = 100% smart zone utilization
+
+### Context Management
+
+- 200K tokens advertised ≈ 176K usable
+- 40-60% utilization = "smart zone" (high quality output)
+- Fresh context each iteration prevents degradation
+- Main agent as scheduler, spawn subagents for parallel work
+- Tight tasks (1 per loop) maximize smart zone utilization
+
+### Steering via Backpressure
+
+**Downstream (in act phase):**
+- Tests must pass before commit
+- Lints, type checks reject invalid work
+- Build failures prevent progression
+
+**Upstream (in orient phase):**
+- Boolean quality criteria (PASS/FAIL scoring)
+- Refactoring triggers when criteria fail threshold
+- Existing code patterns guide generation
+
+**Result:** Eventual consistency through iteration. System self-corrects.
+
+### Refactoring Triggers
+
+Orient phase applies boolean criteria:
+
+**For specs:** clarity, completeness, consistency, testability  
+**For implementation:** cohesion, coupling, complexity, maintainability
+
+Each criterion scored PASS or FAIL. When threshold fails, decide/act write refactoring proposal to PLAN.md. Future build iteration executes it.
+
+**Human markers also trigger refactoring:**
+- TODOs, "REFACTORME" comments
+- Unclear language in specs
+- Long functions, code smells in implementation
 
 ## Sample Repository Structure
 
@@ -163,7 +371,7 @@ project-root/
 │   ├── orient_*.md            # Analysis variants
 │   ├── decide_*.md            # Decision variants
 │   └── act_*.md               # Execution variants
-├── specs/                     # Requirements (if using spec-driven approach)
+├── specs/                     # Requirements (optional)
 │   ├── README.md              # Index of JTBDs, topics, and specs
 │   ├── TEMPLATE.md            # Template for new specs
 │   └── topic-name.md          # One spec per topic of concern
@@ -171,52 +379,68 @@ project-root/
     └── ...
 ```
 
-### Context Management
-- 200K tokens advertised ≈ 176K usable
-- 40-60% utilization = "smart zone"
-- Fresh context each iteration prevents degradation
-- Use main agent as scheduler, spawn subagents for parallel work
+## Safety
 
-### Steering via Backpressure
-- Tests, lints, type checks reject invalid work (in act phase)
-- Refactoring criteria provide quality gates (in orient phase)
-- Existing code patterns guide generation
-- Eventual consistency through iteration
+Requires `--dangerously-skip-permissions` to run autonomously (bypasses all permission prompts).
 
-### Refactoring Triggers
-Boolean criteria scored as PASS/FAIL in orient phase:
-- Quality metrics (cohesion, coupling, complexity, completeness, etc)
-- Human markers (TODOs, comments, "REFACTORME", spec phrases)
-- Custom criteria defined in prompt variants
+**Run in isolated sandbox environments:**
+- Docker containers (local)
+- Fly Sprites / E2B (remote)
+- Minimum viable access (only needed API keys)
+- No access to private data beyond requirements
 
-When criteria fail threshold, decide/act write refactoring proposal to plan file. Future iteration with building task executes it.
+**Philosophy:** "It's not if it gets popped, it's when. And what is the blast radius?"
+
+Limit blast radius through isolation, not through hoping the AI won't do something bad.
+
+## Troubleshooting
+
+### Escape Hatches
+
+- **Max iterations** - Prevents infinite loops (`--max-iterations N`)
+- **Ctrl+C** - Stops the loop immediately
+- **`git reset --hard`** - Reverts uncommitted changes
+- **Regenerate plan** - If trajectory goes wrong, delete PLAN.md and run planning procedure again
+
+### Common Issues
+
+**"Agent keeps implementing the same thing"**
+- Check PLAN.md - is it being updated?
+- Check AGENTS.md - does it define implementation locations correctly?
+- Run bootstrap again to regenerate AGENTS.md
+
+**"Tests keep failing"**
+- Check AGENTS.md - are test commands correct?
+- Run tests manually to verify they work
+- Update AGENTS.md with correct commands
+
+**"Agent doesn't find existing code"**
+- This is the Achilles' heel: "don't assume not implemented"
+- Check orient prompts - do they emphasize searching?
+- Add explicit search instructions to AGENTS.md
+
+**"Plan goes off track"**
+- Delete PLAN.md
+- Run planning procedure again (cheap to regenerate)
+- Adjust specs if needed
 
 ## Why It Works
 
 1. **Fresh context** - No degradation from context pollution
 2. **Composable prompts** - Reusable components for different task types
 3. **OODA framework** - Clear separation of concerns across phases
-4. **File-based state** - Plan file and AGENTS.md persist learnings
+4. **File-based state** - PLAN.md and AGENTS.md persist learnings
 5. **Backpressure** - Tests and criteria force correctness
 6. **Eventual consistency** - Iteration converges to solution
 7. **Simplicity** - Bash loop, prompt interpolation, file I/O
 
-## Safety
+## Learn More
 
-Requires `--dangerously-skip-permissions` to run autonomously. Run in isolated sandbox environments:
-- Docker containers (local)
-- Fly Sprites / E2B (remote)
-- Minimum viable access (only needed API keys)
-- No access to private data beyond requirements
-
-Philosophy: "It's not if it gets popped, it's when. And what is the blast radius?"
-
-## Escape Hatches
-
-- Max iterations prevents infinite loops
-- Ctrl+C stops the loop
-- `git reset --hard` reverts uncommitted changes
-- Regenerate plan file if trajectory goes wrong
+- [OODA Loop](ooda-loop.md) - The decision-making framework
+- [Ralph Loop](ralph-loop.md) - Original methodology by Geoff Huntley
+- [Specs System](specs.md) - How to structure specifications
+- [Spec Template](spec-template.md) - Template for new specs
+- [Prompts README](prompts/README.md) - Detailed prompt composition breakdown
 
 ---
 
