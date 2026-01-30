@@ -10,7 +10,7 @@ Evolved from the [Ralph Loop](https://ghuntley.com/ralph/) by Geoff Huntley, app
 # 1. Bootstrap: create operational guide
 ./ooda.sh TASK-123 bootstrap
 
-# 2. Work with agent to create tasks/TASK-123/STORY.md
+# 2. Work with agent to create tasks/TASK-123/TASK.md
 
 # 3. Plan: incorporate story into specs
 ./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
@@ -172,7 +172,7 @@ Each iteration:
 **Output:** PLAN.md with tasks to update/create specs
 
 ```bash
-# Create tasks/TASK-123/STORY.md first
+# Create tasks/TASK-123/TASK.md first
 ./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
 ```
 
@@ -182,7 +182,7 @@ Each iteration:
 **Output:** PLAN.md with spec changes to prevent bug recurrence
 
 ```bash
-# Create tasks/TASK-123/BUG.md first
+# Create tasks/TASK-123/TASK.md first
 ./ooda.sh TASK-123 plan-bug-to-spec --max-iterations 3
 ```
 
@@ -205,8 +205,7 @@ Task-specific working directory.
 
 **Files:**
 - `PLAN.md` - Prioritized task list and progress tracking
-- `STORY.md` - Feature description (optional, for procedure 6)
-- `BUG.md` - Bug description (optional, for procedure 7)
+- `TASK.md` - Task description (optional, for story/bug procedures)
 
 **Philosophy:** Generated and updated by act phase. Assumed inaccurate until verified. Disposable - regenerate if trajectory goes wrong.
 
@@ -251,15 +250,23 @@ build:
 
 ### Custom Procedures
 
-Create your own by editing `ooda-procedures.yml`:
+Create your own by editing `ooda-config.yml`:
 
 ```yaml
-my-custom-procedure:
-  observe: prompts/observe_specs.md
-  orient: prompts/orient_quality.md
-  decide: prompts/decide_refactor_plan.md
-  act: prompts/act_plan.md
-  default_iterations: 1
+# Add custom file path patterns
+paths:
+  task_dir: "tasks/{task-id}"
+  task_file: "{task_dir}/TASK.md"
+  plan_file: "{task_dir}/PLAN.md"
+
+# Add custom procedures
+procedures:
+  my-custom-procedure:
+    observe: prompts/observe_specs.md
+    orient: prompts/orient_quality.md
+    decide: prompts/decide_refactor_plan.md
+    act: prompts/act_plan.md
+    default_iterations: 1
 ```
 
 Or specify prompts directly:
@@ -359,13 +366,12 @@ Each criterion scored PASS or FAIL. When threshold fails, decide/act write refac
 ```
 project-root/
 ├── ooda.sh                    # Loop script
-├── ooda-procedures.yml        # Procedure compositions
+├── ooda-config.yml            # File paths and procedure compositions
 ├── AGENTS.md                  # Operational guide
 ├── tasks/                     # Task-specific working directories
 │   └── {task-id}/
 │       ├── PLAN.md            # Task list and progress
-│       ├── STORY.md           # Story/feature description (optional)
-│       └── BUG.md             # Bug description (optional)
+│       └── TASK.md            # Task description (optional)
 ├── prompts/                   # OODA phase components
 │   ├── observe_*.md           # Observation variants
 │   ├── orient_*.md            # Analysis variants

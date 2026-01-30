@@ -258,7 +258,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study story file in task directory (the feature to be incorporated)
+- Study task file in task directory (the feature/story to be incorporated)
 - Study plan file in task directory (current plan state - may not exist on first iteration)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
@@ -287,7 +287,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study bug file in task directory (the bug to be addressed)
+- Study task file in task directory (the bug to be addressed)
 - Study plan file in task directory (current plan state - may not exist on first iteration)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
@@ -319,24 +319,24 @@
 2. `observe_plan_specs_impl.md` - AGENTS.md + plan file + specifications + implementation
 3. `observe_specs.md` - AGENTS.md + specifications
 4. `observe_impl.md` - AGENTS.md + implementation
-5. `observe_story_specs_impl.md` - AGENTS.md + story file + plan file + specifications + implementation
-6. `observe_bug_specs_impl.md` - AGENTS.md + bug file + plan file + specifications + implementation
+5. `observe_story_task_specs_impl.md` - AGENTS.md + task file + plan file + specifications + implementation
+6. `observe_bug_task_specs_impl.md` - AGENTS.md + task file + plan file + specifications + implementation
 
 **ORIENT (6 variants)**
 1. `orient_bootstrap.md` - Identify project type, determine definitions, synthesize understanding
 2. `orient_build.md` - Understand task, identify what to build
 3. `orient_gap.md` - Compare sources, identify gaps, assess completeness/accuracy
 4. `orient_quality.md` - Apply criteria, identify markers, score PASS/FAIL
-5. `orient_story_incorporation.md` - Analyze story, determine incorporation strategy, critique existing plan
-6. `orient_bug_incorporation.md` - Analyze bug, determine spec adjustments to drive fix, critique existing plan
+5. `orient_story_task_incorporation.md` - Analyze story/task, determine incorporation strategy, critique existing plan
+6. `orient_bug_task_incorporation.md` - Analyze bug/task, determine spec adjustments to drive fix, critique existing plan
 
 **DECIDE (6 variants)**
 1. `decide_bootstrap.md` - Determine AGENTS.md structure and content
 2. `decide_build.md` - Pick task, determine approach, identify files
 3. `decide_gap_plan.md` - Structure plan, break gaps into tasks, determine dependencies/updates
 4. `decide_refactor_plan.md` - If threshold fails: propose refactoring, structure plan, prioritize
-5. `decide_story_plan.md` - Generate complete plan for story incorporation, structure by priority
-6. `decide_bug_plan.md` - Generate complete plan for spec adjustments to drive bug fix, structure by priority
+5. `decide_story_task_plan.md` - Generate complete plan for story/task incorporation, structure by priority
+6. `decide_bug_task_plan.md` - Generate complete plan for spec adjustments to drive bug fix, structure by priority
 
 **ACT (3 variants)**
 1. `act_bootstrap.md` - Create AGENTS.md, commit
@@ -357,8 +357,8 @@
 | 3. Plan impl-to-spec | plan_specs_impl | gap | gap_plan | plan |
 | 4. Plan spec refactoring | specs | quality | refactor_plan | plan |
 | 5. Plan impl refactoring | impl | quality | refactor_plan | plan |
-| 6. Plan story-to-spec | story_specs_impl | story_incorporation | story_plan | plan |
-| 7. Plan bug-to-spec | bug_specs_impl | bug_incorporation | bug_plan | plan |
+| 6. Plan story-to-spec | story_task_specs_impl | story_task_incorporation | story_task_plan | plan |
+| 7. Plan bug-to-spec | bug_task_specs_impl | bug_task_incorporation | bug_task_plan | plan |
 
 ---
 

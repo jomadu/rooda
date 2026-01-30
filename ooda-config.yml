@@ -1,5 +1,14 @@
-# OODA Procedure Compositions
-# Usage: ./ooda.sh <task-id> <procedure> [--max-iterations N]
+# OODA Configuration
+# Defines file path patterns and procedure compositions
+
+# File path patterns (support {task-id} interpolation)
+paths:
+  task_dir: "tasks/{task-id}"           # Base directory for task files
+  task_file: "{task_dir}/TASK.md"       # Task description (story/bug/feature)
+  plan_file: "{task_dir}/PLAN.md"       # Implementation plan
+
+# Procedure compositions (OODA phase combinations)
+procedures:
 
 bootstrap:
   observe: prompts/observe_bootstrap.md
@@ -44,15 +53,15 @@ plan-impl-refactor:
   default_iterations: 1
 
 plan-story-to-spec:
-  observe: prompts/observe_story_specs_impl.md
-  orient: prompts/orient_story_incorporation.md
-  decide: prompts/decide_story_plan.md
+  observe: prompts/observe_story_task_specs_impl.md
+  orient: prompts/orient_story_task_incorporation.md
+  decide: prompts/decide_story_task_plan.md
   act: prompts/act_plan.md
   default_iterations: 5
 
 plan-bug-to-spec:
-  observe: prompts/observe_bug_specs_impl.md
-  orient: prompts/orient_bug_incorporation.md
-  decide: prompts/decide_bug_plan.md
+  observe: prompts/observe_bug_task_specs_impl.md
+  orient: prompts/orient_bug_task_incorporation.md
+  decide: prompts/decide_bug_task_plan.md
   act: prompts/act_plan.md
   default_iterations: 3
