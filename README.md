@@ -60,29 +60,29 @@ The methodology supports multiple task types through prompt composition:
    - Uses parallel subagents (only 1 for build/tests)
    - Backpressure from tests ensures correctness
 
-2. **Plan spec-to-impl** - Create plan to make implementation match specifications
-   - Gap analysis: what's in specs but not in code
-   - Searches codebase (don't assume not implemented)
-
-3. **Plan impl-to-spec** - Create plan to make specifications match implementation
-   - Gap analysis: what's in code but not in specs
-   - Searches codebase thoroughly
-
-4. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
-   - Orient applies boolean criteria (clarity, completeness, consistency, testability, human markers)
-   - Triggers on threshold failures
-   - Proposes refactoring in PLAN.md, doesn't execute
-
-5. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
-   - Orient applies boolean criteria (cohesion, coupling, complexity, maintainability, human markers)
-   - Triggers on threshold failures
-   - Proposes refactoring in PLAN.md, doesn't execute
-
-6. **Plan feature-to-spec** - Create plan to incorporate new feature into specifications
+2. **Plan feature-to-spec** - Create plan to incorporate new feature into specifications
    - Iteratively converges on proper feature incorporation
    - Analyzes FEATURE.md and existing specs/implementation
    - Each iteration critiques and improves the plan
    - Runs until plan stabilizes or max iterations reached
+
+3. **Plan spec-to-impl** - Create plan to make implementation match specifications
+   - Gap analysis: what's in specs but not in code
+   - Searches codebase (don't assume not implemented)
+
+4. **Plan impl-to-spec** - Create plan to make specifications match implementation
+   - Gap analysis: what's in code but not in specs
+   - Searches codebase thoroughly
+
+5. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
+   - Orient applies boolean criteria (clarity, completeness, consistency, testability, human markers)
+   - Triggers on threshold failures
+   - Proposes refactoring in PLAN.md, doesn't execute
+
+6. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
+   - Orient applies boolean criteria (cohesion, coupling, complexity, maintainability, human markers)
+   - Triggers on threshold failures
+   - Proposes refactoring in PLAN.md, doesn't execute
 
 ## Key Principles
 
