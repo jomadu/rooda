@@ -1,5 +1,5 @@
-# OODA Task Compositions
-# Usage: ./ooda.sh <task> [--max-iterations N]
+# OODA Procedure Compositions
+# Usage: ./ooda.sh <procedure> --task <task-id> [--max-iterations N]
 
 bootstrap:
   observe: prompts/observe_bootstrap.md
@@ -43,9 +43,16 @@ plan-impl-refactor:
   act: prompts/act_plan.md
   default_iterations: 1
 
-plan-feature-to-spec:
-  observe: prompts/observe_feature_specs_impl.md
-  orient: prompts/orient_feature_incorporation.md
-  decide: prompts/decide_feature_plan.md
+plan-story-to-spec:
+  observe: prompts/observe_story_specs_impl.md
+  orient: prompts/orient_story_incorporation.md
+  decide: prompts/decide_story_plan.md
   act: prompts/act_plan.md
   default_iterations: 5
+
+plan-bug-to-spec:
+  observe: prompts/observe_bug_specs_impl.md
+  orient: prompts/orient_bug_incorporation.md
+  decide: prompts/decide_bug_plan.md
+  act: prompts/act_plan.md
+  default_iterations: 3

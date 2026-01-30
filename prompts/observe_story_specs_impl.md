@@ -3,9 +3,9 @@ Study AGENTS.md first to understand:
 - What constitutes "implementation" in this repository
 
 Then study:
-- Feature file (the feature to be incorporated)
-- Plan file (current plan state - may not exist on first iteration)
+- Story file in the task directory (the feature to be incorporated)
+- Plan file in the task directory (current plan state - may not exist on first iteration)
 - Specifications (per AGENTS.md definition)
 - Implementation (per AGENTS.md definition - file tree and symbols)
 
-Focus on gathering information needed to understand the feature and how it should be incorporated into the specs.
+Focus on gathering information needed to understand the story and how it should be incorporated into the specs.
