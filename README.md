@@ -33,17 +33,17 @@ Exits when max iterations reached.
 
 ### Planning Tasks (Tasks 2-6)
 
-1. **Observe** - Gather information from specs, implementation, PLAN.md, FEATURE.md (if applicable), and AGENTS.md
+1. **Observe** - Gather information from specs, implementation, plan file, feature file (if applicable), and AGENTS.md
 2. **Orient** - Analyze observations using task-specific criteria and synthesize understanding
-3. **Decide** - Determine plan structure, priorities, tasks for PLAN.md, and necessary AGENTS.md updates
-4. **Act** - Write the plan to PLAN.md and update AGENTS.md
+3. **Decide** - Determine plan structure, priorities, tasks for plan file, and necessary AGENTS.md updates
+4. **Act** - Write the plan to plan file and update AGENTS.md
 
 ### Building Tasks (Task 1)
 
-1. **Observe** - Gather information from PLAN.md, AGENTS.md, specs, and implementation
+1. **Observe** - Gather information from plan file, AGENTS.md, specs, and implementation
 2. **Orient** - Understand task requirements, search codebase (don't assume not implemented), identify what needs to be built
-3. **Decide** - Pick most important task from PLAN.md, determine implementation approach using parallel subagents, identify AGENTS.md updates
-4. **Act** - Implement using parallel subagents (only 1 for build/tests), run tests (backpressure), update PLAN.md and AGENTS.md, commit when passing
+3. **Decide** - Pick most important task from plan file, determine implementation approach using parallel subagents, identify AGENTS.md updates
+4. **Act** - Implement using parallel subagents (only 1 for build/tests), run tests (backpressure), update plan file and AGENTS.md, commit when passing
 
 ## Task Types
 
@@ -55,14 +55,14 @@ The methodology supports multiple task types through prompt composition:
    - Identifies build/test/run commands empirically
    - Run first if AGENTS.md doesn't exist
 
-1. **Building from plan** - Implement tasks from PLAN.md
+1. **Building from plan** - Implement tasks from plan file
    - Only task type that modifies implementation code
    - Uses parallel subagents (only 1 for build/tests)
    - Backpressure from tests ensures correctness
 
 2. **Plan feature-to-spec** - Create plan to incorporate new feature into specifications
    - Iteratively converges on proper feature incorporation
-   - Analyzes FEATURE.md and existing specs/implementation
+   - Analyzes feature file and existing specs/implementation
    - Each iteration critiques and improves the plan
    - Runs until plan stabilizes or max iterations reached
 
@@ -77,12 +77,12 @@ The methodology supports multiple task types through prompt composition:
 5. **Plan spec refactoring** - Create plan to refactor specs out of local optimums
    - Orient applies boolean criteria (clarity, completeness, consistency, testability, human markers)
    - Triggers on threshold failures
-   - Proposes refactoring in PLAN.md, doesn't execute
+   - Proposes refactoring in plan file, doesn't execute
 
 6. **Plan impl refactoring** - Create plan to refactor implementation out of local optimums
    - Orient applies boolean criteria (cohesion, coupling, complexity, maintainability, human markers)
    - Triggers on threshold failures
-   - Proposes refactoring in PLAN.md, doesn't execute
+   - Proposes refactoring in plan file, doesn't execute
 
 ## Key Principles
 
@@ -115,10 +115,12 @@ The methodology supports multiple task types through prompt composition:
 - Can contain refactoring proposals with criteria scores
 - Assumed inaccurate until verified empirically
 - Updated in the case of discovered errors
+- Branch-specific: `PLAN-{branch-name}.md` to avoid merge conflicts
 
 **FEATURE.md** - New feature description (optional)
 - Created through human conversation with agent
 - Used by plan-feature-to-spec task to incorporate features into specs
+- Branch-specific: `FEATURE-{branch-name}.md` to avoid merge conflicts
 - Lives at repository root
 
 **specs/** - Specification documents (optional, see [specs.md](specs.md))
@@ -132,6 +134,7 @@ The methodology supports multiple task types through prompt composition:
 - `prompts/orient_*.md` - Different analysis types (5 variants)
 - `prompts/decide_*.md` - Different decision strategies (5 variants)
 - `prompts/act_*.md` - Different execution modes (3 variants)
+- The loop script injects branch-specific file names (plan file, feature file) into prompts
 
 ## Sample Repository Structure
 
@@ -140,8 +143,8 @@ project-root/
 ├── ooda.sh                    # Loop script
 ├── ooda-tasks.yml             # Task compositions
 ├── AGENTS.md                  # Operational guide
-├── PLAN.md                    # Task list and progress (gitignored)
-├── FEATURE.md                 # New feature description (optional, gitignored)
+├── PLAN-{branch}.md           # Task list and progress (branch-specific)
+├── FEATURE-{branch}.md        # New feature description (optional, branch-specific)
 ├── prompts/                   # OODA phase components
 │   ├── observe_*.md           # Observation variants
 │   ├── orient_*.md            # Analysis variants
@@ -173,14 +176,14 @@ Boolean criteria scored as PASS/FAIL in orient phase:
 - Human markers (TODOs, comments, "REFACTORME", spec phrases)
 - Custom criteria defined in prompt variants
 
-When criteria fail threshold, decide/act write refactoring proposal to PLAN.md. Future iteration with building task executes it.
+When criteria fail threshold, decide/act write refactoring proposal to plan file. Future iteration with building task executes it.
 
 ## Why It Works
 
 1. **Fresh context** - No degradation from context pollution
 2. **Composable prompts** - Reusable components for different task types
 3. **OODA framework** - Clear separation of concerns across phases
-4. **File-based state** - PLAN.md and AGENTS.md persist learnings
+4. **File-based state** - Plan file and AGENTS.md persist learnings
 5. **Backpressure** - Tests and criteria force correctness
 6. **Eventual consistency** - Iteration converges to solution
 7. **Simplicity** - Bash loop, prompt interpolation, file I/O
@@ -200,7 +203,7 @@ Philosophy: "It's not if it gets popped, it's when. And what is the blast radius
 - Max iterations prevents infinite loops
 - Ctrl+C stops the loop
 - `git reset --hard` reverts uncommitted changes
-- Regenerate PLAN.md if trajectory goes wrong
+- Regenerate plan file if trajectory goes wrong
 
 ---
 

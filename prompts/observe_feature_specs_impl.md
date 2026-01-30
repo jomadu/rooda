@@ -3,8 +3,8 @@ Study AGENTS.md first to understand:
 - What constitutes "implementation" in this repository
 
 Then study:
-- FEATURE.md (the feature to be incorporated)
-- PLAN.md (current plan state - may not exist on first iteration)
+- Feature file (the feature to be incorporated)
+- Plan file (current plan state - may not exist on first iteration)
 - Specifications (per AGENTS.md definition)
 - Implementation (per AGENTS.md definition - file tree and symbols)
 

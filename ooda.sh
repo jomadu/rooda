@@ -139,6 +139,8 @@ done
 
 ITERATION=0
 CURRENT_BRANCH=$(git branch --show-current)
+PLAN_FILE="PLAN-${CURRENT_BRANCH}.md"
+FEATURE_FILE="FEATURE-${CURRENT_BRANCH}.md"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 [ -n "$TASK" ] && echo "Task:    $TASK"
@@ -147,6 +149,8 @@ echo "Orient:  $ORIENT"
 echo "Decide:  $DECIDE"
 echo "Act:     $ACT"
 echo "Branch:  $CURRENT_BRANCH"
+echo "Plan:    $PLAN_FILE"
+echo "Feature: $FEATURE_FILE"
 [ $MAX_ITERATIONS -gt 0 ] && echo "Max:     $MAX_ITERATIONS iterations"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -154,6 +158,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 create_prompt() {
     cat <<EOF
 # OODA Loop Iteration
+
+## Context
+- Current branch: \`$CURRENT_BRANCH\`
+- Plan file: \`$PLAN_FILE\`
+- Feature file: \`$FEATURE_FILE\`
+
+Use these file names when reading or writing plan and feature documents.
 
 ## OBSERVE
 $(cat "$OBSERVE")
