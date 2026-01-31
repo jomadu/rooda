@@ -1,12 +1,12 @@
 #!/bin/bash
-# Usage: ./ooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]
-#    OR: ./ooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]
+# Usage: ./rooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]
+#    OR: ./rooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]
 # Examples:
-#   ./ooda.sh TASK-123 build
-#   ./ooda.sh TASK-123 build --max-iterations 5
-#   ./ooda.sh TASK-123 build --config custom-config.yml
-#   ./ooda.sh TASK-123 build --task-file custom/task.md --plan-file custom/plan.md
-#   ./ooda.sh TASK-123 --observe prompts/observe_specs.md \
+#   ./rooda.sh TASK-123 build
+#   ./rooda.sh TASK-123 build --max-iterations 5
+#   ./rooda.sh TASK-123 build --config custom-config.yml
+#   ./rooda.sh TASK-123 build --task-file custom/task.md --plan-file custom/plan.md
+#   ./rooda.sh TASK-123 --observe prompts/observe_specs.md \
 #             --orient prompts/orient_gap.md \
 #             --decide prompts/decide_gap_plan.md \
 #             --act prompts/act_plan.md \
@@ -128,8 +128,8 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: ./ooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
-            echo "   OR: ./ooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
+            echo "Usage: ./rooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
+            echo "   OR: ./rooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
             exit 1
             ;;
     esac
@@ -138,8 +138,8 @@ done
 # Validate task ID
 if [ -z "$TASK_ID" ]; then
     echo "Error: <task-id> is required as first argument"
-    echo "Usage: ./ooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
-    echo "   OR: ./ooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
+    echo "Usage: ./rooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
+    echo "   OR: ./rooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
     exit 1
 fi
 
@@ -176,8 +176,8 @@ fi
 # Validate required arguments
 if [ -z "$OBSERVE" ] || [ -z "$ORIENT" ] || [ -z "$DECIDE" ] || [ -z "$ACT" ]; then
     echo "Error: All four OODA phases required"
-    echo "Usage: ./ooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
-    echo "   OR: ./ooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
+    echo "Usage: ./rooda.sh <task-id> <procedure> [--config <file>] [--max-iterations N] [--task-file <file>] [--plan-file <file>]"
+    echo "   OR: ./rooda.sh <task-id> --observe <file> --orient <file> --decide <file> --act <file> [--max-iterations N]"
     exit 1
 fi
 

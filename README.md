@@ -8,25 +8,25 @@ Evolved from the [Ralph Loop](https://ghuntley.com/ralph/) by Geoff Huntley, app
 
 ```bash
 # 1. Bootstrap: create operational guide
-./ooda.sh TASK-123 bootstrap
+./rooda.sh TASK-123 bootstrap
 
 # 2. Work with agent to create tasks/TASK-123/TASK.md
 
 # 3. Plan: incorporate story into specs
-./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+./rooda.sh TASK-123 plan-story-to-spec --max-iterations 5
 
 # 4. Build: implement the specs
-./ooda.sh TASK-123 build --max-iterations 5
+./rooda.sh TASK-123 build --max-iterations 5
 
 # 5. Refactor implementation (new task)
-./ooda.sh TASK-456 plan-impl-refactor
-./ooda.sh TASK-456 build --max-iterations 5
-./ooda.sh TASK-456 plan-impl-to-spec
-./ooda.sh TASK-456 build --max-iterations 5
+./rooda.sh TASK-456 plan-impl-refactor
+./rooda.sh TASK-456 build --max-iterations 5
+./rooda.sh TASK-456 plan-impl-to-spec
+./rooda.sh TASK-456 build --max-iterations 5
 
 # 6. Refactor specs (new task)
-./ooda.sh TASK-789 plan-spec-refactor
-./ooda.sh TASK-789 build --max-iterations 5
+./rooda.sh TASK-789 plan-spec-refactor
+./rooda.sh TASK-789 build --max-iterations 5
 ```
 
 Each iteration clears context. File-based memory persists. AI stays in its "smart zone" (40-60% utilization) indefinitely.
@@ -58,7 +58,7 @@ Each iteration clears context. File-based memory persists. AI stays in its "smar
 ### The Loop
 
 ```bash
-./ooda.sh TASK-123 <procedure> [--max-iterations N]
+./rooda.sh TASK-123 <procedure> [--max-iterations N]
 ```
 
 Each iteration:
@@ -100,7 +100,7 @@ Each iteration:
 ### Example Iteration
 
 ```bash
-./ooda.sh TASK-123 build
+./rooda.sh TASK-123 build
 ```
 
 1. **Observe:** Reads AGENTS.md, PLAN.md, specs/, src/
@@ -118,7 +118,7 @@ Each iteration:
 **Output:** AGENTS.md with build/test commands, spec/implementation definitions, quality criteria
 
 ```bash
-./ooda.sh TASK-123 bootstrap
+./rooda.sh TASK-123 bootstrap
 ```
 
 ### 1. Build
@@ -127,7 +127,7 @@ Each iteration:
 **Output:** Code changes, test runs, updated PLAN.md
 
 ```bash
-./ooda.sh TASK-123 build --max-iterations 5
+./rooda.sh TASK-123 build --max-iterations 5
 ```
 
 ### 2. Plan Spec-to-Impl
@@ -136,7 +136,7 @@ Each iteration:
 **Output:** PLAN.md with prioritized implementation tasks
 
 ```bash
-./ooda.sh TASK-123 plan-spec-to-impl
+./rooda.sh TASK-123 plan-spec-to-impl
 ```
 
 ### 3. Plan Impl-to-Spec
@@ -145,7 +145,7 @@ Each iteration:
 **Output:** PLAN.md with prioritized documentation tasks
 
 ```bash
-./ooda.sh TASK-123 plan-impl-to-spec
+./rooda.sh TASK-123 plan-impl-to-spec
 ```
 
 ### 4. Plan Spec Refactoring
@@ -154,7 +154,7 @@ Each iteration:
 **Output:** PLAN.md with spec refactoring tasks (if criteria fail threshold)
 
 ```bash
-./ooda.sh TASK-123 plan-spec-refactor
+./rooda.sh TASK-123 plan-spec-refactor
 ```
 
 ### 5. Plan Impl Refactoring
@@ -163,7 +163,7 @@ Each iteration:
 **Output:** PLAN.md with implementation refactoring tasks (if criteria fail threshold)
 
 ```bash
-./ooda.sh TASK-123 plan-impl-refactor
+./rooda.sh TASK-123 plan-impl-refactor
 ```
 
 ### 6. Plan Story-to-Spec
@@ -173,7 +173,7 @@ Each iteration:
 
 ```bash
 # Create tasks/TASK-123/TASK.md first
-./ooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+./rooda.sh TASK-123 plan-story-to-spec --max-iterations 5
 ```
 
 ### 7. Plan Bug-to-Spec
@@ -183,7 +183,7 @@ Each iteration:
 
 ```bash
 # Create tasks/TASK-123/TASK.md first
-./ooda.sh TASK-123 plan-bug-to-spec --max-iterations 3
+./rooda.sh TASK-123 plan-bug-to-spec --max-iterations 3
 ```
 
 ## File-Based State
@@ -272,7 +272,7 @@ procedures:
 Or specify prompts directly:
 
 ```bash
-./ooda.sh TASK-123 \
+./rooda.sh TASK-123 \
   --observe prompts/observe_specs.md \
   --orient prompts/orient_gap.md \
   --decide prompts/decide_gap_plan.md \
@@ -365,7 +365,7 @@ Each criterion scored PASS or FAIL. When threshold fails, decide/act write refac
 
 ```
 project-root/
-├── ooda.sh                    # Loop script
+├── rooda.sh                   # Loop script
 ├── ooda-config.yml            # File paths and procedure compositions
 ├── AGENTS.md                  # Operational guide
 ├── tasks/                     # Task-specific working directories
