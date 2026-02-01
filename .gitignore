@@ -1,2 +1,2 @@
-# Task working directories
-tasks/
+# No framework-level ignores
+# Projects using rooda.sh should add their own task management ignores
