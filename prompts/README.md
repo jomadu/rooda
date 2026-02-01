@@ -30,7 +30,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (how to build/test, what is specification/implementation)
-- Study plan file in task directory (find most important task)
+- Study plan file per AGENTS.md (find most important task)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
@@ -58,7 +58,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study plan file in task directory (current state)
+- Study plan file per AGENTS.md (current state)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
@@ -84,7 +84,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study plan file in task directory (current state)
+- Study plan file per AGENTS.md (current state)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
@@ -158,7 +158,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study plan file in task directory (current state)
+- Study plan file per AGENTS.md (current state)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
@@ -184,7 +184,7 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study plan file in task directory (current state)
+- Study plan file per AGENTS.md (current state)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
@@ -258,13 +258,13 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study task file in task directory (the feature/story to be incorporated)
+- Study task file per AGENTS.md (the feature/story to be incorporated)
 - Study plan file in task directory (current plan state - may not exist on first iteration)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
 **ORIENT**
-- Analyze the story from task directory (scope, requirements, integration points)
+- Analyze the story from task file per AGENTS.md (scope, requirements, integration points)
 - Understand existing spec structure and patterns
 - Determine how the story should be incorporated (create new specs, update existing, refactor)
 - If plan file exists: critique it (completeness, accuracy, priorities, clarity)
@@ -287,13 +287,13 @@
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
-- Study task file in task directory (the bug to be addressed)
+- Study task file per AGENTS.md (the bug to be addressed)
 - Study plan file in task directory (current plan state - may not exist on first iteration)
 - Study specifications (per AGENTS.md definition)
 - Study implementation (per AGENTS.md definition, file tree, symbols)
 
 **ORIENT**
-- Analyze the bug from task directory (symptoms, root cause, affected functionality)
+- Analyze the bug from task file per AGENTS.md (symptoms, root cause, affected functionality)
 - Understand existing spec structure and patterns
 - Determine how the spec should be adjusted to drive the fix (acceptance criteria, edge cases, clarifications)
 - If plan file exists: critique it (completeness, accuracy, priorities, clarity)

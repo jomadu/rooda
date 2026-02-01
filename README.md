@@ -8,25 +8,23 @@ Evolved from the [Ralph Loop](https://ghuntley.com/ralph/) by Geoff Huntley, app
 
 ```bash
 # 1. Bootstrap: create operational guide
-./rooda.sh TASK-123 bootstrap
+./rooda.sh bootstrap
 
-# 2. Work with agent to create tasks/TASK-123/TASK.md
+# 2. Plan: incorporate story into specs
+./rooda.sh plan-story-to-spec --max-iterations 5
 
-# 3. Plan: incorporate story into specs
-./rooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+# 3. Build: implement the specs
+./rooda.sh build --max-iterations 5
 
-# 4. Build: implement the specs
-./rooda.sh TASK-123 build --max-iterations 5
+# 4. Refactor implementation
+./rooda.sh plan-impl-refactor
+./rooda.sh build --max-iterations 5
+./rooda.sh plan-impl-to-spec
+./rooda.sh build --max-iterations 5
 
-# 5. Refactor implementation (new task)
-./rooda.sh TASK-456 plan-impl-refactor
-./rooda.sh TASK-456 build --max-iterations 5
-./rooda.sh TASK-456 plan-impl-to-spec
-./rooda.sh TASK-456 build --max-iterations 5
-
-# 6. Refactor specs (new task)
-./rooda.sh TASK-789 plan-spec-refactor
-./rooda.sh TASK-789 build --max-iterations 5
+# 5. Refactor specs
+./rooda.sh plan-spec-refactor
+./rooda.sh build --max-iterations 5
 ```
 
 Each iteration clears context. File-based memory persists. AI stays in its "smart zone" (40-60% utilization) indefinitely.
@@ -58,12 +56,12 @@ Each iteration clears context. File-based memory persists. AI stays in its "smar
 ### The Loop
 
 ```bash
-./rooda.sh TASK-123 <procedure> [--max-iterations N]
+./rooda.sh <procedure> [--max-iterations N]
 ```
 
 Each iteration:
 1. Loads 4 OODA prompt components (observe, orient, decide, act)
-2. Injects task context (task ID, file paths)
+2. Injects context (file paths, configuration)
 3. Agent executes: **observe > orient > decide > act**
 4. Updates files on disk (PLAN.md, AGENTS.md, code)
 5. Exits - **context cleared**
@@ -100,7 +98,7 @@ Each iteration:
 ### Example Iteration
 
 ```bash
-./rooda.sh TASK-123 build
+./rooda.sh build
 ```
 
 1. **Observe:** Reads AGENTS.md, PLAN.md, specs/, src/
@@ -118,7 +116,7 @@ Each iteration:
 **Output:** AGENTS.md with build/test commands, spec/implementation definitions, quality criteria
 
 ```bash
-./rooda.sh TASK-123 bootstrap
+./rooda.sh bootstrap
 ```
 
 ### 1. Build
@@ -127,7 +125,7 @@ Each iteration:
 **Output:** Code changes, test runs, updated PLAN.md
 
 ```bash
-./rooda.sh TASK-123 build --max-iterations 5
+./rooda.sh build --max-iterations 5
 ```
 
 ### 2. Plan Spec-to-Impl
@@ -136,7 +134,7 @@ Each iteration:
 **Output:** PLAN.md with prioritized implementation tasks
 
 ```bash
-./rooda.sh TASK-123 plan-spec-to-impl
+./rooda.sh plan-spec-to-impl
 ```
 
 ### 3. Plan Impl-to-Spec
@@ -145,7 +143,7 @@ Each iteration:
 **Output:** PLAN.md with prioritized documentation tasks
 
 ```bash
-./rooda.sh TASK-123 plan-impl-to-spec
+./rooda.sh plan-impl-to-spec
 ```
 
 ### 4. Plan Spec Refactoring
@@ -154,7 +152,7 @@ Each iteration:
 **Output:** PLAN.md with spec refactoring tasks (if criteria fail threshold)
 
 ```bash
-./rooda.sh TASK-123 plan-spec-refactor
+./rooda.sh plan-spec-refactor
 ```
 
 ### 5. Plan Impl Refactoring
@@ -163,7 +161,7 @@ Each iteration:
 **Output:** PLAN.md with implementation refactoring tasks (if criteria fail threshold)
 
 ```bash
-./rooda.sh TASK-123 plan-impl-refactor
+./rooda.sh plan-impl-refactor
 ```
 
 ### 6. Plan Story-to-Spec
@@ -172,8 +170,8 @@ Each iteration:
 **Output:** PLAN.md with tasks to update/create specs
 
 ```bash
-# Create tasks/TASK-123/TASK.md first
-./rooda.sh TASK-123 plan-story-to-spec --max-iterations 5
+# Create TASK.md first
+./rooda.sh plan-story-to-spec --max-iterations 5
 ```
 
 ### 7. Plan Bug-to-Spec
@@ -182,8 +180,8 @@ Each iteration:
 **Output:** PLAN.md with spec changes to prevent bug recurrence
 
 ```bash
-# Create tasks/TASK-123/TASK.md first
-./rooda.sh TASK-123 plan-bug-to-spec --max-iterations 3
+# Create TASK.md first
+./rooda.sh plan-bug-to-spec --max-iterations 3
 ```
 
 ## File-Based State
@@ -199,9 +197,9 @@ Operational guide for the repository. Created by bootstrap, updated by all proce
 
 **Philosophy:** Assumed inaccurate until verified empirically. Updated when errors discovered.
 
-### tasks/{task-id}/
+### tasks/{task-id}/ (optional)
 
-Task-specific working directory.
+Task-specific working directory. This is one possible organizational pattern - projects may use different structures.
 
 **Files:**
 - `PLAN.md` - Prioritized task list and progress tracking
@@ -272,7 +270,7 @@ procedures:
 Or specify prompts directly:
 
 ```bash
-./rooda.sh TASK-123 \
+./rooda.sh \
   --observe prompts/observe_specs.md \
   --orient prompts/orient_gap.md \
   --decide prompts/decide_gap_plan.md \
@@ -368,7 +366,7 @@ project-root/
 ├── rooda.sh                   # Loop script
 ├── ooda-config.yml            # File paths and procedure compositions
 ├── AGENTS.md                  # Operational guide
-├── tasks/                     # Task-specific working directories
+├── tasks/ (optional)          # Task-specific working directories (project-specific)
 │   └── {task-id}/
 │       ├── PLAN.md            # Task list and progress
 │       └── TASK.md            # Task description (optional)
