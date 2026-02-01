@@ -189,6 +189,7 @@ Operational guide for the repository. Created by bootstrap, updated by all proce
 
 **Contains:**
 - **Work tracking system** - What system tracks work (beads, GitHub issues, etc.), how to query ready work, how to update status, how to mark complete
+- **Task/Plan file locations** - Where to find task descriptions and plans for story/bug incorporation procedures (if applicable)
 - **Build/test/lint commands** - Specific commands to run tests, builds, linters
 - **Specification definition** - What constitutes "specification" (file paths/patterns)
 - **Implementation definition** - What constitutes "implementation" (file paths/patterns)
