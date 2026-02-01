@@ -4,7 +4,7 @@ Study AGENTS.md first to understand:
 - How to build and test
 
 Then study:
-- Plan file (current state and most important task)
+- Plan file (per AGENTS.md - current state and most important task)
 - Specifications (per AGENTS.md definition)
 - Implementation (per AGENTS.md definition, file tree, symbols, but not full files)
 
