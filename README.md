@@ -190,12 +190,13 @@ Each iteration:
 Operational guide for the repository. Created by bootstrap, updated by all procedures.
 
 **Contains:**
-- How to build/run/test (specific commands)
-- What constitutes "specification" (file paths/patterns)
-- What constitutes "implementation" (file paths/patterns)
-- Quality criteria definitions
+- **Work tracking system** - What system tracks work (beads, GitHub issues, tasks/ directory, etc.), how to query ready work, how to update status, how to mark complete
+- **Build/test/lint commands** - Specific commands to run tests, builds, linters
+- **Specification definition** - What constitutes "specification" (file paths/patterns)
+- **Implementation definition** - What constitutes "implementation" (file paths/patterns)
+- **Quality criteria** - Boolean criteria for triggering refactoring
 
-**Philosophy:** Assumed inaccurate until verified empirically. Updated when errors discovered.
+**Philosophy:** Assumed inaccurate until verified empirically. Updated when errors discovered. Source of truth for how agents interact with the project's workflow.
 
 ### tasks/{task-id}/ (optional)
 
