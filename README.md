@@ -63,7 +63,7 @@ Each iteration:
 1. Loads 4 OODA prompt components (observe, orient, decide, act)
 2. Injects context (file paths, configuration)
 3. Agent executes: **observe > orient > decide > act**
-4. Updates files on disk (PLAN.md, AGENTS.md, code)
+4. Updates files on disk (work tracking, AGENTS.md, code)
 5. Exits - **context cleared**
 6. Loop restarts with fresh context
 
@@ -170,7 +170,6 @@ Each iteration:
 **Output:** Updates work tracking per AGENTS.md
 
 ```bash
-# Create TASK.md first
 ./rooda.sh plan-story-to-spec --max-iterations 5
 ```
 
@@ -180,7 +179,6 @@ Each iteration:
 **Output:** Updates work tracking per AGENTS.md
 
 ```bash
-# Create TASK.md first
 ./rooda.sh plan-bug-to-spec --max-iterations 3
 ```
 
@@ -190,23 +188,13 @@ Each iteration:
 Operational guide for the repository. Created by bootstrap, updated by all procedures.
 
 **Contains:**
-- **Work tracking system** - What system tracks work (beads, GitHub issues, tasks/ directory, etc.), how to query ready work, how to update status, how to mark complete
+- **Work tracking system** - What system tracks work (beads, GitHub issues, etc.), how to query ready work, how to update status, how to mark complete
 - **Build/test/lint commands** - Specific commands to run tests, builds, linters
 - **Specification definition** - What constitutes "specification" (file paths/patterns)
 - **Implementation definition** - What constitutes "implementation" (file paths/patterns)
 - **Quality criteria** - Boolean criteria for triggering refactoring
 
 **Philosophy:** Assumed inaccurate until verified empirically. Updated when errors discovered. Source of truth for how agents interact with the project's workflow.
-
-### tasks/{task-id}/ (optional)
-
-Task-specific working directory. This is one possible organizational pattern - projects may use different structures.
-
-**Example: tasks/{task-id}/PLAN.md (one possible pattern)**
-- Prioritized task list and progress tracking
-- Task description (optional, for story/bug procedures)
-
-**Philosophy:** Generated and updated by act phase. Assumed inaccurate until verified. Disposable - regenerate if trajectory goes wrong.
 
 ### specs/
 
@@ -252,12 +240,6 @@ build:
 Create your own by editing `ooda-config.yml`:
 
 ```yaml
-# Add custom file path patterns
-paths:
-  task_dir: "tasks/{task-id}"
-  task_file: "{task_dir}/TASK.md"
-  plan_file: "{task_dir}/PLAN.md"
-
 # Add custom procedures
 procedures:
   my-custom-procedure:
@@ -300,15 +282,15 @@ Or specify prompts directly:
 **Decide**
 1. `decide_bootstrap.md` - Determine AGENTS.md structure
 2. `decide_build.md` - Pick task, determine approach
-3. `decide_gap_plan.md` - Structure plan, break gaps into tasks
-4. `decide_refactor_plan.md` - Propose refactoring if threshold fails
-5. `decide_story_plan.md` - Generate plan for story incorporation
-6. `decide_bug_plan.md` - Generate plan for spec adjustments
+3. `decide_gap.md` - Structure work, break gaps into tasks
+4. `decide_refactor.md` - Propose refactoring if threshold fails
+5. `decide_story.md` - Generate plan for story incorporation
+6. `decide_bug.md` - Generate plan for spec adjustments
 
 **Act**
 1. `act_bootstrap.md` - Create AGENTS.md, commit
 2. `act_build.md` - Implement, test, update files, commit if passing
-3. `act_plan.md` - Write plan file, update AGENTS.md, commit
+3. `act_plan.md` - Update work tracking, update AGENTS.md, commit
 
 ## Key Principles
 
@@ -367,10 +349,6 @@ project-root/
 ├── rooda.sh                   # Loop script
 ├── ooda-config.yml            # File paths and procedure compositions
 ├── AGENTS.md                  # Operational guide
-├── tasks/ (optional)          # Task-specific working directories (project-specific)
-│   └── {task-id}/
-│       ├── PLAN.md            # Task list and progress
-│       └── TASK.md            # Task description (optional)
 ├── prompts/                   # OODA phase components
 │   ├── observe_*.md           # Observation variants
 │   ├── orient_*.md            # Analysis variants
@@ -405,7 +383,7 @@ Limit blast radius through isolation, not through hoping the AI won't do somethi
 - **Max iterations** - Prevents infinite loops (`--max-iterations N`)
 - **Ctrl+C** - Stops the loop immediately
 - **`git reset --hard`** - Reverts uncommitted changes
-- **Regenerate plan** - If trajectory goes wrong, delete PLAN.md and run planning procedure again
+- **Regenerate work tracking** - If trajectory goes wrong, run planning procedure again to update work tracking per AGENTS.md
 
 ### Common Issues
 
@@ -425,7 +403,6 @@ Limit blast radius through isolation, not through hoping the AI won't do somethi
 - Add explicit search instructions to AGENTS.md
 
 **"Plan goes off track"**
-- Delete PLAN.md
 - Run planning procedure again (cheap to regenerate)
 - Adjust specs if needed
 
