@@ -16,6 +16,10 @@ bd ready --json
 bd show <id> --json
 ```
 
+**Task/Plan files for story/bug incorporation:**
+- Task file: Issue description from `bd show <id> --json` (title + description fields)
+- Plan file: Not used (beads tracks status directly)
+
 **Update status:**
 ```bash
 bd update <id> --status in_progress
