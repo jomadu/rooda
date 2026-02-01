@@ -2,6 +2,41 @@
 
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
 
+## Task Management
+
+This repository uses **beads** for task management, not the tasks/ directory pattern.
+
+**Query ready work:**
+```bash
+bd ready --json
+```
+
+**View issue details:**
+```bash
+bd show <id> --json
+```
+
+**Update status:**
+```bash
+bd update <id> --status in_progress
+bd update <id> --status blocked
+```
+
+**Close issue:**
+```bash
+bd close <id> --reason "Completed X"
+```
+
+**View dependency tree:**
+```bash
+bd dep tree <id> --json
+```
+
+**Sync with git:**
+```bash
+bd sync
+```
+
 ## Quick Reference
 
 ```bash
