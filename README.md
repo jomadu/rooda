@@ -72,8 +72,8 @@ Each iteration:
 ### OODA Phases
 
 **Observe** - Gather information
-- Study AGENTS.md (how to build/test, what is spec/implementation)
-- Study plan file, specs, implementation
+- Study AGENTS.md (which defines how to find work, build/test, what is spec/implementation)
+- Study specs, implementation
 - Study story/bug file (if applicable)
 
 **Orient** - Analyze and synthesize
@@ -101,10 +101,10 @@ Each iteration:
 ./rooda.sh build
 ```
 
-1. **Observe:** Reads AGENTS.md, PLAN.md, specs/, src/
+1. **Observe:** Reads AGENTS.md (which defines how to find work), specs/, src/
 2. **Orient:** "Most important task: implement user authentication. Search shows auth/ directory exists but missing password reset."
 3. **Decide:** "Implement password reset flow. Modify auth/reset.go, add tests."
-4. **Act:** Spawns subagent to implement, runs tests, updates PLAN.md, commits
+4. **Act:** Spawns subagent to implement, runs tests, updates work tracking per AGENTS.md, commits
 5. **Exit:** Context cleared
 6. **Loop:** Restarts, picks next task
 
@@ -121,8 +121,8 @@ Each iteration:
 
 ### 1. Build
 **When:** You have a plan and want to implement it  
-**What:** Implements tasks from PLAN.md (only procedure that modifies code)  
-**Output:** Code changes, test runs, updated PLAN.md
+**What:** Implements tasks per AGENTS.md work tracking (only procedure that modifies code)  
+**Output:** Code changes, test runs, updates work tracking per AGENTS.md
 
 ```bash
 ./rooda.sh build --max-iterations 5
@@ -131,7 +131,7 @@ Each iteration:
 ### 2. Plan Spec-to-Impl
 **When:** You have specs and want a plan to implement them  
 **What:** Gap analysis - what's in specs but not in code  
-**Output:** PLAN.md with prioritized implementation tasks
+**Output:** Updates work tracking per AGENTS.md
 
 ```bash
 ./rooda.sh plan-spec-to-impl
@@ -140,7 +140,7 @@ Each iteration:
 ### 3. Plan Impl-to-Spec
 **When:** You have code and want specs to document it  
 **What:** Gap analysis - what's in code but not in specs  
-**Output:** PLAN.md with prioritized documentation tasks
+**Output:** Updates work tracking per AGENTS.md
 
 ```bash
 ./rooda.sh plan-impl-to-spec
@@ -149,7 +149,7 @@ Each iteration:
 ### 4. Plan Spec Refactoring
 **When:** Your specs feel unclear or incomplete  
 **What:** Quality assessment using boolean criteria (clarity, completeness, consistency, testability)  
-**Output:** PLAN.md with spec refactoring tasks (if criteria fail threshold)
+**Output:** Updates work tracking per AGENTS.md (if criteria fail threshold)
 
 ```bash
 ./rooda.sh plan-spec-refactor
@@ -158,7 +158,7 @@ Each iteration:
 ### 5. Plan Impl Refactoring
 **When:** Your code feels messy or hard to maintain  
 **What:** Quality assessment using boolean criteria (cohesion, coupling, complexity, maintainability)  
-**Output:** PLAN.md with implementation refactoring tasks (if criteria fail threshold)
+**Output:** Updates work tracking per AGENTS.md (if criteria fail threshold)
 
 ```bash
 ./rooda.sh plan-impl-refactor
@@ -167,7 +167,7 @@ Each iteration:
 ### 6. Plan Story-to-Spec
 **When:** You have a new feature/story to incorporate  
 **What:** Iteratively converges on how to incorporate story into specs  
-**Output:** PLAN.md with tasks to update/create specs
+**Output:** Updates work tracking per AGENTS.md
 
 ```bash
 # Create TASK.md first
@@ -177,7 +177,7 @@ Each iteration:
 ### 7. Plan Bug-to-Spec
 **When:** You have a bug and want specs to drive the fix  
 **What:** Determines spec adjustments needed (acceptance criteria, edge cases)  
-**Output:** PLAN.md with spec changes to prevent bug recurrence
+**Output:** Updates work tracking per AGENTS.md
 
 ```bash
 # Create TASK.md first
@@ -201,9 +201,9 @@ Operational guide for the repository. Created by bootstrap, updated by all proce
 
 Task-specific working directory. This is one possible organizational pattern - projects may use different structures.
 
-**Files:**
-- `PLAN.md` - Prioritized task list and progress tracking
-- `TASK.md` - Task description (optional, for story/bug procedures)
+**Example: tasks/{task-id}/PLAN.md (one possible pattern)**
+- Prioritized task list and progress tracking
+- Task description (optional, for story/bug procedures)
 
 **Philosophy:** Generated and updated by act phase. Assumed inaccurate until verified. Disposable - regenerate if trajectory goes wrong.
 
@@ -352,7 +352,7 @@ Orient phase applies boolean criteria:
 **For specs:** clarity, completeness, consistency, testability  
 **For implementation:** cohesion, coupling, complexity, maintainability
 
-Each criterion scored PASS or FAIL. When threshold fails, decide/act write refactoring proposal to PLAN.md. Future build iteration executes it.
+Each criterion scored PASS or FAIL. When threshold fails, decide/act write refactoring proposal to work tracking per AGENTS.md. Future build iteration executes it.
 
 **Human markers also trigger refactoring:**
 - TODOs, "REFACTORME" comments
@@ -409,7 +409,7 @@ Limit blast radius through isolation, not through hoping the AI won't do somethi
 ### Common Issues
 
 **"Agent keeps implementing the same thing"**
-- Check PLAN.md - is it being updated?
+- Check work tracking per AGENTS.md - is it being updated?
 - Check AGENTS.md - does it define implementation locations correctly?
 - Run bootstrap again to regenerate AGENTS.md
 
@@ -433,7 +433,7 @@ Limit blast radius through isolation, not through hoping the AI won't do somethi
 1. **Fresh context** - No degradation from context pollution
 2. **Composable prompts** - Reusable components for different task types
 3. **OODA framework** - Clear separation of concerns across phases
-4. **File-based state** - PLAN.md and AGENTS.md persist learnings
+4. **File-based state** - AGENTS.md defines work tracking, persists learnings
 5. **Backpressure** - Tests and criteria force correctness
 6. **Eventual consistency** - Iteration converges to solution
 7. **Simplicity** - Bash loop, prompt interpolation, file I/O
