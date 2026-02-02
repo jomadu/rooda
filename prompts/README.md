@@ -2,7 +2,7 @@
 
 ## Procedure Breakdown by Phase
 
-### Procedure 0: Bootstrap (create AGENTS.md)
+### Bootstrap {bootstrap}
 
 **OBSERVE**
 - Study repository structure (file tree, languages, build files)
@@ -26,7 +26,7 @@
 
 ---
 
-### Procedure 1: Building from plan
+### Build from Plan {build}
 
 **OBSERVE**
 - Study AGENTS.md (how to build/test, what is specification/implementation)
@@ -54,7 +54,7 @@
 
 ---
 
-### Procedure 2: Plan spec-to-impl
+### Plan Spec to Implementation {plan-spec-to-impl}
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
@@ -80,7 +80,7 @@
 
 ---
 
-### Procedure 3: Plan impl-to-spec
+### Plan Implementation to Spec {plan-impl-to-spec}
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
@@ -106,7 +106,7 @@
 
 ---
 
-### Procedure 4: Plan spec refactoring
+### Plan Spec Refactoring {plan-spec-refactor}
 
 **OBSERVE**
 - Study AGENTS.md (what is specification, quality criteria definitions)
@@ -130,7 +130,7 @@
 
 ---
 
-### Procedure 5: Plan impl refactoring
+### Plan Implementation Refactoring {plan-impl-refactor}
 
 **OBSERVE**
 - Study AGENTS.md (what is implementation, quality criteria definitions)
@@ -154,7 +154,7 @@
 
 ---
 
-### Procedure 6: Plan story-to-spec
+### Plan Story to Spec {plan-story-to-spec}
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
@@ -183,7 +183,7 @@
 
 ---
 
-### Procedure 7: Plan bug-to-spec
+### Plan Bug to Spec {plan-bug-to-spec}
 
 **OBSERVE**
 - Study AGENTS.md (what is specification/implementation)
@@ -249,16 +249,16 @@
 
 ## Procedure Compositions
 
-| Procedure | Observe | Orient | Decide | Act |
-|------|---------|--------|--------|-----|
-| 0. Bootstrap | bootstrap | bootstrap | bootstrap | bootstrap |
-| 1. Building from plan | plan_specs_impl | build | build | build |
-| 2. Plan spec-to-impl | plan_specs_impl | gap | gap_plan | plan |
-| 3. Plan impl-to-spec | plan_specs_impl | gap | gap_plan | plan |
-| 4. Plan spec refactoring | specs | quality | refactor_plan | plan |
-| 5. Plan impl refactoring | impl | quality | refactor_plan | plan |
-| 6. Plan story-to-spec | story_task_specs_impl | story_task_incorporation | story_task_plan | plan |
-| 7. Plan bug-to-spec | bug_task_specs_impl | bug_task_incorporation | bug_task_plan | plan |
+| Procedure | ID | Observe | Orient | Decide | Act |
+|-----------|-------|---------|--------|--------|-----|
+| Bootstrap | `bootstrap` | bootstrap | bootstrap | bootstrap | bootstrap |
+| Build from Plan | `build` | plan_specs_impl | build | build | build |
+| Plan Spec to Implementation | `plan-spec-to-impl` | plan_specs_impl | gap | gap_plan | plan |
+| Plan Implementation to Spec | `plan-impl-to-spec` | plan_specs_impl | gap | gap_plan | plan |
+| Plan Spec Refactoring | `plan-spec-refactor` | specs | quality | refactor_plan | plan |
+| Plan Implementation Refactoring | `plan-impl-refactor` | impl | quality | refactor_plan | plan |
+| Plan Story to Spec | `plan-story-to-spec` | story_task_specs_impl | story_task_incorporation | story_task_plan | plan |
+| Plan Bug to Spec | `plan-bug-to-spec` | bug_task_specs_impl | bug_task_incorporation | bug_task_plan | plan |
 
 ---
 
