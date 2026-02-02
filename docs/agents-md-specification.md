@@ -15,7 +15,7 @@ AGENTS.md is the interface between agents and the repository. It defines how age
 - How to mark complete
 
 ### Story/Bug Input (if using story/bug incorporation procedures)
-- **Input location** - Where agents read the story/bug description to be incorporated (e.g., `bd show <id> --json`, `stories/<id>.md`, GitHub issue)
+- **Input location** - Where agents read the story/bug description to be incorporated (e.g., `./TASK.md`, `bd show <id> --json`, `stories/<id>.md`, GitHub issue)
 - Used by `plan-story-to-spec` and `plan-bug-to-spec` procedures as the source material for planning
 
 ### Planning System (if using draft planning procedures)
