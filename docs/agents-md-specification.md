@@ -9,18 +9,51 @@ AGENTS.md is the interface between agents and the repository. It defines how age
 ## Required Sections
 
 ### Work Tracking System
-- What system tracks work (beads, GitHub issues, linear, etc.)
+- What system tracks work
 - How to query ready work
 - How to update status
 - How to mark complete
 
+**Examples:**
+```
+# Beads
+Query: bd ready --json
+Update: bd update <id> --status in_progress
+Complete: bd close <id> --reason "Done"
+
+# GitHub Issues
+Query: gh issue list --label ready --json
+Update: gh issue edit <id> --add-label in-progress
+Complete: gh issue close <id>
+
+# File-based
+Query: ls tasks/ready/*.md
+Update: mv tasks/ready/<id>.md tasks/in-progress/
+Complete: mv tasks/in-progress/<id>.md tasks/done/
+```
+
 ### Story/Bug Input (if using story/bug incorporation procedures)
-- **Input location** - Where agents read the story/bug description to be incorporated (e.g., `./TASK.md`, `bd show <id> --json`, `stories/<id>.md`, GitHub issue)
+- **Input location** - Where agents read the story/bug description to be incorporated
 - Used by `draft-plan-story-to-spec` and `draft-plan-bug-to-spec` procedures as the source material for planning
 
+**Examples:**
+```
+# Single file at project root
+./TASK.md
+
+# Beads issue
+bd show <id> --json  (title + description fields)
+
+# File per story
+stories/<id>.md
+
+# GitHub issue
+gh issue view <id> --json
+```
+
 ### Planning System (if using draft planning procedures)
-- **Draft plan location** - Where agents write/read plans during convergence iterations (e.g., `plans/draft-<topic>.md`, `tasks/<id>/plan.md`)
-- **Publishing mechanism** - How converged plans get imported into work tracking (e.g., `bd create` commands, GitHub API, manual file creation)
+- **Draft plan location** - Where agents write/read plans during convergence iterations
+- **Publishing mechanism** - How converged plans get imported into work tracking
 - Used by draft planning procedures to iterate toward a complete plan, then publish to work tracking
 
 **Workflow:**
@@ -28,14 +61,17 @@ AGENTS.md is the interface between agents and the repository. It defines how age
 2. Publish procedure (`publish-plan`) imports the converged plan into work tracking system
 3. Build procedure (`build`) implements from work tracking system
 
-**Example (beads with draft plans):**
+**Examples:**
 ```
+# Beads with draft plans
 Draft plan: plans/draft-<topic>.md
 Publishing: Agent runs `bd create` commands to file epics/issues with dependencies
-```
 
-**Example (file-based work tracking):**
-```
+# GitHub Issues with draft plans
+Draft plan: plans/draft-<topic>.md
+Publishing: Agent runs `gh issue create` commands with labels and milestones
+
+# File-based work tracking
 Draft plan: tasks/<id>/plan.md
 Publishing: Plan file becomes the work tracking (no import needed)
 ```
@@ -46,13 +82,61 @@ Publishing: Plan file becomes the work tracking (no import needed)
 - Specific commands to run linters
 - Any setup required before running these commands
 
+**Examples:**
+```
+# Node.js
+Test: npm test
+Build: npm run build
+Lint: npm run lint
+
+# Go
+Test: go test ./...
+Build: go build ./...
+Lint: golangci-lint run
+
+# Python
+Test: pytest
+Build: python -m build
+Lint: ruff check .
+```
+
 ### Specification Definition
 - What constitutes "specification" in this repository
-- File paths or patterns (e.g., `specs/*.md`, `README.md sections`, inline docs)
+- File paths or patterns
+
+**Examples:**
+```
+# Dedicated specs directory
+specs/*.md
+
+# README sections
+README.md (## Specification sections only)
+
+# Inline documentation
+src/**/*.md (excluding README.md files)
+
+# API documentation
+docs/api/*.md
+```
 
 ### Implementation Definition
 - What constitutes "implementation" in this repository
-- File paths or patterns (e.g., `src/`, `lib/`, specific file extensions)
+- File paths or patterns
+
+**Examples:**
+```
+# Source directory
+src/**/*.{js,ts,py,go,rs}
+
+# Library directory
+lib/**/*.rb
+
+# Multiple source roots
+src/**/*.java, test/**/*.java
+
+# Exclude patterns
+src/**/*.ts (excluding *.test.ts, *.spec.ts)
+```
 
 ### Quality Criteria
 - Boolean criteria for triggering spec refactoring (clarity, completeness, consistency, testability)
