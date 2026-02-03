@@ -171,3 +171,10 @@ bd ready --json       # Verify beads integration works
 - All required AGENTS.md sections present and complete
 - Rationale: Empirical verification during bootstrap iteration confirms AGENTS.md accuracy and system readiness
 
+**2026-02-03:** Manual validation approach for bash script testing:
+- Since this is a bash script repository with no automated test framework, validation uses manual test cases
+- Create VALIDATION-<issue-id>.md files documenting test commands, expected behavior, and actual results
+- Test cases verify acceptance criteria through empirical execution
+- Validation documents serve as regression test documentation
+- Rationale: Discovered during ralph-wiggum-ooda-1w0 (CLI procedure validation) - manual verification is the appropriate testing methodology for this framework
+
