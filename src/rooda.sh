@@ -70,17 +70,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# If procedure specified, load from config
+# If procedure specified, load from config (explicit flags override config)
 if [ -n "$PROCEDURE" ]; then
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "Error: $CONFIG_FILE not found"
         exit 1
     fi
     
-    OBSERVE=$(yq eval ".procedures.$PROCEDURE.observe" "$CONFIG_FILE")
-    ORIENT=$(yq eval ".procedures.$PROCEDURE.orient" "$CONFIG_FILE")
-    DECIDE=$(yq eval ".procedures.$PROCEDURE.decide" "$CONFIG_FILE")
-    ACT=$(yq eval ".procedures.$PROCEDURE.act" "$CONFIG_FILE")
+    # Only load from config if not already set via explicit flags
+    [ -z "$OBSERVE" ] && OBSERVE=$(yq eval ".procedures.$PROCEDURE.observe" "$CONFIG_FILE")
+    [ -z "$ORIENT" ] && ORIENT=$(yq eval ".procedures.$PROCEDURE.orient" "$CONFIG_FILE")
+    [ -z "$DECIDE" ] && DECIDE=$(yq eval ".procedures.$PROCEDURE.decide" "$CONFIG_FILE")
+    [ -z "$ACT" ] && ACT=$(yq eval ".procedures.$PROCEDURE.act" "$CONFIG_FILE")
     
     if [ "$OBSERVE" = "null" ] || [ "$ORIENT" = "null" ] || [ "$DECIDE" = "null" ] || [ "$ACT" = "null" ]; then
         echo "Error: Procedure '$PROCEDURE' not found in $CONFIG_FILE"
