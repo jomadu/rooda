@@ -73,7 +73,9 @@ done
 # If procedure specified, load from config (explicit flags override config)
 if [ -n "$PROCEDURE" ]; then
     if [ ! -f "$CONFIG_FILE" ]; then
-        echo "Error: $CONFIG_FILE not found"
+        echo "Error: Configuration file not found"
+        echo "  Path: $CONFIG_FILE"
+        echo "  Specify a different config with --config <file>"
         exit 1
     fi
     
@@ -106,7 +108,9 @@ fi
 # Validate files exist
 for file in "$OBSERVE" "$ORIENT" "$DECIDE" "$ACT"; do
     if [ ! -f "$file" ]; then
-        echo "Error: File not found: $file"
+        echo "Error: OODA phase file not found"
+        echo "  Path: $file"
+        echo "  Check that all four phase files exist (observe, orient, decide, act)"
         exit 1
     fi
 done
@@ -125,7 +129,9 @@ fi
 # Validate files exist
 for file in "$OBSERVE" "$ORIENT" "$DECIDE" "$ACT"; do
     if [ ! -f "$file" ]; then
-        echo "Error: File not found: $file"
+        echo "Error: OODA phase file not found"
+        echo "  Path: $file"
+        echo "  Check that all four phase files exist (observe, orient, decide, act)"
         exit 1
     fi
 done
