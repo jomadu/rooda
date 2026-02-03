@@ -1,275 +1,353 @@
-# Minimal Composable Prompt Set
+# Procedures and Components Specification
 
-## Procedure Breakdown by Phase
+## Procedures
 
-### Bootstrap (`bootstrap`)
+### Core Procedures
 
-**OBSERVE**
-- Study repository structure (file tree, languages, build files)
-- Study existing documentation (README, specs if present)
-- Study implementation patterns
+#### bootstrap
 
-**ORIENT**
-- Identify project type and tech stack
-- Determine what constitutes "specification" vs "implementation"
-- Identify build/test/run commands empirically
-- Synthesize operational understanding
+Create/update AGENTS.md operational guide.
 
-**DECIDE**
-- Determine AGENTS.md structure
-- Define specification and implementation locations
-- Identify quality criteria for this project
+- **Observe:** `observe_bootstrap.md`
+- **Orient:** `orient_bootstrap.md`
+- **Decide:** `decide_bootstrap.md`
+- **Act:** `act_bootstrap.md`
 
-**ACT**
-- Create AGENTS.md with operational guide
-- Commit changes
+#### build
 
----
+Implement tasks from work tracking system.
 
-### Build from Plan (`build`)
+- **Observe:** `observe_plan_specs_impl.md`
+- **Orient:** `orient_build.md`
+- **Decide:** `decide_build.md`
+- **Act:** `act_build.md`
 
-**OBSERVE**
-- Study AGENTS.md (how to build/test, what is specification/implementation)
-- Study plan file per AGENTS.md (find most important task)
-- Study specifications (per AGENTS.md definition)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+### Draft Planning Procedures
 
-**ORIENT**
-- Understand task requirements
-- Search codebase (don't assume not implemented)
-- Identify what needs to be built/modified
-- Determine test strategy
+#### draft-plan-story-to-spec
 
-**DECIDE**
-- Pick most important task from plan file
-- Determine implementation approach using parallel subagents
-- Identify which files to modify
+Converge plan for incorporating story into specs.
 
-**ACT**
-- Implement using parallel subagents (only 1 subagent for build/tests)
-- Run tests per AGENTS.md (backpressure)
-- Update plan file (mark complete/update)
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit when tests pass
+- **Observe:** `observe_story_task_specs_impl.md`
+- **Orient:** `orient_story_task_incorporation.md`
+- **Decide:** `decide_story_task_plan.md`
+- **Act:** `act_plan.md`
 
----
+#### draft-plan-bug-to-spec
 
-### Plan Spec to Implementation (`plan-spec-to-impl`)
+Converge plan for spec adjustments to drive bug fix.
 
-**OBSERVE**
-- Study AGENTS.md (what is specification/implementation)
-- Study plan file per AGENTS.md (current state)
-- Study specifications (per AGENTS.md definition)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+- **Observe:** `observe_bug_task_specs_impl.md`
+- **Orient:** `orient_bug_task_incorporation.md`
+- **Decide:** `decide_bug_task_plan.md`
+- **Act:** `act_plan.md`
 
-**ORIENT**
-- Gap analysis: compare specs against existing code
-- Search codebase (don't assume not implemented)
-- Identify what's in specifications but missing from implementation
-- Assess implementation completeness and accuracy
+#### draft-plan-spec-to-impl
 
-**DECIDE**
-- Structure plan by priority (most important tasks first)
-- Break gaps into tight, implementable tasks
-- Determine task dependencies
+Converge plan from gap analysis (specs → code).
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+- **Observe:** `observe_plan_specs_impl.md`
+- **Orient:** `orient_gap.md`
+- **Decide:** `decide_gap_plan.md`
+- **Act:** `act_plan.md`
 
----
+#### draft-plan-impl-to-spec
 
-### Plan Implementation to Spec (`plan-impl-to-spec`)
+Converge plan from gap analysis (code → specs).
 
-**OBSERVE**
-- Study AGENTS.md (what is specification/implementation)
-- Study plan file per AGENTS.md (current state)
-- Study specifications (per AGENTS.md definition)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+- **Observe:** `observe_plan_specs_impl.md`
+- **Orient:** `orient_gap.md`
+- **Decide:** `decide_gap_plan.md`
+- **Act:** `act_plan.md`
 
-**ORIENT**
-- Gap analysis: compare existing code against specs
-- Search codebase thoroughly
-- Identify what's in implementation but missing from specifications
-- Assess specification completeness and accuracy
+#### draft-plan-spec-refactor
 
-**DECIDE**
-- Structure plan by priority (most important tasks first)
-- Break gaps into tight documentation tasks
-- Determine which specs need updates
+Converge plan from quality assessment of specs.
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+- **Observe:** `observe_specs.md`
+- **Orient:** `orient_quality.md`
+- **Decide:** `decide_refactor_plan.md`
+- **Act:** `act_plan.md`
 
----
+#### draft-plan-impl-refactor
 
-### Plan Spec Refactoring (`plan-spec-refactor`)
+Converge plan from quality assessment of code.
 
-**OBSERVE**
-- Study AGENTS.md (what is specification, quality criteria definitions)
-- Study specifications (per AGENTS.md definition)
+- **Observe:** `observe_impl.md`
+- **Orient:** `orient_quality.md`
+- **Decide:** `decide_refactor_plan.md`
+- **Act:** `act_plan.md`
 
-**ORIENT**
-- Apply boolean criteria: clarity, completeness, consistency, testability
-- Identify human markers (TODOs, "REFACTORME", unclear language)
-- Score each criterion PASS/FAIL
-- Resolve issues or document them
+### Publishing Procedure
 
-**DECIDE**
-- If criteria fail threshold: propose spec refactoring
-- Structure spec refactoring plan by priority
-- Prioritize by impact (most important first)
+#### publish-plan
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+Publish converged draft plan to work tracking system.
 
----
+- **Observe:** `observe_draft_plan.md` (new)
+- **Orient:** `orient_publish.md` (new)
+- **Decide:** `decide_publish.md` (new)
+- **Act:** `act_publish.md` (new)
 
-### Plan Implementation Refactoring (`plan-impl-refactor`)
+## Components
 
-**OBSERVE**
-- Study AGENTS.md (what is implementation, quality criteria definitions)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+## Key Principles for Writing Components
 
-**ORIENT**
-- Apply boolean criteria: cohesion, coupling, complexity, maintainability
-- Identify human markers (TODOs, long functions, code smells)
-- Score each criterion PASS/FAIL
-- Resolve issues or document them
+**Reference Common Steps by Code** - Use step codes (O1, R5, D3, A2) rather than rewriting instructions. This ensures consistency and makes updates propagate automatically.
 
-**DECIDE**
-- If criteria fail threshold: propose implementation refactoring
-- Structure implementation refactoring plan by priority
-- Prioritize by impact (most important first)
+**One Component, One Concern** - Each component handles exactly one OODA phase. Observe gathers, Orient analyzes, Decide chooses, Act executes. No overlap.
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+**AGENTS.md is Always the Source of Truth** - Components must defer to AGENTS.md for all project-specific definitions: what constitutes specs/implementation, where files live, what commands to run, what quality criteria apply.
 
----
+**Explicit Over Implicit** - State exactly what to read, analyze, decide, or do. "Study specifications per AGENTS.md definition" is better than "look at the specs."
 
-### Plan Story to Spec (`plan-story-to-spec`)
+**Use Precise Language** - Follow terminology from the Ralph Loop methodology:
+- "study" (not "read" or "look at")
+- "don't assume not implemented" (critical - the Achilles' heel)
+- "using parallel subagents" / "only 1 subagent for build/tests"
+- "capture the why" when updating AGENTS.md
+- "keep it up to date" for maintaining accuracy
+- "resolve them or document them" for issues found
 
-**OBSERVE**
-- Study AGENTS.md (what is specification/implementation)
-- Study task file per AGENTS.md (the feature/story to be incorporated)
-- Study plan file in task directory (current plan state - may not exist on first iteration)
-- Study specifications (per AGENTS.md definition)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+**Search Before Assuming** - Orient components must emphasize searching the codebase before concluding something doesn't exist. This is the critical failure mode.
 
-**ORIENT**
-- Analyze the story from task file per AGENTS.md (scope, requirements, integration points)
-- Understand existing spec structure and patterns
-- Determine how the story should be incorporated (create new specs, update existing, refactor)
-- If plan file exists: critique it (completeness, accuracy, priorities, clarity)
-- Identify what tasks are needed for proper incorporation
+**Backpressure is Mandatory** - Act components that modify code must run tests and only commit when passing. No exceptions.
 
-**DECIDE**
-- Generate a complete plan for incorporating the story into specs
-- Structure the plan by priority (most important tasks first)
-- Break incorporation into tight, actionable tasks
-- Determine task dependencies and which specs need creation/updates
+**Capture the Why** - When updating AGENTS.md, components must instruct agents to document rationale, not just changes. Why this command? Why this location? What was learned?
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+**Parallel Subagents for Scale** - Act components should use parallel subagents for independent work, but only 1 subagent for build/test operations to avoid conflicts.
 
----
+**Plans are Disposable** - Planning components should generate complete plans each iteration, not incrementally patch. Cheap to regenerate beats expensive to maintain.
 
-### Plan Bug to Spec (`plan-bug-to-spec`)
+**Tight Tasks Win** - Decide components should break work into the smallest implementable units. One task per build iteration maximizes smart zone utilization.
 
-**OBSERVE**
-- Study AGENTS.md (what is specification/implementation)
-- Study task file per AGENTS.md (the bug to be addressed)
-- Study plan file in task directory (current plan state - may not exist on first iteration)
-- Study specifications (per AGENTS.md definition)
-- Study implementation (per AGENTS.md definition, file tree, symbols)
+**Commit After Complete** - Act components must complete all file modifications before committing. No partial work commits.
 
-**ORIENT**
-- Analyze the bug from task file per AGENTS.md (symptoms, root cause, affected functionality)
-- Understand existing spec structure and patterns
-- Determine how the spec should be adjusted to drive the fix (acceptance criteria, edge cases, clarifications)
-- If plan file exists: critique it (completeness, accuracy, priorities, clarity)
-- Identify what spec changes are needed to prevent this class of bug
+**Boolean Criteria Only** - Quality assessment components use PASS/FAIL criteria, not subjective scores. Clear thresholds trigger refactoring.
 
-**DECIDE**
-- Generate a complete plan for adjusting specs to drive the bug fix
-- Structure the plan by priority (most important spec changes first)
-- Break spec adjustments into tight, actionable tasks
-- Determine which specs need updates and what acceptance criteria to add
+### Observe
 
-**ACT**
-- Write plan file with prioritized bullet-point task list
-- Update AGENTS.md if learned something new (capture the why, keep it up to date)
-- Commit changes
+**Common Steps:**
+- **O1:** Study AGENTS.md as a whole (operational guide, conventions, learnings)
+- **O2:** Study AGENTS.md for build/test commands
+- **O3:** Study AGENTS.md for specification/implementation definitions
+- **O4:** Study AGENTS.md for quality criteria definitions
+- **O5:** Study AGENTS.md for task file location
+- **O6:** Study AGENTS.md for draft plan location
+- **O7:** Study AGENTS.md for work tracking system
+- **O8:** Study work tracking system per AGENTS.md (query ready work)
+- **O9:** Study task file per AGENTS.md (story/bug description)
+- **O10:** Study draft plan file per AGENTS.md (current plan state, may not exist)
+- **O11:** Study specifications per AGENTS.md definition
+- **O12:** Study implementation per AGENTS.md definition (file tree, symbols)
+- **O13:** Study repository structure (file tree, languages, build files)
+- **O14:** Study existing documentation (README, specs if present)
+- **O15:** Study implementation patterns
 
----
+#### observe_bootstrap.md
 
-## Prompt Component Set
+Gather information about repository structure and existing documentation to understand the project.
 
-**OBSERVE (6 variants)**
-1. `observe_bootstrap.md` - Repository structure, docs, implementation patterns
-2. `observe_plan_specs_impl.md` - AGENTS.md + plan file + specifications + implementation
-3. `observe_specs.md` - AGENTS.md + specifications
-4. `observe_impl.md` - AGENTS.md + implementation
-5. `observe_story_task_specs_impl.md` - AGENTS.md + task file + plan file + specifications + implementation
-6. `observe_bug_task_specs_impl.md` - AGENTS.md + task file + plan file + specifications + implementation
+O13, O14, O15
 
-**ORIENT (6 variants)**
-1. `orient_bootstrap.md` - Identify project type, determine definitions, synthesize understanding
-2. `orient_build.md` - Understand task, identify what to build
-3. `orient_gap.md` - Compare sources, identify gaps, assess completeness/accuracy
-4. `orient_quality.md` - Apply criteria, identify markers, score PASS/FAIL
-5. `orient_story_task_incorporation.md` - Analyze story/task, determine incorporation strategy, critique existing plan
-6. `orient_bug_task_incorporation.md` - Analyze bug/task, determine spec adjustments to drive fix, critique existing plan
+#### observe_plan_specs_impl.md
 
-**DECIDE (6 variants)**
-1. `decide_bootstrap.md` - Determine AGENTS.md structure and content
-2. `decide_build.md` - Pick task, determine approach, identify files
-3. `decide_gap_plan.md` - Structure plan, break gaps into tasks, determine dependencies/updates
-4. `decide_refactor_plan.md` - If threshold fails: propose refactoring, structure plan, prioritize
-5. `decide_story_task_plan.md` - Generate complete plan for story/task incorporation, structure by priority
-6. `decide_bug_task_plan.md` - Generate complete plan for spec adjustments to drive bug fix, structure by priority
+Gather information about work tracking, specifications, and implementation to understand current state.
 
-**ACT (3 variants)**
-1. `act_bootstrap.md` - Create AGENTS.md, commit
-2. `act_build.md` - Implement, test, update plan file/AGENTS.md, commit if passing
-3. `act_plan.md` - Write plan file, update AGENTS.md, commit
+O1, O2, O3, O7, O8, O11, O12
 
-**Total: 21 prompt files** (6+6+6+3)
+#### observe_story_task_specs_impl.md
 
----
+Gather information about a story task, draft plan, specifications, and implementation for incorporation planning.
 
-## Procedure Compositions
+O1, O3, O5, O6, O9, O10, O11, O12
 
-| Procedure | ID | Observe | Orient | Decide | Act |
-|-----------|-------|---------|--------|--------|-----|
-| Bootstrap | `bootstrap` | bootstrap | bootstrap | bootstrap | bootstrap |
-| Build from Plan | `build` | plan_specs_impl | build | build | build |
-| Plan Spec to Implementation | `plan-spec-to-impl` | plan_specs_impl | gap | gap_plan | plan |
-| Plan Implementation to Spec | `plan-impl-to-spec` | plan_specs_impl | gap | gap_plan | plan |
-| Plan Spec Refactoring | `plan-spec-refactor` | specs | quality | refactor_plan | plan |
-| Plan Implementation Refactoring | `plan-impl-refactor` | impl | quality | refactor_plan | plan |
-| Plan Story to Spec | `plan-story-to-spec` | story_task_specs_impl | story_task_incorporation | story_task_plan | plan |
-| Plan Bug to Spec | `plan-bug-to-spec` | bug_task_specs_impl | bug_task_incorporation | bug_task_plan | plan |
+#### observe_bug_task_specs_impl.md
 
----
+Gather information about a bug task, draft plan, specifications, and implementation for fix planning.
 
-## Principles
+O1, O3, O5, O6, O9, O10, O11, O12
 
-- **AGENTS.md always studied first** - Defines what constitutes "specification" and "implementation", plus quality criteria
-- **Definitions defer to AGENTS.md** - What files/locations constitute specs and implementation varies by project
-- **Don't assume not implemented** - Always search codebase before implementing (critical - the Achilles' heel)
-- **Use parallel subagents** - Main agent as scheduler, spawn subagents for work (only 1 for build/tests)
-- **Backpressure forces correctness** - Tests must pass before commit
-- **Capture the why** - Update AGENTS.md with learnings, keep it up to date
-- **Tight tasks** - 1 task per loop = 100% smart zone utilization
-- **Commit after updates** - All file modifications complete before commit
-- **Composability** - 21 files generate 8 procedure types through different combinations
+#### observe_specs.md
+
+Gather information about specifications and quality criteria for assessment.
+
+O1, O3, O4, O11
+
+#### observe_impl.md
+
+Gather information about implementation and quality criteria for assessment.
+
+O1, O3, O4, O12
+
+#### observe_draft_plan.md
+
+Gather information about the converged draft plan ready for publishing.
+
+O1, O6, O7, O10
+
+### Orient
+
+**Common Steps:**
+- **R1:** Identify project type and tech stack
+- **R2:** Determine what constitutes "specification" vs "implementation"
+- **R3:** Identify build/test/run commands empirically
+- **R4:** Synthesize operational understanding
+- **R5:** Understand task requirements
+- **R6:** Search codebase (don't assume not implemented)
+- **R7:** Identify what needs to be built/modified
+- **R8:** Determine test strategy
+- **R9:** Analyze story from task file (scope, requirements, integration points)
+- **R10:** Analyze bug from task file (symptoms, root cause, affected functionality)
+- **R11:** Understand existing spec structure and patterns
+- **R12:** Determine how story should be incorporated (create new specs, update existing, refactor)
+- **R13:** Determine how spec should be adjusted to drive bug fix (acceptance criteria, edge cases, clarifications)
+- **R14:** If draft plan exists: critique it (completeness, accuracy, priorities, clarity)
+- **R15:** Identify tasks needed
+- **R16:** Gap analysis: compare specs vs implementation
+- **R17:** Assess completeness and accuracy
+- **R18:** Apply boolean criteria per AGENTS.md
+- **R19:** Identify human markers (TODOs, code smells, unclear language)
+- **R20:** Score each criterion PASS/FAIL
+- **R21:** Parse draft plan structure
+- **R22:** Understand task breakdown and dependencies
+
+#### orient_bootstrap.md
+
+Analyze repository to determine project type, definitions, and operational commands.
+
+R1, R2, R3, R4
+
+#### orient_build.md
+
+Analyze task requirements and codebase to determine what needs to be built.
+
+R5, R6, R7, R8
+
+#### orient_story_task_incorporation.md
+
+Analyze story requirements and determine how to incorporate into specifications.
+
+R9, R11, R12, R14, R15
+
+#### orient_bug_task_incorporation.md
+
+Analyze bug details and determine spec adjustments needed to drive the fix.
+
+R10, R11, R13, R14, R15
+
+#### orient_gap.md
+
+Compare specifications and implementation to identify gaps in either direction.
+
+R16, R6, R17
+
+#### orient_quality.md
+
+Assess quality using boolean criteria and identify areas needing improvement.
+
+R18, R19, R20
+
+#### orient_publish.md
+
+Parse draft plan structure to prepare for work tracking system import.
+
+R21, R22
+
+### Decide
+
+**Common Steps:**
+- **D1:** Determine AGENTS.md structure
+- **D2:** Define specification and implementation locations
+- **D3:** Identify quality criteria for this project
+- **D4:** Pick the most important task from work tracking
+- **D5:** Determine implementation approach using parallel subagents
+- **D6:** Identify which files to modify
+- **D7:** Generate complete plan for story incorporation into specs
+- **D8:** Generate complete plan for spec adjustments to drive bug fix
+- **D9:** Structure plan by priority (most important first)
+- **D10:** Break into tight, actionable tasks
+- **D11:** Determine task dependencies
+- **D12:** If criteria fail threshold: propose refactoring
+- **D13:** Prioritize by impact
+- **D14:** Map plan tasks to work tracking issues (title, description, dependencies)
+- **D15:** Identify order of issue creation
+
+#### decide_bootstrap.md
+
+Determine AGENTS.md structure, definitions, and quality criteria for the project.
+
+D1, D2, D3
+
+#### decide_build.md
+
+Select the most important task and determine implementation approach.
+
+D4, D5, D6
+
+#### decide_story_task_plan.md
+
+Create a complete plan for incorporating the story into specifications.
+
+D7, D9, D10, D11
+
+#### decide_bug_task_plan.md
+
+Create a complete plan for spec adjustments to drive the bug fix.
+
+D8, D9, D10, D11
+
+#### decide_gap_plan.md
+
+Structure a prioritized plan to address identified gaps.
+
+D9, D10, D11
+
+#### decide_refactor_plan.md
+
+Propose refactoring plan if quality criteria fail threshold.
+
+D12, D9, D13
+
+#### decide_publish.md
+
+Determine how to map draft plan tasks to work tracking issues.
+
+D14, D15
+
+### Act
+
+**Common Steps:**
+- **A1:** Create AGENTS.md with operational guide
+- **A2:** Commit changes
+- **A3:** Implement using parallel subagents (only 1 subagent for build/tests)
+- **A4:** Run tests per AGENTS.md (backpressure)
+- **A5:** Update work tracking per AGENTS.md (mark complete/update status)
+- **A6:** Update AGENTS.md if learned something new (capture the why, keep it up to date)
+- **A7:** Commit when tests pass
+- **A8:** Write draft plan file per AGENTS.md with prioritized bullet-point task list
+- **A9:** Execute work tracking commands per AGENTS.md to create issues from draft plan
+
+#### act_bootstrap.md
+
+Create AGENTS.md operational guide and commit.
+
+A1, A2
+
+#### act_build.md
+
+Implement code, run tests, update tracking, and commit when passing.
+
+A3, A4, A5, A6, A7
+
+#### act_plan.md
+
+Write draft plan file, update AGENTS.md if needed, and commit.
+
+A8, A6, A2
+
+#### act_publish.md
+
+Create work tracking issues from draft plan and commit.
+
+A9, A6, A2
