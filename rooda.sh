@@ -54,7 +54,7 @@ DECIDE=""
 ACT=""
 MAX_ITERATIONS=0
 PROCEDURE=""
-CONFIG_FILE="ooda-config.yml"
+CONFIG_FILE="rooda-config.yml"
 
 # First positional argument is procedure name (optional)
 if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]]; then

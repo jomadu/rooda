@@ -10,7 +10,7 @@ git clone https://github.com/jomadu/ralph-wiggum-ooda.git
 
 # Copy necessary files to your project
 cp ralph-wiggum-ooda/rooda.sh .
-cp ralph-wiggum-ooda/ooda-config.yml .
+cp ralph-wiggum-ooda/rooda-config.yml .
 cp -r ralph-wiggum-ooda/prompts .
 chmod +x rooda.sh
 ```
@@ -108,7 +108,7 @@ AGENTS.md is a living document, assumed inaccurate until verified empirically. W
 
 ## Composable Architecture
 
-The system uses composable prompt files to create different procedures. Each OODA phase (observe, orient, decide, act) is implemented as a separate markdown file in the `prompts/` directory. Procedures are defined in `ooda-config.yml` by specifying which four prompt files to combine—one for each phase.
+The system uses composable prompt files to create different procedures. Each OODA phase (observe, orient, decide, act) is implemented as a separate markdown file in the `prompts/` directory. Procedures are defined in `rooda-config.yml` by specifying which four prompt files to combine—one for each phase.
 
 This composition enables significant reuse. For example, `observe_plan_specs_impl.md` (which reads AGENTS.md, work tracking, specs, and implementation) is shared by the `build` procedure, `plan-spec-to-impl` procedure, and `plan-impl-to-spec` procedure. They differ only in their orient, decide, and act components. The build procedure orients around understanding tasks and implements code, while the planning procedures orient around gap analysis and write plans.
 
@@ -130,7 +130,7 @@ The configuration-driven approach means you can create custom procedures without
 
 ## Custom Procedures
 
-You can create custom procedures by editing `ooda-config.yml` or using command-line flags. Each procedure needs four prompt files (one per OODA phase) and optionally a default iteration count.
+You can create custom procedures by editing `rooda-config.yml` or using command-line flags. Each procedure needs four prompt files (one per OODA phase) and optionally a default iteration count.
 
 **Adding to config:**
 
@@ -256,7 +256,7 @@ When: Regular maintenance, keeping both specs and implementation quality high.
 ```
 project-root/
 ├── rooda.sh                   # Loop script
-├── ooda-config.yml            # Procedure definitions and file paths
+├── rooda-config.yml            # Procedure definitions and file paths
 ├── AGENTS.md                  # Operational guide (created by bootstrap)
 ├── prompts/                   # OODA phase components
 │   ├── observe_*.md           # Observation variants

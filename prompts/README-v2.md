@@ -4,27 +4,45 @@
 
 ### Core Procedures
 
-1. **bootstrap** - Create/update AGENTS.md operational guide
+#### bootstrap
 
-2. **build** - Implement tasks from work tracking system
+Create/update AGENTS.md operational guide.
+
+### build
+
+Implement tasks from work tracking system
 
 ### Draft Planning Procedures
 
-1. **draft-plan-story-to-spec** - Converge plan for incorporating story into specs
+#### draft-plan-story-to-spec
 
-2. **draft-plan-bug-to-spec** - Converge plan for spec adjustments to drive bug fix
+Converge plan for incorporating story into specs.
 
-3. **draft-plan-spec-to-impl** - Converge plan from gap analysis (specs → code)
+#### draft-plan-bug-to-spec
 
-4. **draft-plan-impl-to-spec** - Converge plan from gap analysis (code → specs)
+Converge plan for spec adjustments to drive bug fix.
 
-5. **draft-plan-spec-refactor** - Converge plan from quality assessment of specs
+#### draft-plan-spec-to-impl
 
-6. **draft-plan-impl-refactor** - Converge plan from quality assessment of code
+Converge plan from gap analysis (specs → code).
+
+#### draft-plan-impl-to-spec
+
+Converge plan from gap analysis (code → specs).
+
+#### draft-plan-spec-refactor
+
+Converge plan from quality assessment of specs.
+
+#### draft-plan-impl-refactor
+
+Converge plan from quality assessment of code.
 
 ### Publishing Procedure
 
-1. **publish-plan** - Publish converged draft plan to work tracking system
+#### publish-plan
+
+Publish converged draft plan to work tracking system.
 
 ---
 
