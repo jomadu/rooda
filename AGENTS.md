@@ -71,33 +71,33 @@ bd ready --json       # Verify beads integration works
 
 ## Specification Definition
 
-**Location:** `docs/*.md` and `prompts/*.md`
+**Location:** `specs/*.md`
 
-**Format:** Markdown documentation
+**Format:** Markdown specifications following JTBD structure
 
 **Patterns:**
-- `docs/agents-md-specification.md` - AGENTS.md format specification
-- `docs/ooda-loop.md` - OODA framework explanation
-- `docs/ralph-loop.md` - Original methodology
-- `docs/specs.md` - Specification system design
-- `docs/spec-template.md` - Template for specs
-- `prompts/*.md` - OODA phase prompt components
+- `specs/agents-md-format.md` - AGENTS.md format specification
+- `specs/specification-system.md` - Spec system design
+- `specs/TEMPLATE.md` - Template for new specs
 
-**Rationale:** This is a framework/methodology repository. The "specs" are the documentation that defines how the system works. Implementation is the bash script that executes the framework.
+**Rationale:** Specifications define the framework methodology (JTBD, spec system, AGENTS.md format). These are distinct from user-facing documentation.
 
 ## Implementation Definition
 
-**Location:** `rooda.sh` (bash script)
+**Location:** `src/rooda.sh` and `src/components/*.md`
 
-**Patterns:** `rooda.sh`
+**Patterns:** 
+- `src/rooda.sh` - Main loop script
+- `src/rooda-config.yml` - Procedure configuration
+- `src/components/*.md` - OODA prompt components
 
 **Exclude:** 
 - `.beads/*` (work tracking database)
-- `prompts/*` (prompt templates, not implementation)
-- `docs/*` (documentation, not implementation)
-- `*.md` (documentation files)
+- `docs/*` (user-facing documentation)
+- `specs/*` (specifications)
+- `README.md`, `AGENTS.md`, `LICENSE.md` (root-level files)
 
-**Rationale:** The only implementation is the bash loop script. Everything else is documentation, configuration, or prompt templates that define the framework's behavior.
+**Rationale:** Implementation is the bash script and composable prompt components that execute the framework. Configuration and components are co-located with the script.
 
 ## Quality Criteria
 
@@ -128,4 +128,11 @@ bd ready --json       # Verify beads integration works
 **2026-02-03:** There's an open issue (ralph-wiggum-ooda-i2c) about YAML parser in rooda.sh not properly handling procedure lookups. Workaround exists using explicit flags. This should be fixed to support the documented `./rooda.sh bootstrap` syntax.
 
 **2026-02-03:** shellcheck is not installed on this system. The lint command will fail until shellcheck is installed via `brew install shellcheck`. This is optional for framework operation but recommended for bash script quality.
+
+**2026-02-03:** Restructured repository into src/, specs/, docs/ to enable dogfooding:
+- Separating implementation (src/) from specifications (specs/) allows running draft-plan-impl-to-spec
+- Framework can now use its own methodology to generate specs from implementation
+- Clear separation makes it obvious what agents should analyze vs what they should read for guidance
+- Consumers copy from src/ to their project root (flat structure), while framework repo has internal organization
+- Config file paths remain prompts/*.md for consumer compatibility
 
