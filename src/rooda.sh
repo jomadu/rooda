@@ -104,6 +104,64 @@ if [ "$BD_MAJOR" -eq 0 ] && [ "$BD_MINOR" -lt 1 ]; then
     exit 1
 fi
 
+# Validate config structure
+validate_config() {
+    local config_file="$1"
+    local procedure="$2"
+    
+    # Validate YAML is parseable
+    if ! yq eval '.' "$config_file" &> /dev/null; then
+        echo "Error: Invalid YAML in configuration file"
+        echo "  Path: $config_file"
+        echo "  Run: yq eval '.' $config_file"
+        echo "  To see parse errors"
+        exit 1
+    fi
+    
+    # Validate procedures key exists
+    local procedures_key
+    procedures_key=$(yq eval '.procedures' "$config_file")
+    if [ "$procedures_key" = "null" ]; then
+        echo "Error: Configuration file missing 'procedures' key"
+        echo "  Path: $config_file"
+        echo "  Expected structure: procedures: { procedure-name: { ... } }"
+        exit 1
+    fi
+    
+    # If procedure specified, validate it exists and has required fields
+    if [ -n "$procedure" ]; then
+        local proc_exists
+        proc_exists=$(yq eval ".procedures.$procedure" "$config_file")
+        if [ "$proc_exists" = "null" ]; then
+            echo "Error: Procedure '$procedure' not found in $config_file"
+            echo ""
+            echo "Available procedures:"
+            yq eval '.procedures | keys | .[]' "$config_file" | sed 's/^/  - /'
+            exit 1
+        fi
+        
+        # Validate required OODA fields
+        local observe orient decide act
+        observe=$(yq eval ".procedures.$procedure.observe" "$config_file")
+        orient=$(yq eval ".procedures.$procedure.orient" "$config_file")
+        decide=$(yq eval ".procedures.$procedure.decide" "$config_file")
+        act=$(yq eval ".procedures.$procedure.act" "$config_file")
+        
+        local missing_fields=()
+        [ "$observe" = "null" ] && missing_fields+=("observe")
+        [ "$orient" = "null" ] && missing_fields+=("orient")
+        [ "$decide" = "null" ] && missing_fields+=("decide")
+        [ "$act" = "null" ] && missing_fields+=("act")
+        
+        if [ ${#missing_fields[@]} -gt 0 ]; then
+            echo "Error: Procedure '$procedure' missing required fields"
+            echo "  Missing: ${missing_fields[*]}"
+            echo "  Required: observe, orient, decide, act"
+            exit 1
+        fi
+    fi
+}
+
 # Parse arguments
 OBSERVE=""
 ORIENT=""
@@ -174,16 +232,14 @@ if [ -n "$PROCEDURE" ]; then
         exit 1
     fi
     
+    # Validate config structure and procedure
+    validate_config "$CONFIG_FILE" "$PROCEDURE"
+    
     # Only load from config if not already set via explicit flags
     [ -z "$OBSERVE" ] && OBSERVE=$(yq eval ".procedures.$PROCEDURE.observe" "$CONFIG_FILE")
     [ -z "$ORIENT" ] && ORIENT=$(yq eval ".procedures.$PROCEDURE.orient" "$CONFIG_FILE")
     [ -z "$DECIDE" ] && DECIDE=$(yq eval ".procedures.$PROCEDURE.decide" "$CONFIG_FILE")
     [ -z "$ACT" ] && ACT=$(yq eval ".procedures.$PROCEDURE.act" "$CONFIG_FILE")
-    
-    if [ "$OBSERVE" = "null" ] || [ "$ORIENT" = "null" ] || [ "$DECIDE" = "null" ] || [ "$ACT" = "null" ]; then
-        echo "Error: Procedure '$PROCEDURE' not found in $CONFIG_FILE"
-        exit 1
-    fi
     
     # Use default iterations if not specified
     if [ "$MAX_ITERATIONS" -eq 0 ]; then
