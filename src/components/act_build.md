@@ -9,6 +9,17 @@ Execute the implementation plan:
 - Coordinate file modifications to avoid conflicts
 - Complete all file modifications before proceeding
 
+## A3.5: Validate Spec Structure (If Specs Modified)
+
+If any spec files in `specs/*.md` were created or modified:
+- Check for required sections from TEMPLATE.md:
+  - "Job to be Done" or "Jobs to be Done"
+  - "Activities"
+  - "Acceptance Criteria"
+- Warn if required sections are missing
+- Suggest using `specs/TEMPLATE.md` for new specs
+- This is informational only - does not block commit
+
 ## A4: Run Tests per AGENTS.md (Backpressure)
 
 Execute test commands from AGENTS.md:
