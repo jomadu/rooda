@@ -24,6 +24,18 @@ If any spec files in `specs/*.md` were created or modified:
 - Suggest using `specs/TEMPLATE.md` for new specs
 - This is informational only - does not block commit
 
+## A3.6: Regenerate Spec Index (If Specs Modified)
+
+If any spec files in `specs/*.md` were created, modified, or deleted:
+- Read `specs/specification-system.md` for README structure requirements
+- Scan all `specs/*.md` files (excluding README.md, TEMPLATE.md, specification-system.md)
+- Extract "## Job to be Done" or "## Jobs to be Done" section from each spec
+- Generate `specs/README.md` following the documented structure:
+  - Header and intro text
+  - Links to TEMPLATE.md and specification-system.md
+  - List of specs with extracted JTBDs
+- This keeps the index in sync with actual specs
+
 ## A4: Run Tests per AGENTS.md (Backpressure)
 
 Execute test commands from AGENTS.md:
