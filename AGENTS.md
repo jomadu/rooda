@@ -178,3 +178,12 @@ bd ready --json       # Verify beads integration works
 - Validation documents serve as regression test documentation
 - Rationale: Discovered during ralph-wiggum-ooda-1w0 (CLI procedure validation) - manual verification is the appropriate testing methodology for this framework
 
+**2026-02-03:** Bug discovered in OODA file path resolution (ralph-wiggum-ooda-cuy):
+- Config file resolution works correctly (resolves relative to script location)
+- OODA phase file paths from config are NOT resolved relative to script directory
+- File validation at line 107 checks paths relative to current working directory
+- Impact: Script only works when invoked from project root, fails from other directories
+- Root cause: Paths loaded from config (lines 77-80) are used as-is without prepending SCRIPT_DIR
+- Fix needed: Resolve OODA paths relative to SCRIPT_DIR after loading from config
+- Rationale: Empirical testing during ralph-wiggum-ooda-cuy validation revealed this gap between config resolution (works) and OODA file resolution (broken)
+
