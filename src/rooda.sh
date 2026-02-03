@@ -25,7 +25,9 @@ DECIDE=""
 ACT=""
 MAX_ITERATIONS=0
 PROCEDURE=""
-CONFIG_FILE="rooda-config.yml"
+# Resolve config file relative to script location
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_FILE="${SCRIPT_DIR}/rooda-config.yml"
 
 # First positional argument is procedure name (optional)
 if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]]; then
