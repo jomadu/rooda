@@ -254,11 +254,11 @@ When: Regular maintenance, keeping both specs and implementation quality high.
 ## Sample Repository Structure
 
 ```
-project-root/
-├── rooda.sh                   # Loop script
-├── rooda-config.yml            # Procedure definitions and file paths
+consumer-project/
+├── rooda.sh                   # Copied from ralph-wiggum-ooda/src/
+├── rooda-config.yml           # Copied from ralph-wiggum-ooda/src/
 ├── AGENTS.md                  # Operational guide (created by bootstrap)
-├── prompts/                   # OODA phase components
+├── prompts/                   # Copied from ralph-wiggum-ooda/src/components/
 │   ├── observe_*.md           # Observation variants
 │   ├── orient_*.md            # Analysis variants
 │   ├── decide_*.md            # Decision variants
