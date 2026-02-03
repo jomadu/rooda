@@ -62,6 +62,32 @@ if ! command -v bd &> /dev/null; then
     exit 1
 fi
 
+# Check versions
+YQ_VERSION=$(yq --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+YQ_MAJOR=$(echo "$YQ_VERSION" | cut -d. -f1)
+if [ "$YQ_MAJOR" -lt 4 ]; then
+    echo "Error: yq version 4.0.0 or higher required (found $YQ_VERSION)"
+    echo "Upgrade with: brew upgrade yq"
+    exit 1
+fi
+
+KIRO_VERSION=$(kiro-cli --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+KIRO_MAJOR=$(echo "$KIRO_VERSION" | cut -d. -f1)
+if [ "$KIRO_MAJOR" -lt 1 ]; then
+    echo "Error: kiro-cli version 1.0.0 or higher required (found $KIRO_VERSION)"
+    echo "Upgrade from: https://docs.aws.amazon.com/kiro/"
+    exit 1
+fi
+
+BD_VERSION=$(bd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+BD_MAJOR=$(echo "$BD_VERSION" | cut -d. -f1)
+BD_MINOR=$(echo "$BD_VERSION" | cut -d. -f2)
+if [ "$BD_MAJOR" -eq 0 ] && [ "$BD_MINOR" -lt 1 ]; then
+    echo "Error: bd version 0.1.0 or higher required (found $BD_VERSION)"
+    echo "Upgrade with: cargo install beads-cli"
+    exit 1
+fi
+
 # Parse arguments
 OBSERVE=""
 ORIENT=""

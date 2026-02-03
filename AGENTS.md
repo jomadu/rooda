@@ -205,3 +205,10 @@ bd ready --json       # Verify beads integration works
 - All required AGENTS.md sections present and complete per agents-md-format.md specification
 - Rationale: Periodic bootstrap validation ensures AGENTS.md remains accurate as work progresses
 
+**2026-02-03 14:10:** Version validation implemented (ralph-wiggum-ooda-5ib):
+- yq version >= 4.0.0 now validated at startup (lines 64-93 in src/rooda.sh)
+- kiro-cli version >= 1.0.0 validated
+- bd version >= 0.1.0 validated
+- Clear error messages for incompatible versions with upgrade instructions
+- Rationale: Prevents cryptic YAML parsing errors from yq v3, ensures all tools meet minimum requirements per external-dependencies.md specification
+
