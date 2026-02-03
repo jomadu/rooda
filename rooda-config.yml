@@ -19,62 +19,72 @@ procedures:
     act: prompts/act_build.md
     default_iterations: 5
 
-  plan-spec-to-impl:
-    display: "Plan Spec to Implementation"
-    summary: "Creates plan from gap analysis - what's in specs but not in code"
-    description: "Compares specifications to implementation, identifies missing features, writes prioritized tasks to work tracking system"
-    observe: prompts/observe_plan_specs_impl.md
-    orient: prompts/orient_gap.md
-    decide: prompts/decide_gap_plan.md
-    act: prompts/act_plan.md
-    default_iterations: 1
-
-  plan-impl-to-spec:
-    display: "Plan Implementation to Spec"
-    summary: "Creates plan from gap analysis - what's in code but not in specs"
-    description: "Compares implementation to specifications, identifies undocumented features, writes prioritized tasks to work tracking system"
-    observe: prompts/observe_plan_specs_impl.md
-    orient: prompts/orient_gap.md
-    decide: prompts/decide_gap_plan.md
-    act: prompts/act_plan.md
-    default_iterations: 1
-
-  plan-spec-refactor:
-    display: "Plan Spec Refactoring"
-    summary: "Creates refactoring plan from quality assessment of specs"
-    description: "Applies quality criteria to specifications, writes refactoring tasks to work tracking system if threshold fails"
-    observe: prompts/observe_specs.md
-    orient: prompts/orient_quality.md
-    decide: prompts/decide_refactor_plan.md
-    act: prompts/act_plan.md
-    default_iterations: 1
-
-  plan-impl-refactor:
-    display: "Plan Implementation Refactoring"
-    summary: "Creates refactoring plan from quality assessment of code"
-    description: "Applies quality criteria to implementation, writes refactoring tasks to work tracking system if threshold fails"
-    observe: prompts/observe_impl.md
-    orient: prompts/orient_quality.md
-    decide: prompts/decide_refactor_plan.md
-    act: prompts/act_plan.md
-    default_iterations: 1
-
-  plan-story-to-spec:
-    display: "Plan Story to Spec"
-    summary: "Creates plan for incorporating story into specs"
-    description: "Analyzes new feature requirements, determines how to expand specs to accommodate story, writes tasks to work tracking system"
+  draft-plan-story-to-spec:
+    display: "Draft Plan Story to Spec"
+    summary: "Converge plan for incorporating story into specs"
+    description: "Analyzes new feature requirements, determines how to expand specs to accommodate story, writes tasks to draft plan"
     observe: prompts/observe_story_task_specs_impl.md
     orient: prompts/orient_story_task_incorporation.md
     decide: prompts/decide_story_task_plan.md
     act: prompts/act_plan.md
     default_iterations: 5
 
-  plan-bug-to-spec:
-    display: "Plan Bug to Spec"
-    summary: "Creates plan for spec adjustments needed to drive bug fix"
-    description: "Analyzes bug report, determines spec adjustments (acceptance criteria, edge cases), writes tasks to work tracking system"
+  draft-plan-bug-to-spec:
+    display: "Draft Plan Bug to Spec"
+    summary: "Converge plan for spec adjustments to drive bug fix"
+    description: "Analyzes bug report, determines spec adjustments (acceptance criteria, edge cases), writes tasks to draft plan"
     observe: prompts/observe_bug_task_specs_impl.md
     orient: prompts/orient_bug_task_incorporation.md
     decide: prompts/decide_bug_task_plan.md
     act: prompts/act_plan.md
     default_iterations: 3
+
+  draft-plan-spec-to-impl:
+    display: "Draft Plan Spec to Implementation"
+    summary: "Converge plan from gap analysis (specs → code)"
+    description: "Compares specifications to implementation, identifies missing features, writes prioritized tasks to draft plan"
+    observe: prompts/observe_plan_specs_impl.md
+    orient: prompts/orient_gap.md
+    decide: prompts/decide_gap_plan.md
+    act: prompts/act_plan.md
+    default_iterations: 1
+
+  draft-plan-impl-to-spec:
+    display: "Draft Plan Implementation to Spec"
+    summary: "Converge plan from gap analysis (code → specs)"
+    description: "Compares implementation to specifications, identifies undocumented features, writes prioritized tasks to draft plan"
+    observe: prompts/observe_plan_specs_impl.md
+    orient: prompts/orient_gap.md
+    decide: prompts/decide_gap_plan.md
+    act: prompts/act_plan.md
+    default_iterations: 1
+
+  draft-plan-spec-refactor:
+    display: "Draft Plan Spec Refactoring"
+    summary: "Converge plan from quality assessment of specs"
+    description: "Applies quality criteria to specifications, writes refactoring tasks to draft plan if threshold fails"
+    observe: prompts/observe_specs.md
+    orient: prompts/orient_quality.md
+    decide: prompts/decide_refactor_plan.md
+    act: prompts/act_plan.md
+    default_iterations: 1
+
+  draft-plan-impl-refactor:
+    display: "Draft Plan Implementation Refactoring"
+    summary: "Converge plan from quality assessment of code"
+    description: "Applies quality criteria to implementation, writes refactoring tasks to draft plan if threshold fails"
+    observe: prompts/observe_impl.md
+    orient: prompts/orient_quality.md
+    decide: prompts/decide_refactor_plan.md
+    act: prompts/act_plan.md
+    default_iterations: 1
+
+  publish-plan:
+    display: "Publish Plan"
+    summary: "Publish converged draft plan to work tracking system"
+    description: "Reads converged draft plan and creates issues in work tracking system per AGENTS.md"
+    observe: prompts/observe_draft_plan.md
+    orient: prompts/orient_publish.md
+    decide: prompts/decide_publish.md
+    act: prompts/act_publish.md
+    default_iterations: 1

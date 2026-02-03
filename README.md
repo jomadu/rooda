@@ -120,12 +120,12 @@ The configuration-driven approach means you can create custom procedures without
 | ------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ | ------------- | ---------- |
 | Bootstrap Repository                  | `bootstrap`                | Creates or updates AGENTS.md operational guide for the repository              | No            | 1          |
 | Build from Plan                       | `build`                    | Implements tasks from work tracking system (only procedure that modifies code) | Yes           | 5          |
+| Draft Plan Story to Spec              | `draft-plan-story-to-spec` | Converges draft plan for incorporating story into specs                        | No            | 5          |
+| Draft Plan Bug to Spec                | `draft-plan-bug-to-spec`   | Converges draft plan for spec adjustments needed to drive bug fix              | No            | 3          |
 | Draft Plan Spec to Implementation     | `draft-plan-spec-to-impl`  | Converges draft plan from gap analysis - what's in specs but not in code       | No            | 1          |
 | Draft Plan Implementation to Spec     | `draft-plan-impl-to-spec`  | Converges draft plan from gap analysis - what's in code but not in specs       | No            | 1          |
 | Draft Plan Spec Refactoring           | `draft-plan-spec-refactor` | Converges draft plan from quality assessment of specs                          | No            | 1          |
 | Draft Plan Implementation Refactoring | `draft-plan-impl-refactor` | Converges draft plan from quality assessment of implementation                 | No            | 1          |
-| Draft Plan Story to Spec              | `draft-plan-story-to-spec` | Converges draft plan for incorporating story into specs                        | No            | 5          |
-| Draft Plan Bug to Spec                | `draft-plan-bug-to-spec`   | Converges draft plan for spec adjustments needed to drive bug fix              | No            | 3          |
 | Publish Plan                          | `publish-plan`             | Publishes converged draft plan to work tracking system                         | No            | 1          |
 
 ## Custom Procedures
