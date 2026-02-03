@@ -1,10 +1,8 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+## Work Tracking System
 
-## Task Management
-
-This repository uses **beads** for task management, not the tasks/ directory pattern.
+**System:** beads (bd CLI)
 
 **Query ready work:**
 ```bash
@@ -15,10 +13,6 @@ bd ready --json
 ```bash
 bd show <id> --json
 ```
-
-**Task/Plan files for story/bug incorporation:**
-- Task file: Issue description from `bd show <id> --json` (title + description fields)
-- Plan file: Not used (beads tracks status directly)
 
 **Update status:**
 ```bash
@@ -31,49 +25,103 @@ bd update <id> --status blocked
 bd close <id> --reason "Completed X"
 ```
 
-**View dependency tree:**
-```bash
-bd dep tree <id> --json
-```
-
 **Sync with git:**
 ```bash
 bd sync
 ```
 
-## Quick Reference
+## Story/Bug Input
 
+**For draft-plan-story-to-spec and draft-plan-bug-to-spec procedures:**
+- Use `bd show $TASK_ID --json` to read story/bug description
+- Extract `title` and `description` fields from JSON output
+- Task ID should be provided via environment variable or command-line argument
+
+## Planning System
+
+**Draft plan location:** `PLAN.md` at project root
+
+**Publishing mechanism:** Agent reads `PLAN.md` and runs `bd create` commands to file issues with appropriate dependencies and priorities
+
+**Workflow:**
+1. Draft procedures write/iterate on `PLAN.md`
+2. Publish procedure reads `PLAN.md` and creates beads issues
+3. Build procedure implements from beads work tracking
+
+## Build/Test/Lint Commands
+
+**This is a documentation repository (bash scripts + markdown).**
+
+**Test:** No automated tests (manual verification of script execution)
+
+**Build:** No build step required (bash scripts are interpreted)
+
+**Lint:** 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
+shellcheck rooda.sh  # Lint bash script
 ```
 
-## Landing the Plane (Session Completion)
+**Verification:**
+```bash
+./rooda.sh --help  # Verify script runs
+bd ready --json    # Verify beads integration works
+```
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+## Specification Definition
 
-**MANDATORY WORKFLOW:**
+**Location:** `docs/*.md` and `prompts/*.md`
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+**Format:** Markdown documentation
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+**Patterns:**
+- `docs/agents-md-specification.md` - AGENTS.md format specification
+- `docs/ooda-loop.md` - OODA framework explanation
+- `docs/ralph-loop.md` - Original methodology
+- `docs/specs.md` - Specification system design
+- `docs/spec-template.md` - Template for specs
+- `prompts/*.md` - OODA phase prompt components
+
+**Rationale:** This is a framework/methodology repository. The "specs" are the documentation that defines how the system works. Implementation is the bash script that executes the framework.
+
+## Implementation Definition
+
+**Location:** `rooda.sh` (bash script)
+
+**Patterns:** `rooda.sh`
+
+**Exclude:** 
+- `.beads/*` (work tracking database)
+- `prompts/*` (prompt templates, not implementation)
+- `docs/*` (documentation, not implementation)
+- `*.md` (documentation files)
+
+**Rationale:** The only implementation is the bash loop script. Everything else is documentation, configuration, or prompt templates that define the framework's behavior.
+
+## Quality Criteria
+
+**For specifications (documentation):**
+- Clarity: Can a new user understand the framework from README.md?
+- Completeness: Are all 9 procedures documented with examples?
+- Consistency: Do docs match actual script behavior?
+- Accuracy: Do command examples work when executed?
+
+**For implementation (rooda.sh):**
+- Correctness: Does the script execute procedures as documented?
+- Robustness: Does error handling work for missing files/commands?
+- Maintainability: Is the bash code readable and commented?
+- Compatibility: Does it work on macOS and Linux?
+
+**Refactoring triggers:**
+- Documentation contradicts script behavior
+- Script fails on documented use cases
+- Error messages are unclear or misleading
+- YAML parsing doesn't support documented config structure
+
+## Operational Learnings
+
+**2026-02-03:** Bootstrap procedure identified that this is a framework repository, not a typical application. The "specification" is the documentation that defines the methodology, and the "implementation" is the bash script that executes it. This differs from typical projects where specs describe features and implementation is source code.
+
+**2026-02-03:** Beads integration is working correctly. The `bd ready --json` command returns structured JSON with issue details. Work tracking commands are operational.
+
+**2026-02-03:** There's an open issue (ralph-wiggum-ooda-i2c) about YAML parser in rooda.sh not properly handling procedure lookups. Workaround exists using explicit flags. This should be fixed to support the documented `./rooda.sh bootstrap` syntax.
 
