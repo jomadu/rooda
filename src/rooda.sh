@@ -88,7 +88,7 @@ if [ -n "$PROCEDURE" ]; then
     fi
     
     # Use default iterations if not specified
-    if [ $MAX_ITERATIONS -eq 0 ]; then
+    if [ "$MAX_ITERATIONS" -eq 0 ]; then
         DEFAULT_ITER=$(yq eval ".procedures.$PROCEDURE.default_iterations" "$CONFIG_FILE")
         [ "$DEFAULT_ITER" != "null" ] && MAX_ITERATIONS=$DEFAULT_ITER
     fi
@@ -136,7 +136,7 @@ echo "Orient:    $ORIENT"
 echo "Decide:    $DECIDE"
 echo "Act:       $ACT"
 echo "Branch:    $CURRENT_BRANCH"
-[ $MAX_ITERATIONS -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
+[ "$MAX_ITERATIONS" -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Create prompt template
@@ -159,7 +159,7 @@ EOF
 }
 
 while true; do
-    if [ $MAX_ITERATIONS -gt 0 ] && [ $ITERATION -ge $MAX_ITERATIONS ]; then
+    if [ "$MAX_ITERATIONS" -gt 0 ] && [ "$ITERATION" -ge "$MAX_ITERATIONS" ]; then
         echo "Reached max iterations: $MAX_ITERATIONS"
         break
     fi
