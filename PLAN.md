@@ -1,125 +1,201 @@
 # Draft Plan: Spec to Implementation Gap Analysis
 
-## Priority 1 (High Impact)
+## Priority 1: Core Framework Behavior (Missing Specs)
 
-### Task 1: Automate Spec Creation from Template
-**Description:** Create helper script or procedure to generate new spec files from TEMPLATE.md
+### 1. CLI Interface Specification
+**Gap:** rooda.sh has complex argument parsing (procedure names, explicit OODA flags, config override, max-iterations) but no specification defining the CLI interface design.
 
-**Rationale:** Currently agents must manually copy TEMPLATE.md when creating new specs. Automation ensures consistency and reduces friction.
+**Tasks:**
+- Document CLI invocation patterns (procedure-based vs explicit flags)
+- Specify argument precedence (explicit flags override config)
+- Define error handling for invalid arguments
+- Specify config file resolution (relative to script location)
 
 **Acceptance Criteria:**
-- [ ] Script/command creates new spec file from TEMPLATE.md
-- [ ] Prompts for spec name and basic metadata
-- [ ] Places file in specs/ directory with correct naming convention
-- [ ] Preserves all template sections and structure
+- [ ] All CLI invocation patterns documented
+- [ ] Argument parsing behavior specified
+- [ ] Error messages defined for invalid usage
 
-**Implementation Approach:**
-- Add `create-spec.sh` helper script to src/
-- Or add `create-spec` procedure to rooda-config.yml
-- Use sed/awk to replace placeholder text in template
+### 2. Prompt Composition Specification
+**Gap:** create_prompt() function concatenates 4 OODA phase files into single prompt, but no specification for how prompt assembly works.
 
-**Dependencies:** None
+**Tasks:**
+- Document prompt composition algorithm (concatenate observe + orient + decide + act)
+- Specify file reading and validation
+- Define error handling for missing prompt files
+- Specify output format (single combined prompt to stdout)
+
+**Acceptance Criteria:**
+- [ ] Prompt assembly algorithm documented
+- [ ] File validation behavior specified
+- [ ] Error handling for missing files defined
+
+### 3. Iteration Loop Control Specification
+**Gap:** Script supports --max-iterations, default iterations per procedure, but no specification for iteration behavior.
+
+**Tasks:**
+- Document iteration loop semantics (exit and restart per iteration)
+- Specify max-iterations override behavior
+- Define default iteration fallback (from config or 1)
+- Specify termination conditions (max reached, Ctrl+C)
+
+**Acceptance Criteria:**
+- [ ] Iteration loop behavior documented
+- [ ] Termination conditions specified
+- [ ] Default iteration logic defined
+
+### 4. Configuration Schema Specification
+**Gap:** rooda-config.yml has specific structure (procedures, display, summary, description, OODA paths, default_iterations) but no specification.
+
+**Tasks:**
+- Document YAML configuration schema
+- Specify required vs optional fields per procedure
+- Define procedure lookup mechanism (yq queries)
+- Specify validation for missing procedures
+
+**Acceptance Criteria:**
+- [ ] Configuration schema documented
+- [ ] Field requirements specified
+- [ ] Lookup and validation behavior defined
+
+## Priority 2: External Dependencies (Missing Specs)
+
+### 5. AI CLI Integration Specification
+**Gap:** Script pipes prompt to kiro-cli with specific flags (--no-interactive --trust-all-tools) but no specification for AI CLI integration.
+
+**Tasks:**
+- Document AI CLI requirements (kiro-cli or compatible)
+- Specify required flags and their purpose
+- Define expected input/output format
+- Specify error handling for CLI failures
+
+**Acceptance Criteria:**
+- [ ] AI CLI integration requirements documented
+- [ ] Flag usage and rationale specified
+- [ ] Error handling defined
+
+### 6. External Dependencies Specification
+**Gap:** Script requires yq for YAML parsing but no specification for external dependencies.
+
+**Tasks:**
+- Document all external dependencies (yq, kiro-cli, bd)
+- Specify version requirements if applicable
+- Define dependency checking mechanism
+- Specify installation instructions per platform
+
+**Acceptance Criteria:**
+- [ ] All dependencies documented
+- [ ] Version requirements specified
+- [ ] Installation instructions provided
+
+## Priority 3: Quality Enforcement (Missing Implementation)
+
+### 7. AGENTS.md Section Validation
+**Gap:** agents-md-format.md defines required sections but bootstrap doesn't validate completeness.
+
+**Tasks:**
+- Add validation in bootstrap to check for required sections
+- Warn if sections are missing or incomplete
+- Provide guidance on what to add
+- Update AGENTS.md with validation results
+
+**Acceptance Criteria:**
+- [ ] Bootstrap validates AGENTS.md structure
+- [ ] Missing sections trigger warnings
+- [ ] Guidance provided for incomplete sections
+
+### 8. Quality Criteria Boolean Enforcement
+**Gap:** Specs emphasize boolean criteria but no validation that AGENTS.md quality criteria are actually boolean.
+
+**Tasks:**
+- Add validation in quality assessment procedures
+- Check that criteria are PASS/FAIL (not subjective scores)
+- Warn if criteria are ambiguous or subjective
+- Provide examples of boolean vs non-boolean criteria
+
+**Acceptance Criteria:**
+- [ ] Quality procedures validate boolean criteria
+- [ ] Non-boolean criteria trigger warnings
+- [ ] Examples provided for correction
+
+## Priority 4: Spec System Automation (Missing Implementation)
+
+### 9. Spec Template Structure Validation
+**Gap:** TEMPLATE.md defines structure but no validation or enforcement in rooda.sh.
+
+**Tasks:**
+- Add validation in build procedure when creating/updating specs
+- Check for required sections (JTBD, Activities, Acceptance Criteria, etc.)
+- Warn if sections are missing
+- Suggest using TEMPLATE.md for new specs
+
+**Acceptance Criteria:**
+- [ ] Build procedure validates spec structure
+- [ ] Missing sections trigger warnings
+- [ ] Template usage suggested for new specs
+
+### 10. Spec Naming Convention Validation
+**Gap:** specification-system.md specifies lowercase-with-hyphens naming but no validation.
+
+**Tasks:**
+- Add validation in build procedure when creating specs
+- Check filename matches convention (lowercase, hyphens, .md extension)
+- Warn if naming doesn't match convention
+- Suggest correct naming
+
+**Acceptance Criteria:**
+- [ ] Build procedure validates spec naming
+- [ ] Non-conforming names trigger warnings
+- [ ] Correct naming suggested
+
+### 11. Spec README Index Generation
+**Gap:** specification-system.md describes specs/README.md index but no automation to generate/maintain.
+
+**Tasks:**
+- Create procedure to generate specs/README.md from existing specs
+- Extract JTBD from each spec file
+- Group by category (if categorization exists)
+- Link to individual spec files
+
+**Acceptance Criteria:**
+- [ ] Automated index generation implemented
+- [ ] JTBDs extracted from specs
+- [ ] Links to spec files included
+
+## Priority 5: Documentation Alignment (Drift)
+
+### 12. Component Path Convention Documentation
+**Gap:** rooda-config.yml uses src/components/*.md but agents-md-format.md examples show prompts/*.md.
+
+**Tasks:**
+- Clarify in agents-md-format.md that examples use consumer convention (prompts/)
+- Document that framework internal structure uses src/components/
+- Explain that consumers copy to project root (flat structure)
+- Update examples to show both perspectives
+
+**Acceptance Criteria:**
+- [ ] Path convention clarified in agents-md-format.md
+- [ ] Consumer vs framework structure explained
+- [ ] Examples updated for clarity
 
 ---
 
-### Task 2: Validate Spec Structure Against Template
-**Description:** Add validation that spec files follow TEMPLATE.md structure
+## Implementation Notes
 
-**Rationale:** Specs should consistently follow the template structure (JTBD, Activities, Acceptance Criteria, etc.). Validation catches deviations early.
+**Rationale for prioritization:**
+- Priority 1: Core behavior specs enable understanding how the framework works
+- Priority 2: Dependency specs enable proper installation and troubleshooting
+- Priority 3: Quality enforcement improves AGENTS.md and spec quality
+- Priority 4: Spec automation reduces manual maintenance burden
+- Priority 5: Documentation alignment prevents confusion
 
-**Acceptance Criteria:**
-- [ ] Script checks for required template sections
-- [ ] Reports missing or out-of-order sections
-- [ ] Can be run manually or as part of quality assessment
-- [ ] Returns exit code 0 for valid, 1 for invalid
+**Dependencies:**
+- Tasks 1-6 are independent (can be parallelized)
+- Tasks 7-8 depend on understanding bootstrap and quality procedures (tasks 1-4)
+- Tasks 9-11 depend on understanding build procedure (task 1)
+- Task 12 is independent (documentation only)
 
-**Implementation Approach:**
-- Add `validate-spec.sh` script to src/
-- Parse markdown headers to verify structure
-- Compare against TEMPLATE.md section order
-
-**Dependencies:** Task 1 (needs template structure defined)
-
----
-
-## Priority 2 (Medium Impact)
-
-### Task 3: Auto-Generate specs/README.md Index
-**Description:** Generate specs/README.md index from existing spec files
-
-**Rationale:** specs/README.md should list all JTBDs, topics, and specs. Manual maintenance leads to drift. Auto-generation ensures accuracy.
-
-**Acceptance Criteria:**
-- [ ] Script reads all specs/*.md files
-- [ ] Extracts JTBD and topic information from each spec
-- [ ] Generates specs/README.md with organized index
-- [ ] Groups specs by category or JTBD
-- [ ] Includes links to individual spec files
-
-**Implementation Approach:**
-- Add `generate-spec-index.sh` script to src/
-- Parse "Job to be Done" section from each spec
-- Build categorized list with links
-- Overwrite specs/README.md
-
-**Dependencies:** None
-
----
-
-### Task 4: Validate JTBD/Topic Pattern in Specs
-**Description:** Enforce that spec files follow JTBD → topic of concern pattern
-
-**Rationale:** Specification system defines JTBD as organizing principle. Validation ensures specs follow this methodology.
-
-**Acceptance Criteria:**
-- [ ] Script checks each spec has "Job to be Done" section
-- [ ] Verifies JTBD is outcome-focused (not mechanism-focused)
-- [ ] Can suggest which JTBD a spec belongs to
-- [ ] Reports specs that don't fit JTBD pattern
-
-**Implementation Approach:**
-- Extend validate-spec.sh or create separate script
-- Parse JTBD section and check for keywords
-- Cross-reference with specs/README.md JTBDs
-
-**Dependencies:** Task 3 (needs README structure to validate against)
-
----
-
-## Priority 3 (Low Priority)
-
-### Task 5: Automated Spec Completeness Metrics
-**Description:** Check that all template sections are filled with meaningful content
-
-**Rationale:** Specs should be complete, not just structurally valid. Metrics identify incomplete specs.
-
-**Acceptance Criteria:**
-- [ ] Script checks each template section has content
-- [ ] Identifies placeholder text or empty sections
-- [ ] Reports completeness percentage per spec
-- [ ] Can be used in quality assessment procedures
-
-**Implementation Approach:**
-- Extend validate-spec.sh with content checks
-- Look for common placeholder patterns
-- Count filled vs empty sections
-
-**Dependencies:** Task 2 (needs validation logic)
-
----
-
-## Summary
-
-**Total Tasks:** 5
-**P1 (High Impact):** 2 tasks
-**P2 (Medium Impact):** 2 tasks  
-**P3 (Low Priority):** 1 task
-
-**Recommended Sequence:**
-1. Task 1 (spec creation automation) - immediate value, no dependencies
-2. Task 3 (README generation) - immediate value, no dependencies
-3. Task 2 (structure validation) - depends on Task 1
-4. Task 4 (JTBD validation) - depends on Task 3
-5. Task 5 (completeness metrics) - depends on Task 2
-
-**Note:** All tasks are tooling/automation improvements. The core framework (rooda.sh, OODA loop, AGENTS.md) is fully operational. These tasks reduce manual work and enforce spec quality.
+**Estimated scope:**
+- Each spec task: 1 iteration (write spec following TEMPLATE.md)
+- Each validation task: 1-2 iterations (add validation logic, test, update AGENTS.md)
+- Index generation: 2-3 iterations (implement, test, integrate with build)
