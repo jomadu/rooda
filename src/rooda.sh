@@ -135,8 +135,48 @@ validate_config() {
         if [ "$proc_exists" = "null" ]; then
             echo "Error: Procedure '$procedure' not found in $config_file"
             echo ""
+            
+            # Find closest match using simple character overlap
+            local available_procs
+            available_procs=$(yq eval '.procedures | keys | .[]' "$config_file")
+            local best_match=""
+            local best_score=0
+            
+            while IFS= read -r proc; do
+                # Count matching characters (simple fuzzy matching)
+                local score=0
+                local proc_lower
+                local input_lower
+                proc_lower=$(echo "$proc" | tr '[:upper:]' '[:lower:]')
+                input_lower=$(echo "$procedure" | tr '[:upper:]' '[:lower:]')
+                
+                # Substring match gets high score
+                if [[ "$proc_lower" == *"$input_lower"* ]] || [[ "$input_lower" == *"$proc_lower"* ]]; then
+                    score=100
+                # Count common characters
+                else
+                    for (( i=0; i<${#input_lower}; i++ )); do
+                        local char="${input_lower:$i:1}"
+                        if [[ "$proc_lower" == *"$char"* ]]; then
+                            ((score++))
+                        fi
+                    done
+                fi
+                
+                if [ $score -gt $best_score ]; then
+                    best_score=$score
+                    best_match="$proc"
+                fi
+            done <<< "$available_procs"
+            
+            # Only suggest if score is reasonable (at least 3 matching chars or substring match)
+            if [ -n "$best_match" ] && [ $best_score -ge 3 ]; then
+                echo "Did you mean: $best_match"
+                echo ""
+            fi
+            
             echo "Available procedures:"
-            yq eval '.procedures | keys | .[]' "$config_file" | sed 's/^/  - /'
+            echo "$available_procs" | sed 's/^/  - /'
             exit 1
         fi
         
