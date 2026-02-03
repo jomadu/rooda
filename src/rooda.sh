@@ -153,10 +153,16 @@ validate_config() {
         [ "$decide" = "null" ] && missing_fields+=("decide")
         [ "$act" = "null" ] && missing_fields+=("act")
         
+        # Validate fields are non-empty strings
+        [ -n "$observe" ] && [ "$observe" != "null" ] && [ -z "${observe// }" ] && missing_fields+=("observe (empty)")
+        [ -n "$orient" ] && [ "$orient" != "null" ] && [ -z "${orient// }" ] && missing_fields+=("orient (empty)")
+        [ -n "$decide" ] && [ "$decide" != "null" ] && [ -z "${decide// }" ] && missing_fields+=("decide (empty)")
+        [ -n "$act" ] && [ "$act" != "null" ] && [ -z "${act// }" ] && missing_fields+=("act (empty)")
+        
         if [ ${#missing_fields[@]} -gt 0 ]; then
             echo "Error: Procedure '$procedure' missing required fields"
             echo "  Missing: ${missing_fields[*]}"
-            echo "  Required: observe, orient, decide, act"
+            echo "  Required: observe, orient, decide, act (non-empty strings)"
             exit 1
         fi
     fi
