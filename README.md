@@ -316,10 +316,10 @@ Limit blast radius through isolation, not through hoping the AI won't do somethi
 
 - [OODA Loop](docs/ooda-loop.md) - The decision-making framework
 - [Ralph Loop](docs/ralph-loop.md) - Original methodology by Geoff Huntley
-- [Specs System](docs/specs.md) - How to structure specifications
-- [Spec Template](docs/spec-template.md) - Template for new specs
-- [AGENTS.md Specification](docs/agents-md-specification.md) - Complete AGENTS.md format
-- [Prompts README](prompts/README.md) - Detailed prompt composition breakdown
+- [Specs System](specs/specification-system.md) - How to structure specifications
+- [Spec Template](specs/TEMPLATE.md) - Template for new specs
+- [AGENTS.md Specification](specs/agents-md-format.md) - Complete AGENTS.md format
+- [Prompts README](src/README.md) - Detailed prompt composition breakdown
 
 ---
 
