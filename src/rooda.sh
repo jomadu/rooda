@@ -42,10 +42,24 @@ Examples:
 EOF
 }
 
+# Detect OS for platform-specific instructions
+OS="$(uname -s)"
+case "$OS" in
+    Darwin*) PLATFORM="macos" ;;
+    Linux*)  PLATFORM="linux" ;;
+    *)       PLATFORM="unknown" ;;
+esac
+
 # Check for required dependencies
 if ! command -v yq &> /dev/null; then
     echo "Error: yq is required for YAML parsing"
-    echo "Install with: brew install yq"
+    if [ "$PLATFORM" = "macos" ]; then
+        echo "Install with: brew install yq"
+    elif [ "$PLATFORM" = "linux" ]; then
+        echo "Install with: wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq"
+    else
+        echo "See: https://github.com/mikefarah/yq#install"
+    fi
     exit 1
 fi
 
@@ -57,7 +71,9 @@ fi
 
 if ! command -v bd &> /dev/null; then
     echo "Error: bd (beads) is required for work tracking"
-    echo "Install with: cargo install beads-cli"
+    if [ "$PLATFORM" = "macos" ] || [ "$PLATFORM" = "linux" ]; then
+        echo "Install with: cargo install beads-cli"
+    fi
     echo "Or download from: https://github.com/jomadu/beads/releases"
     exit 1
 fi
