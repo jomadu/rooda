@@ -9,9 +9,9 @@ Autonomous AI coding that maintains fresh context across iterations—no degrada
 git clone https://github.com/jomadu/ralph-wiggum-ooda.git
 
 # Copy necessary files to your project
-cp ralph-wiggum-ooda/rooda.sh .
-cp ralph-wiggum-ooda/rooda-config.yml .
-cp -r ralph-wiggum-ooda/prompts .
+cp ralph-wiggum-ooda/src/rooda.sh .
+cp ralph-wiggum-ooda/src/rooda-config.yml .
+cp -r ralph-wiggum-ooda/src/components ./prompts
 chmod +x rooda.sh
 ```
 
