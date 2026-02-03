@@ -12,6 +12,10 @@ Execute the implementation plan:
 ## A3.5: Validate Spec Structure (If Specs Modified)
 
 If any spec files in `specs/*.md` were created or modified:
+- Check filename matches naming convention (lowercase-with-hyphens.md):
+  - Must be lowercase letters, hyphens, and .md extension
+  - No underscores, spaces, or uppercase letters
+  - Warn if non-conforming, suggest correct naming
 - Check for required sections from TEMPLATE.md:
   - "Job to be Done" or "Jobs to be Done"
   - "Activities"
