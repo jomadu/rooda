@@ -7,19 +7,25 @@
 **Description:** Create unified specification that accurately describes actual component file structure by examining real component files in `src/components/*.md`.
 
 **What to include:**
-- **Job to be Done:** Enable developers to create and modify OODA component prompt files
-- **Component File Structure:** Markdown with phase header, step code headers, full prose instructions (not just step code lists)
-- **Component Patterns:** Document the actual pattern observed in files like `act_bootstrap.md`, `observe_bootstrap.md`, `act_build.md`:
-  - Phase header: `# [Phase]: [Purpose]`
-  - Step headers: `## [Code]: [Name]`
-  - Full prose instructions under each step
-- **Common Steps Reference:** Complete O1-O15, R1-R22, D1-D15, A1-A9 list (from component-system.md)
-- **Prompt Assembly Algorithm:** How create_prompt() combines four files (from prompt-composition.md)
+- **Job to be Done:** Enable developers to create and modify OODA component prompt files that can be composed into executable procedures
+- **Component File Structure:** Markdown format with:
+  - Phase header: `# [Phase]: [Purpose]` (e.g., `# Act: Bootstrap`)
+  - Step headers: `## [Code]: [Name]` (e.g., `## A1: Create AGENTS.md with Operational Guide`)
+  - Full prose instructions under each step header
+- **Component Pattern:** All examined component files follow the same pattern:
+  - Step code headers (O1-O15, R1-R22, D1-D15, A1-A9) serve as section markers
+  - Full prose instructions appear under each step header
+  - No files contain only step code references without prose
+  - Step codes provide structure and cross-reference capability
+- **Common Steps Reference:** Complete O1-O15, R1-R22, D1-D15, A1-A9 list with descriptions (from component-system.md and src/README.md)
+- **Prompt Assembly Algorithm:** How create_prompt() combines four files with OODA section headers (from prompt-composition.md)
 - **Authoring Guidelines:** Key principles for writing components (from component-system.md)
-- **Examples:** Show actual component file excerpts demonstrating structure
+- **Examples:** Show actual excerpts from `act_bootstrap.md`, `observe_bootstrap.md`, `act_build.md` demonstrating structure
 
 **Acceptance criteria:**
 - Spec accurately describes structure of files in `src/components/*.md`
+- Clarifies that step codes are section headers, not references to external definitions
+- Explains dual purpose: structure + cross-reference capability
 - Includes prompt assembly algorithm from prompt-composition.md
 - Includes common steps reference from component-system.md
 - Includes authoring guidelines from component-system.md
