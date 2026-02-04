@@ -20,6 +20,11 @@ Enable users to invoke OODA loop procedures through a command-line interface, su
 - [x] Missing files produce clear error messages
 - [x] Invalid arguments produce usage help
 - [x] Max iterations can be specified or defaults to procedure config
+- [x] --version flag shows version number and exits
+- [x] --help flag shows usage help and exits
+- [x] --verbose flag shows detailed execution including full prompt
+- [x] --quiet flag suppresses non-error output
+- [x] Short flags work identically to long flags (-o, -r, -d, -a, -m, -c, -h)
 
 ## Data Structures
 
@@ -34,13 +39,17 @@ Enable users to invoke OODA loop procedures through a command-line interface, su
 
 **Arguments:**
 - `<procedure>` - Named procedure from config (optional, positional)
-- `--config <file>` - Path to config file (default: rooda-config.yml in script directory)
-- `--observe <file>` - Path to observe phase prompt
-- `--orient <file>` - Path to orient phase prompt
-- `--decide <file>` - Path to decide phase prompt
-- `--act <file>` - Path to act phase prompt
-- `--max-iterations N` - Maximum iterations (default: from config or 0 for unlimited)
+- `--config|-c <file>` - Path to config file (default: rooda-config.yml in script directory)
+- `--observe|-o <file>` - Path to observe phase prompt
+- `--orient|-r <file>` - Path to orient phase prompt
+- `--decide|-d <file>` - Path to decide phase prompt
+- `--act|-a <file>` - Path to act phase prompt
+- `--max-iterations|-m N` - Maximum iterations (default: from config or 0 for unlimited)
 - `--ai-cli <command>` - AI CLI command to use (overrides config, default: kiro-cli chat --no-interactive --trust-all-tools)
+- `--version` - Show version number and exit
+- `--help|-h` - Show usage help and exit
+- `--verbose` - Show detailed execution including full prompt
+- `--quiet` - Suppress non-error output
 
 ## Algorithm
 
@@ -129,6 +138,10 @@ for file in [OBSERVE, ORIENT, DECIDE, ACT]:
 | ai_cli_command not in config | Defaults to kiro-cli chat --no-interactive --trust-all-tools |
 | --max-iterations 0 | Unlimited iterations (loop until Ctrl+C) |
 | --max-iterations not specified | Use default_iterations from config, or 0 if not in config |
+| --version flag | Shows version and exits immediately |
+| --help or -h flag | Shows usage help and exits immediately |
+| --verbose with --quiet | Last flag wins (both set VERBOSE variable) |
+| Short flag with long flag | Both work identically (-m 5 same as --max-iterations 5) |
 
 ## Dependencies
 
@@ -301,6 +314,91 @@ Error: File not found: missing.md
 - Script exits with status 1
 - Error message includes missing file path
 
+### Example 8: Version Flag
+
+**Input:**
+```bash
+./rooda.sh --version
+```
+
+**Expected Output:**
+```
+rooda.sh version 0.1.0
+```
+
+**Verification:**
+- Script exits with status 0
+- Version number displayed
+
+### Example 9: Verbose Mode
+
+**Input:**
+```bash
+./rooda.sh build --verbose --max-iterations 1
+```
+
+**Expected Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Procedure: build
+Observe:   src/prompts/observe_plan_specs_impl.md
+Orient:    src/prompts/orient_build.md
+Decide:    src/prompts/decide_build.md
+Act:       src/prompts/act_build.md
+Branch:    main
+Max:       1 iterations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[Full combined prompt content displayed]
+
+[AI CLI execution output]
+```
+
+**Verification:**
+- Full prompt content shown before execution
+- Detailed execution output visible
+
+### Example 10: Quiet Mode
+
+**Input:**
+```bash
+./rooda.sh build --quiet --max-iterations 1
+```
+
+**Expected Output:**
+```
+[Minimal output, only errors shown]
+```
+
+**Verification:**
+- Execution banner suppressed
+- Non-error output suppressed
+- Only errors displayed
+
+### Example 11: Short Flags
+
+**Input:**
+```bash
+./rooda.sh -o src/prompts/observe_specs.md -r src/prompts/orient_gap.md -d src/prompts/decide_gap_plan.md -a src/prompts/act_plan.md -m 1
+```
+
+**Expected Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Observe:   src/prompts/observe_specs.md
+Orient:    src/prompts/orient_gap.md
+Decide:    src/prompts/decide_gap_plan.md
+Act:       src/prompts/act_plan.md
+Branch:    main
+Max:       1 iterations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Verification:**
+- Short flags work identically to long flags
+- All OODA phases loaded correctly
+- Max iterations set correctly
+
 ## Notes
 
 **Design Rationale:**
@@ -334,14 +432,4 @@ This allows procedures to define sensible defaults (bootstrap=1, build=5) while 
 
 **Inconsistent usage messages:** Error messages show different usage patterns (some include `<task-id>`, some don't). The actual implementation doesn't use task-id as a positional argument.
 
-## Areas for Improvement
-
-**Help flag:** No `--help` or `-h` flag support. Users must trigger an error to see usage.
-
-**Version flag:** No `--version` flag to show script version.
-
-**Verbose/quiet modes:** No control over output verbosity.
-
-**Config validation:** Script doesn't validate config file structure before querying with yq.
-
-**Short flags:** No short flag alternatives (e.g., `-o` for `--observe`, `-m` for `--max-iterations`).
+**Config validation:** Script doesn't validate config file structure before querying with yq. Invalid YAML or missing required fields cause cryptic yq errors rather than clear validation messages.
