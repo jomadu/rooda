@@ -8,7 +8,7 @@ See [specification-system.md](specification-system.md) for the spec system desig
 ## Specifications
 
 ### [agents-md-format.md](agents-md-format.md)
-(No JTBD specified)
+AGENTS.md is the interface between agents and the repository. It defines how agents interact with project-specific workflows, tools, and conventions.
 
 ### [ai-cli-integration.md](ai-cli-integration.md)
 Execute OODA loop prompts through an AI CLI tool that can read files, modify code, run commands, and interact with the repository autonomously.

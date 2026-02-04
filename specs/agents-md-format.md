@@ -1,8 +1,21 @@
 # AGENTS.md Specification
 
-## Purpose
+## Job to be Done
 
 AGENTS.md is the interface between agents and the repository. It defines how agents interact with project-specific workflows, tools, and conventions.
+
+## Acceptance Criteria
+
+- [ ] AGENTS.md contains Work Tracking System section with query/update/complete commands
+- [ ] AGENTS.md contains Story/Bug Input section defining where to read task descriptions
+- [ ] AGENTS.md contains Planning System section with draft location and publishing mechanism
+- [ ] AGENTS.md contains Build/Test/Lint Commands section with specific commands
+- [ ] AGENTS.md contains Specification Definition section with file paths/patterns
+- [ ] AGENTS.md contains Implementation Definition section with file paths/patterns
+- [ ] AGENTS.md contains Quality Criteria section with boolean PASS/FAIL criteria
+- [ ] All commands in AGENTS.md are empirically verified to work
+- [ ] AGENTS.md is updated when operational learnings occur
+- [ ] AGENTS.md includes rationale (the "why") for key decisions
 
 ## What's in AGENTS.md?
 
@@ -216,6 +229,77 @@ AGENTS.md is the authoritative definition of how agents interact with the projec
 - Consumers copy from `src/components/` to their `prompts/`
 
 This separation allows the framework to maintain organized structure while consumers get simple flat layout.
+
+## Examples
+
+### Example 1: Node.js Project with GitHub Issues
+
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: GitHub Issues
+Query: gh issue list --label ready --json
+Update: gh issue edit <id> --add-label in-progress
+Complete: gh issue close <id>
+
+## Build/Test/Lint Commands
+Test: npm test
+Build: npm run build
+Lint: npm run lint
+
+## Specification Definition
+Location: specs/*.md
+
+## Implementation Definition
+Location: src/**/*.{js,ts}
+```
+
+### Example 2: Go Project with Beads
+
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: beads (bd CLI)
+Query: bd ready --json
+Update: bd update <id> --status in_progress
+Complete: bd close <id> --reason "Completed X"
+
+## Build/Test/Lint Commands
+Test: go test ./...
+Build: go build ./...
+Lint: golangci-lint run
+
+## Specification Definition
+Location: docs/specs/*.md
+
+## Implementation Definition
+Location: pkg/**/*.go, cmd/**/*.go
+```
+
+### Example 3: Python Project with File-Based Tracking
+
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: File-based
+Query: ls tasks/ready/*.md
+Update: mv tasks/ready/<id>.md tasks/in-progress/
+Complete: mv tasks/in-progress/<id>.md tasks/done/
+
+## Story/Bug Input
+Location: TASK.md at project root
+
+## Build/Test/Lint Commands
+Test: pytest
+Build: python -m build
+Lint: ruff check .
+
+## Specification Definition
+Location: specs/*.md
+
+## Implementation Definition
+Location: src/**/*.py
+```
 
 ## Anti-Patterns
 
