@@ -382,7 +382,9 @@ This dual purpose means components are both structured (using consistent step co
 
 **Prompt Reuse:**
 
-The component system enables significant reuse across procedures. For example, `observe_plan_specs_impl.md` is shared by `build`, `draft-plan-spec-to-impl`, and `draft-plan-impl-to-spec` procedures. They differ only in their orient, decide, and act components.
+**Prompt File Reuse:**
+
+The prompt file system enables significant reuse across procedures. For example, `observe_plan_specs_impl.md` is shared by `build`, `draft-plan-spec-to-impl`, and `draft-plan-impl-to-spec` procedures. They differ only in their orient, decide, and act prompts.
 
 **File Naming Convention:**
 
@@ -398,6 +400,6 @@ None identified during specification creation.
 ## Areas for Improvement
 
 - Could add validation tooling to check prompt files follow structure
-- Could add linting for step code consistency across components
-- Could add examples of custom component creation for project-specific procedures
+- Could add linting for step code consistency across prompts
+- Could add examples of custom prompt creation for project-specific procedures
 - Could document how to extend common steps reference with project-specific codes
