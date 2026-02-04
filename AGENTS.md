@@ -21,7 +21,7 @@ bd close <id> --reason "Completed X"
 
 **Create issue with dependencies:**
 ```bash
-bd create --title "Title" --description "Desc" --deps blocks:issue-id --priority 2
+bd create --title "Title" --description "Desc" --deps blocks:issue-id --priority 2  # Priority range: 0-4 or P0-P4
 ```
 
 ## Story/Bug Input
