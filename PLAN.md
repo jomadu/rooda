@@ -1,145 +1,234 @@
 # Draft Plan: Spec to Implementation Gap Analysis
 
-## Priority 1: AI CLI Configuration Support (CRITICAL)
+## Critical Gaps (Missing Core Features)
 
-**Gap:** Specs define `ai_cli_command` field in rooda-config.yml and `--ai-cli` flag for configurable AI CLI tools, but implementation hardcodes `kiro-cli chat --no-interactive --trust-all-tools` with no configuration support.
+### 1. AI CLI Configuration Support (ai_cli_command)
+**Specified:** `ai-cli-integration.md` and `configuration-schema.md` define `ai_cli_command` field in rooda-config.yml with three-tier precedence (--ai-cli flag > ai_cli_command config > default)
 
-**Tasks:**
-1. Add `ai_cli_command` field parsing from rooda-config.yml (root level, string type)
-2. Add `--ai-cli` flag to argument parser with precedence: flag > config > default
-3. Update AI CLI invocation to use resolved command variable instead of hardcoded string
-4. Update execution banner to display AI CLI command when non-default
-5. Validate AI CLI command is non-empty string when loaded from config
+**Implementation Status:** NOT IMPLEMENTED
+- rooda-config.yml has no `ai_cli_command` field
+- rooda.sh has no --ai-cli flag parsing
+- rooda.sh hardcodes `kiro-cli chat --no-interactive --trust-all-tools` at line 436
+- No precedence resolution logic exists
 
 **Acceptance Criteria:**
-- `ai_cli_command` field in config overrides default kiro-cli command
-- `--ai-cli` flag overrides both config and default
-- Default remains `kiro-cli chat --no-interactive --trust-all-tools` for backward compatibility
-- Execution banner shows AI CLI command when using non-default
+- Add `ai_cli_command` field to rooda-config.yml root level
+- Add --ai-cli flag parsing in argument loop
+- Implement three-tier precedence: flag > config > default
+- Query config for ai_cli_command when procedure specified
+- Use resolved AI_CLI_COMMAND variable in iteration loop
 
 **Dependencies:** None
 
 ---
 
-## Priority 2: Remove Hardcoded Dependency Checks (HIGH)
+### 2. Dependency Philosophy Documentation
+**Specified:** `external-dependencies.md` defines dependency philosophy: only yq required, kiro-cli configurable, bd project-specific
 
-**Gap:** Specs state kiro-cli and bd are configurable/project-specific dependencies, but implementation has hardcoded startup checks that exit if they're missing. This prevents users from substituting alternative AI CLIs or work tracking systems.
-
-**Tasks:**
-1. Remove hardcoded kiro-cli dependency check (lines 76-80)
-2. Remove hardcoded bd dependency check (lines 82-91)
-3. Remove kiro-cli version check (lines 93-102)
-4. Remove bd version check (lines 104-112)
-5. Keep yq dependency check (required for config parsing)
-6. Update external-dependencies.md to reflect that dependency checks are removed for configurable tools
+**Implementation Status:** CONTRADICTS SPEC
+- rooda.sh lines 60-88 check for kiro-cli and bd as REQUIRED dependencies
+- Script exits if kiro-cli or bd not installed
+- No documentation that these are optional/configurable
+- Contradicts spec's "Minimal Required, Maximum Flexibility" philosophy
 
 **Acceptance Criteria:**
-- Script starts successfully without kiro-cli installed (if using alternative AI CLI)
-- Script starts successfully without bd installed (if using alternative work tracking)
-- yq dependency check remains (required)
-- Script fails at runtime with clear error if configured AI CLI is not installed
+- Remove or make optional the kiro-cli dependency check (since it's configurable via ai_cli_command)
+- Remove or make optional the bd dependency check (since work tracking is project-specific)
+- Update dependency checks to reflect philosophy: only yq is truly required
+- Add comments explaining why kiro-cli/bd checks are optional
 
-**Dependencies:** Should be done after Priority 1 (AI CLI configuration) to ensure alternative AI CLIs can be configured
+**Dependencies:** Should be implemented after task #1 (AI CLI configuration)
 
 ---
 
-## Priority 3: Documentation Cross-Reference Link Validation (MEDIUM)
+### 3. Version Validation for yq
+**Specified:** `external-dependencies.md` requires yq v4.0.0+ with validation
 
-**Gap:** Quality criteria states "All cross-document links work correctly (PASS/FAIL)" but specs note this is not verified. README.md and specs/ contain numerous cross-references that may be broken.
+**Implementation Status:** IMPLEMENTED
+- Lines 90-96 validate yq version >= 4.0.0
+- Provides clear error message with upgrade instructions
 
-**Tasks:**
-1. Run `scripts/audit-links.sh` to identify broken links
-2. Fix broken links in README.md
-3. Fix broken links in specs/*.md
-4. Fix broken links in docs/*.md
-5. Update quality criteria verification process to include link checking
+**Gap:** None - this is correctly implemented
+
+---
+
+### 4. Version Validation for kiro-cli
+**Specified:** `external-dependencies.md` requires kiro-cli v1.0.0+ with validation
+
+**Implementation Status:** IMPLEMENTED
+- Lines 98-103 validate kiro-cli version >= 1.0.0
+- Provides clear error message with upgrade instructions
+
+**Gap:** None - this is correctly implemented (but should be made optional per task #2)
+
+---
+
+### 5. Version Validation for bd
+**Specified:** `external-dependencies.md` requires bd v0.1.0+ with validation
+
+**Implementation Status:** IMPLEMENTED
+- Lines 105-111 validate bd version >= 0.1.0
+- Provides clear error message with upgrade instructions
+
+**Gap:** None - this is correctly implemented (but should be made optional per task #2)
+
+---
+
+## High-Impact Gaps (Frequently Used Functionality)
+
+### 6. Help Flag Support
+**Specified:** `cli-interface.md` notes "No --help or -h flag support" as area for improvement
+
+**Implementation Status:** IMPLEMENTED
+- Lines 233-237 check for --help/-h flags
+- Lines 251-254 handle --help/-h in argument loop
+- show_help() function exists at lines 15-49
+
+**Gap:** None - this was implemented despite spec noting it as missing
+
+---
+
+### 7. Version Flag Support
+**Specified:** `cli-interface.md` notes "No --version flag" as area for improvement
+
+**Implementation Status:** IMPLEMENTED
+- Lines 239-242 check for --version flag
+- Lines 247-250 handle --version in argument loop
+- VERSION variable defined (need to verify)
+
+**Gap:** None - this was implemented despite spec noting it as missing
+
+---
+
+### 8. Short Flag Alternatives
+**Specified:** `cli-interface.md` notes "No short flag alternatives" as area for improvement
+
+**Implementation Status:** PARTIALLY IMPLEMENTED
+- Lines 255-277 show short flags: -c, -o, -r, -d, -a, -m, -h
+- Short flags exist for all major options
+
+**Gap:** None - this was implemented despite spec noting it as missing
+
+---
+
+### 9. Verbose/Quiet Modes
+**Specified:** `cli-interface.md` notes "No control over output verbosity" as area for improvement
+
+**Implementation Status:** IMPLEMENTED
+- Line 228 initializes VERBOSE variable
+- Lines 278-284 handle --verbose and --quiet flags
+- Lines 383-393 use VERBOSE for conditional output
+- Lines 426-432 show full prompt in verbose mode
+
+**Gap:** None - this was implemented despite spec noting it as missing
+
+---
+
+## Documentation Gaps
+
+### 10. Update CLI Interface Spec
+**Specified:** `cli-interface.md` lists several features as "Areas for Improvement" that are actually implemented
+
+**Implementation Status:** SPEC OUTDATED
+- Help flag is implemented but spec says it's missing
+- Version flag is implemented but spec says it's missing
+- Short flags are implemented but spec says they're missing
+- Verbose/quiet modes are implemented but spec says they're missing
 
 **Acceptance Criteria:**
-- All markdown links resolve to existing files or valid URLs
-- No broken cross-references between documentation files
-- Link audit script runs successfully with no errors
+- Update cli-interface.md to reflect implemented features
+- Move implemented features from "Areas for Improvement" to acceptance criteria
+- Mark acceptance criteria as [x] completed
+- Add examples for new flags (--help, --version, --verbose, --quiet)
 
 **Dependencies:** None
 
 ---
 
-## Priority 4: Verbose and Quiet Mode Implementation (LOW)
+### 11. Update AI CLI Integration Spec Examples
+**Specified:** `ai-cli-integration.md` shows examples with ai_cli_command configuration
 
-**Gap:** CLI interface spec documents `--verbose` and `--quiet` flags with expected behavior, but implementation only partially supports them. Verbose mode shows full prompt but doesn't show detailed execution. Quiet mode suppresses some output but not all.
-
-**Tasks:**
-1. Review current verbose/quiet implementation (VERBOSE variable usage)
-2. Ensure `--verbose` shows full prompt before execution (already implemented)
-3. Ensure `--quiet` suppresses all non-error output (check all echo statements)
-4. Add verbose logging for AI CLI invocation details
-5. Add verbose logging for git push operations
-6. Test both modes to ensure consistent behavior
+**Implementation Status:** SPEC AHEAD OF IMPLEMENTATION
+- Examples show ai_cli_command in config (not yet implemented)
+- Examples show --ai-cli flag usage (not yet implemented)
+- Examples show precedence resolution (not yet implemented)
 
 **Acceptance Criteria:**
-- `--verbose` shows full prompt, AI CLI command, git operations, iteration progress
-- `--quiet` suppresses all output except errors
-- Default mode shows execution banner and iteration progress (current behavior)
+- Mark examples as "Not Yet Implemented" until task #1 is complete
+- Or update examples to reflect current hardcoded behavior
 
-**Dependencies:** None
+**Dependencies:** Should be updated after task #1 (AI CLI configuration)
 
 ---
 
-## Priority 5: Help Text Generation from Config Metadata (LOW)
+### 12. Update External Dependencies Spec
+**Specified:** `external-dependencies.md` describes dependency philosophy but implementation contradicts it
 
-**Gap:** Configuration schema spec defines optional `display`, `summary`, and `description` fields for procedures, noting they're "for future help text generation." These fields exist in rooda-config.yml but are not used by the implementation.
-
-**Tasks:**
-1. Add `--list-procedures` flag to show available procedures with display names and summaries
-2. Update `show_help()` to include procedure listing
-3. Consider adding `--describe <procedure>` to show detailed procedure information
-4. Use display/summary/description fields from config when generating help text
+**Implementation Status:** SPEC AHEAD OF IMPLEMENTATION
+- Spec says kiro-cli is "default, configurable" but implementation requires it
+- Spec says bd is "project-specific, optional" but implementation requires it
+- Spec philosophy contradicts implementation behavior
 
 **Acceptance Criteria:**
-- `--list-procedures` shows all available procedures with display names and summaries
-- Help text includes procedure listing or reference to `--list-procedures`
-- Procedure metadata from config is displayed to users
+- Update spec to reflect current implementation (kiro-cli and bd are required)
+- Or update implementation to match spec (make them optional)
+- Ensure consistency between spec and implementation
 
-**Dependencies:** None
+**Dependencies:** Should be updated after task #2 (dependency philosophy)
 
 ---
 
-## Priority 6: Error Handling for AI CLI Failures (LOW)
+## Low-Priority Gaps (Nice-to-Have)
 
-**Gap:** Specs note "No error handling: Script continues to git push even if AI CLI fails" as a known issue. Implementation intentionally ignores AI CLI exit status per design, but could provide better user feedback.
+### 13. Config Validation Function
+**Specified:** `cli-interface.md` notes "Script doesn't validate config file structure before querying"
 
-**Tasks:**
-1. Capture AI CLI exit status (without changing loop behavior)
-2. Log warning if AI CLI exits with non-zero status
-3. Consider adding `--strict` flag to exit loop on AI CLI failure (optional enhancement)
-4. Update ai-cli-integration.md to document error handling behavior
+**Implementation Status:** IMPLEMENTED
+- Lines 114-217 implement validate_config() function
+- Validates YAML parseability
+- Validates procedure exists
+- Validates required OODA fields present
+- Validates OODA files exist
 
-**Acceptance Criteria:**
-- AI CLI exit status is captured and logged
-- Loop continues regardless of exit status (preserve current design)
-- User is informed when AI CLI fails but loop continues
-- Optional: `--strict` flag exits loop on failure
-
-**Dependencies:** None
+**Gap:** None - this was implemented despite spec noting it as missing
 
 ---
 
-## Notes
+### 14. Error Handling for AI CLI Failures
+**Specified:** `iteration-loop.md` notes "No kiro-cli error handling" as known issue
 
-**Gaps Not Included:**
-- Version validation improvements (yq v4 check) - mentioned in specs as "areas for improvement" but not critical
-- Automated installer - mentioned as improvement, not required functionality
-- Docker image - mentioned as improvement, not required functionality
-- Resume capability - mentioned as improvement, not required functionality
-- Timeout mechanism - mentioned as improvement, not required functionality
+**Implementation Status:** INTENTIONALLY NOT IMPLEMENTED
+- Line 436 comment explains exit status intentionally ignored
+- Design decision: allow loop to self-correct through empirical feedback
 
-**Implementation Verification:**
-- All 25 prompt files exist in src/prompts/ (verified via glob)
-- All 9 procedures defined in config have corresponding prompt files (verified via config review)
-- create_prompt() function exists and matches spec (verified lines 397-416)
-- Iteration loop exists and matches spec (verified lines 418-452)
-- Argument parsing exists and matches spec (verified lines 219-295)
+**Gap:** None - this is intentional per design
 
-**Quality Criteria Status:**
-- Specifications: All specs have JTBD, Acceptance Criteria, Examples sections ✓
-- Implementation: shellcheck not run yet (should be run before commit)
-- Documentation: Cross-reference links not verified (Priority 3 task)
+---
+
+### 15. Git Push Error Handling
+**Specified:** `iteration-loop.md` notes "Git push failures" as known issue
+
+**Implementation Status:** IMPLEMENTED
+- Lines 438-448 handle git push failures
+- Attempts to create remote branch if push fails
+- Provides clear error messages
+- Allows user to continue or stop
+
+**Gap:** None - this was implemented despite spec noting it as issue
+
+---
+
+## Summary
+
+**Critical gaps requiring implementation:**
+1. AI CLI configuration support (ai_cli_command field and --ai-cli flag)
+2. Dependency philosophy alignment (make kiro-cli and bd optional)
+
+**Documentation gaps requiring updates:**
+3. Update cli-interface.md to reflect implemented features
+4. Update ai-cli-integration.md examples after task #1
+5. Update external-dependencies.md after task #2
+
+**Total tasks:** 5 (2 implementation, 3 documentation)
+
+**Observation:** Many features listed as "missing" or "areas for improvement" in specs have actually been implemented. The specs are outdated relative to the implementation. Priority should be: implement missing features (#1, #2), then update specs to match reality (#3, #4, #5).
