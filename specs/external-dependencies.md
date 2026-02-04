@@ -194,7 +194,7 @@ function check_dependencies():
 
 **Current Implementation:**
 - rooda.sh checks for yq at startup (required)
-- rooda.sh validates yq version >= 4.0.0 (lines 109-113)
+- rooda.sh validates yq version >= 4.0.0 (lines 112-120)
 - rooda.sh checks for kiro-cli at startup (default, but can be modified)
 - rooda.sh checks for bd at startup (project-specific, can be removed if using different work tracking)
 
@@ -213,7 +213,7 @@ function check_dependencies():
 
 **Source files:**
 - `src/rooda.sh` (lines 15-19) - yq dependency check
-- `src/rooda.sh` (lines 113-120) - yq version validation (requires v4.0.0+)
+- `src/rooda.sh` (lines 112-120) - yq version validation (requires v4.0.0+)
 - `src/rooda.sh` (line 161) - kiro-cli invocation
 - `AGENTS.md` - Documents bd commands and shellcheck usage
 
