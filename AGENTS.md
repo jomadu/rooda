@@ -101,7 +101,7 @@ bd ready --json
 **For documentation:**
 - All code examples in docs/ are verified working (PASS/FAIL)
 - Documentation matches script behavior (PASS/FAIL)
-- All cross-document links work correctly (PASS/FAIL)
+- All cross-document links work correctly (PASS/FAIL)  # Verify with: ./scripts/audit-links.sh (checks internal relative paths and external URLs with 10s timeout)
 - Each procedure has usage examples (PASS/FAIL)
 
 **Refactoring triggers:**

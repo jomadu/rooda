@@ -7,8 +7,11 @@ trap 'rm -f "$tmpfile"' EXIT
 find . -name "*.md" -not -path "./.beads/*" | while read -r file; do
     # Use perl to extract markdown links properly
     perl -ne 'while (/\[([^\]]+)\]\(([^)]+)\)/g) { print "$.:$2\n"; }' "$file" | while IFS=: read -r line_num link; do
-        # Skip external links
+        # Check external links
         if echo "$link" | grep -qE '^https?://'; then
+            if ! curl -s -f -L --max-time 10 "$link" > /dev/null 2>&1; then
+                echo "BROKEN: $file:$line_num -> $link (external link unreachable)" | tee -a "$tmpfile"
+            fi
             continue
         fi
         
