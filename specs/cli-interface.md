@@ -170,10 +170,10 @@ Max:       1 iterations
 **Expected Output:**
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Observe:   src/components/observe_specs.md
-Orient:    src/components/orient_gap.md
-Decide:    src/components/decide_gap_plan.md
-Act:       src/components/act_plan.md
+Observe:   src/prompts/observe_specs.md
+Orient:    src/prompts/orient_gap.md
+Decide:    src/prompts/decide_gap_plan.md
+Act:       src/prompts/act_plan.md
 Branch:    main
 Max:       1 iterations
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -195,10 +195,10 @@ Max:       1 iterations
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Procedure: build
-Observe:   src/components/observe_plan_specs_impl.md
-Orient:    src/components/orient_build.md
-Decide:    src/components/decide_build.md
-Act:       src/components/act_build.md
+Observe:   src/prompts/observe_plan_specs_impl.md
+Orient:    src/prompts/orient_build.md
+Decide:    src/prompts/decide_build.md
+Act:       src/prompts/act_build.md
 Branch:    main
 Max:       10 iterations
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
