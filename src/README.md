@@ -1,5 +1,7 @@
 # Procedures and Components Specification
 
+**Note:** This is a quick reference guide. For the authoritative specification of the component system, including detailed A6 operational learning criteria, see [specs/component-system.md](../specs/component-system.md).
+
 ## Procedures
 
 ### Core Procedures
