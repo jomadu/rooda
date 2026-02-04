@@ -36,6 +36,13 @@ Stories and bugs are documented in `TASK.md` at project root.
 
 ## Build/Test/Lint Commands
 
+**Framework Dependencies:**
+- yq (required) - YAML parsing for rooda-config.yml
+- kiro-cli (default, configurable) - AI CLI tool, can substitute with claude-cli, aider, etc.
+
+**Project Dependencies:**
+- bd (optional) - Work tracking system used in this project, not framework-required
+
 **Test:** Manual verification (no automated tests)
 
 **Build:** Not required (bash scripts are interpreted)
@@ -64,11 +71,11 @@ bd ready --json
 **Location:** `src/rooda.sh`, `src/prompts/*.md`, `docs/*.md`, and `scripts/*.sh`
 
 **Patterns:**
-- `src/rooda.sh` - Main loop script (root `rooda.sh` is wrapper/symlink)
+- `src/rooda.sh` - Main loop script (root `rooda.sh` is wrapper for framework development)
 - `src/rooda-config.yml` - Procedure configuration
-- `src/prompts/*.md` - OODA prompt components (25 files)
-- `docs/*.md` - User-facing documentation
-- `scripts/*.sh` - Utility scripts
+- `src/prompts/*.md` - OODA prompt components (25 files: observe, orient, decide, act variants)
+- `docs/*.md` - User-facing documentation (4 files)
+- `scripts/*.sh` - Utility scripts (audit-links.sh)
 
 **Exclude:**
 - `.beads/*` (work tracking database)

@@ -75,15 +75,6 @@ if ! command -v kiro-cli &> /dev/null; then
     :
 fi
 
-if ! command -v bd &> /dev/null; then
-    echo "Error: bd (beads) is required for work tracking"
-    if [ "$PLATFORM" = "macos" ] || [ "$PLATFORM" = "linux" ]; then
-        echo "Install with: cargo install beads-cli"
-    fi
-    echo "Or download from: https://github.com/jomadu/beads/releases"
-    exit 1
-fi
-
 # Check versions
 YQ_VERSION=$(yq --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 YQ_MAJOR=$(echo "$YQ_VERSION" | cut -d. -f1)
