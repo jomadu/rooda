@@ -90,6 +90,12 @@ bd ready --json
 - Script executes on macOS without errors (PASS/FAIL)
 - Script executes on Linux without errors (PASS/FAIL)
 
+**For documentation:**
+- All code examples in docs/ are verified working (PASS/FAIL)
+- Documentation matches script behavior (PASS/FAIL)
+- All cross-document links work correctly (PASS/FAIL)
+- Each procedure has usage examples (PASS/FAIL)
+
 **Refactoring triggers:**
 - Any quality criterion fails
 - Documentation contradicts script behavior
