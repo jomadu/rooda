@@ -33,7 +33,7 @@ A topic of concern is a distinct aspect or component within a JTBD. It represent
 
 Each topic of concern has one specification document in `specs/*.md`.
 
-**Structure:** See [spec-template.md](spec-template.md) for the complete specification template.
+**Structure:** See [TEMPLATE.md](TEMPLATE.md) for the complete specification template.
 
 **Purpose:**
 - Single source of truth for requirements
