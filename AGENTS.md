@@ -77,19 +77,25 @@ bd ready --json
 ## Quality Criteria
 
 **For specifications:**
-- Clarity: Can a new user understand the framework?
-- Completeness: Are all 9 procedures documented?
-- Consistency: Do docs match script behavior?
-- Accuracy: Do command examples work?
+- All specs have "Job to be Done" section (PASS/FAIL)
+- All specs have "Acceptance Criteria" section (PASS/FAIL)
+- All specs have "Examples" section (PASS/FAIL)
+- All command examples in specs are verified working (PASS/FAIL)
+- No specs marked as DEPRECATED without replacement (PASS/FAIL)
 
 **For implementation:**
-- Correctness: Does script execute procedures as documented?
-- Robustness: Does error handling work?
-- Maintainability: Is bash code readable?
-- Compatibility: Works on macOS and Linux?
+- shellcheck passes with no errors (PASS/FAIL)
+- All procedures in config have corresponding component files (PASS/FAIL)
+- Script executes bootstrap procedure successfully (PASS/FAIL)
+- Script executes on macOS without errors (PASS/FAIL)
+- Script executes on Linux without errors (PASS/FAIL)
 
 **Refactoring triggers:**
+- Any quality criterion fails
 - Documentation contradicts script behavior
 - Script fails on documented use cases
-- Error messages unclear or misleading
+
+## Operational Learnings
+
+**2025-02-03:** Updated quality criteria from subjective assessments to boolean PASS/FAIL checks. Previous criteria ("Clarity: Can a new user understand?", "Maintainability: Is bash code readable?") were not actionable for automated quality assessment. New criteria provide clear thresholds that can be verified empirically.
 
