@@ -3,7 +3,7 @@
 ## Priority Tasks
 
 1. **Merge prompt composition content into component-authoring.md**
-   - Add "Prompt Assembly Mechanism" section after "Algorithm" section
+   - Add "Prompt Assembly Mechanism" subsection within existing "Algorithm" section
    - Document the `create_prompt()` function implementation (heredoc + command substitution)
    - Document how prompt files are assembled into final prompt structure
    - Document the assembled prompt format with OODA section headers
