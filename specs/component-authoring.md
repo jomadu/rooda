@@ -4,23 +4,23 @@
 Enable developers to create and modify OODA component prompt files that can be composed into executable procedures.
 
 ## Activities
-- **Write Component Files** - Create markdown files with phase headers, step codes, and prose instructions
+- **Write Prompt Files** - Create markdown files with phase headers, step codes, and prose instructions
 - **Reference Common Steps** - Use step codes (O1-O15, R1-R22, D1-D15, A1-A9) to structure components
 - **Compose Procedures** - Combine four components (observe, orient, decide, act) into complete procedures
 - **Maintain Consistency** - Follow naming conventions and structural patterns across all components
 
 ## Acceptance Criteria
-- [ ] Component file structure documented (phase header, step headers, prose instructions)
+- [ ] Prompt file structure documented (phase header, step headers, prose instructions)
 - [ ] Step code patterns explained (O1-O15, R1-R22, D1-D15, A1-A9)
 - [ ] Complete common steps reference provided
 - [ ] Prompt assembly algorithm documented
 - [ ] Authoring guidelines included
-- [ ] Real examples from actual component files shown
+- [ ] Real examples from actual prompt files shown
 - [ ] Dual purpose of step codes clarified (structure + cross-reference)
 
 ## Data Structures
 
-### Component File Format
+### Prompt File Format
 ```markdown
 # [Phase Name]: [Purpose]
 
@@ -51,21 +51,21 @@ Enable developers to create and modify OODA component prompt files that can be c
 # OODA Loop Iteration
 
 ## OBSERVE
-[contents of observe component file]
+[contents of observe prompt file]
 
 ## ORIENT
-[contents of orient component file]
+[contents of orient prompt file]
 
 ## DECIDE
-[contents of decide component file]
+[contents of decide prompt file]
 
 ## ACT
-[contents of act component file]
+[contents of act prompt file]
 ```
 
 ## Algorithm
 
-**Component Creation:**
+**Prompt Creation:**
 1. Choose OODA phase (observe, orient, decide, act)
 2. Define purpose (what this component accomplishes)
 3. Select relevant step codes from common steps reference
@@ -75,7 +75,7 @@ Enable developers to create and modify OODA component prompt files that can be c
 
 **Prompt Assembly:**
 1. Load procedure configuration from rooda-config.yml
-2. Read four component files (observe, orient, decide, act)
+2. Read four prompt files (observe, orient, decide, act)
 3. Validate all files exist
 4. Concatenate with OODA section headers
 5. Output combined prompt to stdout
@@ -104,39 +104,35 @@ EOF
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Component uses undefined step code | Valid - step codes are headers, not references |
-| Multiple components use same step code | Valid - each component is independent |
-| Component omits step codes entirely | Valid - step codes are optional structure |
-| Step code used but instructions differ from common reference | Valid - component instructions override |
-| Missing component file | Script exits with error before prompt assembly |
-| Empty component file | Section header present, no content under it |
+| Prompt file uses undefined step code | Valid - step codes are headers, not references |
+| Multiple prompt files use same step code | Valid - each prompt file is independent |
+| Prompt file omits step codes entirely | Valid - step codes are optional structure |
+| Step code used but instructions differ from common reference | Valid - prompt file instructions override |
+| Missing prompt file | Script exits with error before prompt assembly |
+| Empty prompt file | Section header present, no content under it |
 
 ## Dependencies
 
-- `src/rooda.sh` - Script that loads and combines components
-- `src/rooda-config.yml` - Procedure configuration mapping components to procedures
-- `specs/component-system.md` - Common steps reference and system overview
-- `specs/prompt-composition.md` - Prompt assembly algorithm details
+- `src/rooda.sh` - Script that loads and combines prompts
+- `src/rooda-config.yml` - Procedure configuration mapping prompts to procedures
 
 ## Implementation Mapping
 
 **Source files:**
-- `src/components/observe_*.md` - Observation phase components
-- `src/components/orient_*.md` - Analysis phase components
-- `src/components/decide_*.md` - Decision phase components
-- `src/components/act_*.md` - Execution phase components
+- `src/prompts/observe_*.md` - Observation phase components
+- `src/prompts/orient_*.md` - Analysis phase components
+- `src/prompts/decide_*.md` - Decision phase components
+- `src/prompts/act_*.md` - Execution phase components
 - `src/rooda.sh` (lines 143-159) - create_prompt() function
 
 **Related specs:**
-- `specs/component-system.md` - System overview and common steps
-- `specs/prompt-composition.md` - Assembly algorithm
 - `specs/configuration-schema.md` - Procedure configuration
 
 ## Examples
 
 ### Example 1: Act Component Structure
 
-**File:** `src/components/act_bootstrap.md`
+**File:** `src/prompts/act_bootstrap.md`
 
 ```markdown
 # Act: Bootstrap
@@ -183,7 +179,7 @@ Commit AGENTS.md with descriptive message:
 
 ### Example 2: Observe Component Structure
 
-**File:** `src/components/observe_bootstrap.md`
+**File:** `src/prompts/observe_bootstrap.md`
 
 ```markdown
 # Observe: Bootstrap
@@ -223,7 +219,7 @@ Examine existing code to identify:
 
 ### Example 3: Act Component with Substeps
 
-**File:** `src/components/act_build.md`
+**File:** `src/prompts/act_build.md`
 
 ```markdown
 # Act: Build
@@ -378,19 +374,19 @@ Execute test commands from AGENTS.md:
 
 Step codes (O1-O15, R1-R22, D1-D15, A1-A9) serve two purposes:
 
-1. **Structure** - They are section headers within component files (## O1, ## R5, ## A3). Each header is followed by full prose instructions that are self-contained and executable.
+1. **Structure** - They are section headers within prompt files (## O1, ## R5, ## A3). Each header is followed by full prose instructions that are self-contained and executable.
 
-2. **Cross-Reference** - They enable referencing common step definitions when needed. The common steps reference provides a quick lookup of what each code typically means, but component files contain the actual instructions.
+2. **Cross-Reference** - They enable referencing common step definitions when needed. The common steps reference provides a quick lookup of what each code typically means, but prompt files contain the actual instructions.
 
 This dual purpose means components are both structured (using consistent step codes) and self-contained (containing full instructions). You don't need to look up O1 to understand what to do - the instructions are right there under the ## O1 header.
 
-**Component Reuse:**
+**Prompt Reuse:**
 
 The component system enables significant reuse across procedures. For example, `observe_plan_specs_impl.md` is shared by `build`, `draft-plan-spec-to-impl`, and `draft-plan-impl-to-spec` procedures. They differ only in their orient, decide, and act components.
 
 **File Naming Convention:**
 
-Component files follow the pattern: `[phase]_[purpose].md`
+Prompt files follow the pattern: `[phase]_[purpose].md`
 - Phase: observe, orient, decide, act
 - Purpose: descriptive name (bootstrap, build, gap, quality, plan, publish)
 - Examples: `observe_bootstrap.md`, `act_build.md`, `orient_gap.md`
@@ -401,7 +397,7 @@ None identified during specification creation.
 
 ## Areas for Improvement
 
-- Could add validation tooling to check component files follow structure
+- Could add validation tooling to check prompt files follow structure
 - Could add linting for step code consistency across components
 - Could add examples of custom component creation for project-specific procedures
 - Could document how to extend common steps reference with project-specific codes
