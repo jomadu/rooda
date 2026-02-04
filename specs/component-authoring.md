@@ -237,11 +237,12 @@ This assembled prompt is then piped to the AI CLI tool for execution. The clear 
 - `src/prompts/orient_*.md` - Analysis phase components
 - `src/prompts/decide_*.md` - Decision phase components
 - `src/prompts/act_*.md` - Execution phase components
-- `src/rooda.sh` (lines 143-159) - create_prompt() function
+- `src/rooda.sh` (lines 397-416) - create_prompt() function
 
 **Related specs:**
-- `src/README.md` - Prompt composition system
 - `specs/configuration-schema.md` - Procedure configuration
+- `specs/iteration-loop.md` - Loop execution behavior
+- `specs/ai-cli-integration.md` - How assembled prompt is piped to AI CLI
 
 ## Examples
 
