@@ -26,6 +26,8 @@ Options:
   -d, --decide <file>      Path to decide phase prompt
   -a, --act <file>         Path to act phase prompt
   -m, --max-iterations N   Maximum iterations (default: see below)
+  --verbose                Show detailed execution including full prompt
+  --quiet                  Suppress non-error output
   --help, -h               Show this help message
 
 Max Iterations Default Behavior (three-tier system):
@@ -36,6 +38,8 @@ Max Iterations Default Behavior (three-tier system):
 Examples:
   ./rooda.sh bootstrap
   ./rooda.sh build -m 5
+  ./rooda.sh build --verbose
+  ./rooda.sh build --quiet
   ./rooda.sh -o prompts/observe_specs.md \\
             -r prompts/orient_gap.md \\
             -d prompts/decide_gap_plan.md \\
@@ -219,6 +223,7 @@ DECIDE=""
 ACT=""
 MAX_ITERATIONS=0
 PROCEDURE=""
+VERBOSE=0  # 0=default, 1=verbose, -1=quiet
 # Resolve config file relative to script location
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_FILE="${SCRIPT_DIR}/rooda-config.yml"
@@ -274,6 +279,14 @@ while [[ $# -gt 0 ]]; do
         --max-iterations|-m)
             MAX_ITERATIONS="$2"
             shift 2
+            ;;
+        --verbose)
+            VERBOSE=1
+            shift
+            ;;
+        --quiet)
+            VERBOSE=-1
+            shift
             ;;
         *)
             echo "Unknown option: $1"
@@ -368,15 +381,17 @@ done
 ITERATION=0
 CURRENT_BRANCH=$(git branch --show-current)
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-[ -n "$PROCEDURE" ] && echo "Procedure: $PROCEDURE"
-echo "Observe:   $OBSERVE"
-echo "Orient:    $ORIENT"
-echo "Decide:    $DECIDE"
-echo "Act:       $ACT"
-echo "Branch:    $CURRENT_BRANCH"
-[ "$MAX_ITERATIONS" -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+if [ "$VERBOSE" -ge 0 ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    [ -n "$PROCEDURE" ] && echo "Procedure: $PROCEDURE"
+    echo "Observe:   $OBSERVE"
+    echo "Orient:    $ORIENT"
+    echo "Decide:    $DECIDE"
+    echo "Act:       $ACT"
+    echo "Branch:    $CURRENT_BRANCH"
+    [ "$MAX_ITERATIONS" -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 
 # Create prompt template
 create_prompt() {
@@ -402,8 +417,17 @@ EOF
 
 while true; do
     if [ "$MAX_ITERATIONS" -gt 0 ] && [ "$ITERATION" -ge "$MAX_ITERATIONS" ]; then
-        echo "Reached max iterations: $MAX_ITERATIONS"
+        [ "$VERBOSE" -ge 0 ] && echo "Reached max iterations: $MAX_ITERATIONS"
         break
+    fi
+
+    # Show full prompt in verbose mode
+    if [ "$VERBOSE" -eq 1 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Full prompt being sent to kiro-cli:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        create_prompt
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     fi
 
     # Execute AI CLI - exit status intentionally ignored per ai-cli-integration.md
@@ -424,5 +448,5 @@ while true; do
     fi
 
     ITERATION=$((ITERATION + 1))
-    echo -e "\n\n======================== Starting iteration $ITERATION ========================\n"
+    [ "$VERBOSE" -ge 0 ] && echo -e "\n\n======================== Starting iteration $ITERATION ========================\n"
 done
