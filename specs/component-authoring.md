@@ -233,16 +233,16 @@ Execute the implementation plan:
 
 ## A3.5: Validate Spec Structure (If Specs Modified)
 
-If any spec files in `specs/*.md` were created or modified:
+If any spec files per AGENTS.md specification definition were created or modified:
 - Check filename matches naming convention (lowercase-with-hyphens.md)
 - Check for required sections from TEMPLATE.md
 - Warn if required sections are missing
 
 ## A3.6: Regenerate Spec Index (If Specs Modified)
 
-If any spec files in `specs/*.md` were created, modified, or deleted:
-- Read `specs/specification-system.md` for README structure requirements
-- Scan all `specs/*.md` files
+If any spec files per AGENTS.md specification definition were created, modified, or deleted:
+- Read specification system documentation for README structure requirements
+- Scan all spec files per AGENTS.md definition
 - Extract "## Job to be Done" section from each spec
 
 ## A4: Run Tests per AGENTS.md (Backpressure)
@@ -368,6 +368,89 @@ Execute test commands from AGENTS.md:
 
 **Boolean Criteria Only** - Quality assessment components use PASS/FAIL criteria, not subjective scores. Clear thresholds trigger refactoring.
 
+## Procedure Reference
+
+### Core Procedures
+
+**bootstrap** - Create/update AGENTS.md operational guide
+- Observe: `observe_bootstrap.md` (O13, O14, O15)
+- Orient: `orient_bootstrap.md` (R1, R2, R3, R4)
+- Decide: `decide_bootstrap.md` (D1, D2, D3)
+- Act: `act_bootstrap.md` (A1, A2)
+
+**build** - Implement tasks from work tracking system
+- Observe: `observe_plan_specs_impl.md` (O1, O2, O3, O7, O8, O11, O12)
+- Orient: `orient_build.md` (R5, R6, R7, R8)
+- Decide: `decide_build.md` (D4, D5, D6)
+- Act: `act_build.md` (A3, A4, A5, A6, A7)
+
+### Draft Planning Procedures
+
+**draft-plan-story-to-spec** - Converge plan for incorporating story into specs
+- Observe: `observe_story_task_specs_impl.md` (O1, O3, O5, O6, O9, O10, O11, O12)
+- Orient: `orient_story_task_incorporation.md` (R9, R11, R12, R14, R15)
+- Decide: `decide_story_task_plan.md` (D7, D9, D10, D11)
+- Act: `act_plan.md` (A8, A6, A2)
+
+**draft-plan-bug-to-spec** - Converge plan for spec adjustments to drive bug fix
+- Observe: `observe_bug_task_specs_impl.md` (O1, O3, O5, O6, O9, O10, O11, O12)
+- Orient: `orient_bug_task_incorporation.md` (R10, R11, R13, R14, R15)
+- Decide: `decide_bug_task_plan.md` (D8, D9, D10, D11)
+- Act: `act_plan.md` (A8, A6, A2)
+
+**draft-plan-spec-to-impl** - Converge plan from gap analysis (specs → code)
+- Observe: `observe_plan_specs_impl.md` (O1, O2, O3, O7, O8, O11, O12)
+- Orient: `orient_gap.md` (R16, R6, R17)
+- Decide: `decide_gap_plan.md` (D9, D10, D11)
+- Act: `act_plan.md` (A8, A6, A2)
+
+**draft-plan-impl-to-spec** - Converge plan from gap analysis (code → specs)
+- Observe: `observe_plan_specs_impl.md` (O1, O2, O3, O7, O8, O11, O12)
+- Orient: `orient_gap.md` (R16, R6, R17)
+- Decide: `decide_gap_plan.md` (D9, D10, D11)
+- Act: `act_plan.md` (A8, A6, A2)
+
+**draft-plan-spec-refactor** - Converge plan from quality assessment of specs
+- Observe: `observe_specs.md` (O1, O3, O4, O11)
+- Orient: `orient_quality.md` (R18, R19, R20)
+- Decide: `decide_refactor_plan.md` (D12, D9, D13)
+- Act: `act_plan.md` (A8, A6, A2)
+
+**draft-plan-impl-refactor** - Converge plan from quality assessment of code
+- Observe: `observe_impl.md` (O1, O3, O4, O12)
+- Orient: `orient_quality.md` (R18, R19, R20)
+- Decide: `decide_refactor_plan.md` (D12, D9, D13)
+- Act: `act_plan.md` (A8, A6, A2)
+
+### Publishing Procedure
+
+**publish-plan** - Publish converged draft plan to work tracking system
+- Observe: `observe_draft_plan.md` (O1, O6, O7, O10)
+- Orient: `orient_publish.md` (R21, R22)
+- Decide: `decide_publish.md` (D14, D15)
+- Act: `act_publish.md` (A9, A6, A2)
+
+## Notes
+- "capture the why" when updating AGENTS.md
+- "keep it up to date" for maintaining accuracy
+- "backpressure" for quality gates
+
+**Search Before Assuming** - Orient components must emphasize searching the codebase before concluding something doesn't exist. This is the critical failure mode.
+
+**Backpressure is Mandatory** - Act components that modify code must run tests and only commit when passing. No exceptions.
+
+**Incorporate Learnings, Don't Append** - When updating AGENTS.md, components must instruct agents to incorporate learnings into existing sections (commands, paths, criteria) with inline rationale, not append dated diary entries. Exception: significant architectural decisions may warrant dated entries if historical context matters.
+
+**Parallel Subagents for Scale** - Act components should use parallel subagents for independent work, but only 1 subagent for build/test operations to avoid conflicts.
+
+**Plans are Disposable** - Planning components should generate complete plans each iteration, not incrementally patch. Cheap to regenerate beats expensive to maintain.
+
+**Tight Tasks Win** - Decide components should break work into the smallest implementable units. One task per build iteration maximizes smart zone utilization.
+
+**Commit After Complete** - Act components must complete all file modifications before committing. No partial work commits.
+
+**Boolean Criteria Only** - Quality assessment components use PASS/FAIL criteria, not subjective scores. Clear thresholds trigger refactoring.
+
 ## Notes
 
 **Dual Purpose of Step Codes:**
@@ -381,8 +464,6 @@ Step codes (O1-O15, R1-R22, D1-D15, A1-A9) serve two purposes:
 This dual purpose means components are both structured (using consistent step codes) and self-contained (containing full instructions). You don't need to look up O1 to understand what to do - the instructions are right there under the ## O1 header.
 
 **Prompt Reuse:**
-
-**Prompt File Reuse:**
 
 The prompt file system enables significant reuse across procedures. For example, `observe_plan_specs_impl.md` is shared by `build`, `draft-plan-spec-to-impl`, and `draft-plan-impl-to-spec` procedures. They differ only in their orient, decide, and act prompts.
 
