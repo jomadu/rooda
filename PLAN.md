@@ -3,25 +3,28 @@
 ## Priority 1: Create Component System Specification
 
 ### Task 1: Create specs/component-system.md
-**Description:** Create formal specification for OODA component system following TEMPLATE.md format.
+**Description:** Create formal specification for OODA component system following TEMPLATE.md format. Incorporate common steps content from `src/README.md`.
 
 **Content Requirements:**
 - **Job to be Done:** Define how OODA components are structured and how they guide agent behavior
 - **Activities:** Component composition, common step reference, AGENTS.md update guidance
 - **Acceptance Criteria:**
   - Components follow four-phase OODA structure (observe/orient/decide/act)
-  - Common steps are defined and referenceable by code (O1-O15, R1-R22, D1-D15, A1-A9)
-  - A6 step explicitly defines what qualifies as "operational learning" for AGENTS.md
-  - Clear examples distinguish operational (commands, paths, criteria) vs non-operational (test artifacts, validation patterns)
+  - Common steps defined and referenceable by code (O1-O15, R1-R22, D1-D15, A1-A9) - source from `src/README.md`
+  - Key principles for writing components documented (from `src/README.md`)
+  - A6 step explicitly defines what qualifies as "operational learning" for AGENTS.md:
+    - **Operational:** Commands that failed/succeeded, file paths discovered, quality criteria refined, workflow patterns learned
+    - **Non-operational:** Test artifacts, validation patterns, historical notes, temporary debugging files
+  - Clear examples distinguish operational vs non-operational updates
   - References `specs/agents-md-format.md` for AGENTS.md content boundaries
-- **Data Structures:** Component file format (markdown with step codes)
-- **Algorithm:** How components reference common steps, how agents interpret step codes
-- **Edge Cases:** Missing step codes, undefined steps, conflicting guidance
+- **Data Structures:** Component file format (markdown with step codes and descriptions)
+- **Algorithm:** How components reference common steps, how agents interpret step codes, how procedures compose components
+- **Edge Cases:** Missing step codes, undefined steps, conflicting guidance between components
 - **Dependencies:** Requires `specs/agents-md-format.md` (already exists)
 - **Implementation Mapping:** `src/components/*.md` files implement this spec
 - **Examples:** 
-  - Example of proper A6 update (command failed, update AGENTS.md with correct command)
-  - Example of improper A6 update (validation file created, should NOT update AGENTS.md)
+  - Proper A6 update: "Command `npm test` failed, updated AGENTS.md with correct command `npm run test:unit`"
+  - Improper A6 update: "Created VALIDATION-issue-123.md with test cases" (should NOT update AGENTS.md)
 
 **Why This Matters:** Without this spec, components lack clear guidance on AGENTS.md updates, leading to test artifacts being added inappropriately.
 
