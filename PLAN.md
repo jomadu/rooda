@@ -1,108 +1,167 @@
-# Specification Refactoring Plan
+# Specification Quality Refactoring Plan
 
 ## Quality Assessment Results
 
-**Criteria Scores:**
-- Criterion 1 (Job to be Done sections): FAIL - agents-md-format.md missing section
-- Criterion 2 (Acceptance Criteria sections): FAIL - agents-md-format.md missing section
-- Criterion 3 (Examples sections): FAIL - agents-md-format.md missing section
-- Criterion 4 (Command examples verified working): FAIL - No verification process defined, no empirical testing
-- Criterion 5 (DEPRECATED specs have replacements): PASS
+### Criterion 1: All specs have "Job to be Done" section
+**Status:** FAIL
 
-**Overall: 4 of 5 criteria failed - refactoring required**
+**Findings:**
+- 8 of 9 specs have "## Job to be Done" section
+- agents-md-format.md uses "## Purpose" instead of "## Job to be Done"
+- DEPRECATED specs (component-system.md, prompt-composition.md) have "## Job to be Done" sections
 
-## Refactoring Tasks (Priority Order)
+**Failed Specs:**
+- specs/agents-md-format.md
 
-### Task 1: Fix agents-md-format.md Structure
-**Priority:** High (correctness)
-**Effort:** Low
-**Impact:** Brings spec into compliance with template
+### Criterion 2: All specs have "Acceptance Criteria" section
+**Status:** FAIL
 
-Restructure agents-md-format.md to follow JTBD template:
-- Add "## Job to be Done" section (convert existing "## Purpose" content)
-- Add "## Acceptance Criteria" section with boolean checkboxes
+**Findings:**
+- 8 of 9 specs have "## Acceptance Criteria" section
+- agents-md-format.md missing "## Acceptance Criteria" section
+- DEPRECATED specs have "## Acceptance Criteria" sections
+
+**Failed Specs:**
+- specs/agents-md-format.md
+
+### Criterion 3: All specs have "Examples" section
+**Status:** FAIL
+
+**Findings:**
+- 8 of 9 specs have "## Examples" section
+- agents-md-format.md missing "## Examples" section
+- DEPRECATED specs have "## Examples" sections
+
+**Failed Specs:**
+- specs/agents-md-format.md
+
+### Criterion 4: All command examples in specs are verified working
+**Status:** FAIL
+
+**Findings:**
+- No verification process defined in AGENTS.md
+- No empirical testing performed on command examples
+- No distinction between executable commands and pseudocode/illustrative examples
+- Command examples exist across all specs but verification status unknown
+
+**Impact:**
+- Specs may contain outdated or incorrect commands
+- Users may encounter failures when following documentation
+- No systematic way to ensure specs remain accurate as implementation evolves
+
+### Criterion 5: No specs marked as DEPRECATED without replacement
+**Status:** PASS
+
+**Findings:**
+- 2 specs marked DEPRECATED: component-system.md, prompt-composition.md
+- Both reference replacement: component-authoring.md
+- Replacement spec exists and is complete
+
+## Refactoring Tasks
+
+### Task 1: Fix agents-md-format.md Structure (CRITICAL)
+**Priority:** 1 (High Impact, Blocks Criteria 1-3)
+
+**Description:**
+Restructure agents-md-format.md to follow TEMPLATE.md format:
+- Replace "## Purpose" with "## Job to be Done"
+- Add "## Acceptance Criteria" section with boolean criteria
 - Add "## Examples" section with concrete AGENTS.md examples
-- Maintain existing content in appropriate sections
-- Ensure consistency with other specs
+
+**Rationale:**
+agents-md-format.md is a specification like all others and should follow the same structure. Current structure causes criteria 1, 2, and 3 to fail. This is the critical path blocker.
 
 **Acceptance Criteria:**
-- [ ] agents-md-format.md has "Job to be Done" section
-- [ ] agents-md-format.md has "Acceptance Criteria" section
-- [ ] agents-md-format.md has "Examples" section
-- [ ] All existing content preserved in appropriate sections
-- [ ] Structure matches TEMPLATE.md pattern
+- agents-md-format.md has "## Job to be Done" section
+- agents-md-format.md has "## Acceptance Criteria" section
+- agents-md-format.md has "## Examples" section
+- Content from "## Purpose" migrated to "## Job to be Done"
+- All existing content preserved and reorganized
 
-### Task 2: Define Command Example Verification Process
-**Priority:** High (enables criterion 4 evaluation)
-**Effort:** Medium
-**Impact:** Provides clear process for validating command examples
+### Task 2: Define Command Verification Process
+**Priority:** 2 (High Impact, Enables Task 3)
 
-Create verification process specification:
-- Define what constitutes "verified working"
-- Distinguish executable commands from pseudocode/illustrative examples
-- Specify verification methodology (manual execution, automated testing)
-- Define tracking mechanism for verification status
-- Document verification frequency (per-commit, per-release, on-demand)
+**Description:**
+Define systematic process for verifying command examples in specs:
+- Identify categories: executable commands vs pseudocode/illustrative examples
+- Define verification approach per category
+- Document verification process in AGENTS.md quality criteria section
+- Create verification tracking mechanism
+
+**Rationale:**
+Criterion 4 requires verification but no process exists. Must define process before executing verification pass.
 
 **Acceptance Criteria:**
-- [ ] Verification process documented in AGENTS.md or separate spec
-- [ ] Clear distinction between executable vs illustrative examples
-- [ ] Verification methodology specified
-- [ ] Tracking mechanism defined
-- [ ] Process is actionable and repeatable
+- Verification process documented in AGENTS.md
+- Clear distinction between executable and non-executable examples
+- Verification approach defined for each category
+- Tracking mechanism established
 
-### Task 3: Execute Initial Verification Pass
-**Priority:** High (validates current state)
-**Effort:** High
-**Impact:** Identifies broken examples, validates working examples
+### Task 3: Execute Verification Pass on All Specs
+**Priority:** 3 (High Impact, Depends on Task 2)
 
-Execute verification on all specs:
+**Description:**
+Systematically verify all command examples across all specs:
 - Identify all bash code blocks in specs/*.md
-- Classify each as executable command or pseudocode
-- Execute all executable commands
-- Document results (pass/fail/not-applicable)
-- Fix broken examples or mark as illustrative
-- Update specs with verification status
+- Categorize each as executable or illustrative
+- Execute all executable commands and validate output
+- Document verification results
+- Fix or mark any failing commands
+
+**Rationale:**
+Empirical testing ensures specs remain accurate. Depends on Task 2 defining the verification process.
 
 **Acceptance Criteria:**
-- [ ] All bash code blocks classified
-- [ ] All executable commands tested
-- [ ] Broken examples fixed or reclassified
-- [ ] Verification results documented
-- [ ] Criterion 4 can be evaluated as PASS/FAIL
+- All bash code blocks identified and categorized
+- All executable commands tested
+- Verification results documented
+- Failing commands fixed or marked as non-executable
 
 ### Task 4: Mark Non-Executable Examples Clearly
-**Priority:** Medium (clarity)
-**Effort:** Low
-**Impact:** Prevents confusion about what should work
+**Priority:** 4 (Medium Impact, Improves Clarity)
 
-Update spec examples:
-- Add markers for pseudocode (e.g., "# Pseudocode" comment)
-- Add markers for illustrative examples (e.g., "# Example only - not executable")
-- Ensure executable examples have no markers
-- Update TEMPLATE.md with marking conventions
+**Description:**
+Add clear markers to distinguish pseudocode/illustrative examples from executable commands:
+- Add comments or labels to non-executable code blocks
+- Use consistent notation (e.g., "# Pseudocode", "# Example pattern")
+- Update TEMPLATE.md with guidance on marking examples
+
+**Rationale:**
+Prevents confusion between commands that should work as-is vs patterns that need adaptation.
 
 **Acceptance Criteria:**
-- [ ] All pseudocode marked clearly
-- [ ] All illustrative examples marked clearly
-- [ ] Executable examples unmarked
-- [ ] TEMPLATE.md documents marking conventions
+- All non-executable examples clearly marked
+- Consistent notation used across all specs
+- TEMPLATE.md updated with marking guidance
 
 ### Task 5: Automate Verification Where Possible
-**Priority:** Low (efficiency)
-**Effort:** High
-**Impact:** Reduces manual verification burden
+**Priority:** 5 (Low Impact, Long-term Improvement)
 
-Create automation tooling:
-- Script to extract bash code blocks from specs
-- Script to classify blocks (executable vs illustrative)
-- Script to execute commands in safe environment
-- Script to report verification status
-- Integrate into CI/CD if applicable
+**Description:**
+Create automation to verify command examples remain accurate:
+- Script to extract and execute testable commands
+- CI integration to run verification on spec changes
+- Automated reporting of verification failures
+
+**Rationale:**
+Automation ensures ongoing accuracy without manual effort. Lower priority as manual verification (Task 3) provides immediate value.
 
 **Acceptance Criteria:**
-- [ ] Extraction script working
-- [ ] Classification logic implemented
-- [ ] Execution script working with safety checks
-- [ ] Reporting script generates clear output
-- [ ] Documentation for running verification automation
+- Verification script created
+- Script can extract and test commands from specs
+- CI integration documented (implementation optional)
+
+## Summary
+
+**Critical Path:**
+1. Fix agents-md-format.md structure (Task 1) → Achieves criteria 1-3 compliance
+2. Define verification process (Task 2) → Enables criterion 4 compliance
+3. Execute verification pass (Task 3) → Achieves criterion 4 compliance
+
+**Current Status:**
+- Criteria 1, 2, 3: FAIL (single spec non-compliant)
+- Criterion 4: FAIL (no verification process)
+- Criterion 5: PASS
+
+**Expected Outcome:**
+All 5 quality criteria pass after completing Tasks 1-3.
