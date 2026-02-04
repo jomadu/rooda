@@ -10,13 +10,13 @@ Enable developers to create and modify OODA component prompt files that can be c
 - **Maintain Consistency** - Follow naming conventions and structural patterns across all components
 
 ## Acceptance Criteria
-- [ ] Prompt file structure documented (phase header, step headers, prose instructions)
-- [ ] Step code patterns explained (O1-O15, R1-R22, D1-D15, A1-A9)
-- [ ] Complete common steps reference provided
-- [ ] Prompt assembly algorithm documented
-- [ ] Authoring guidelines included
-- [ ] Real examples from actual prompt files shown
-- [ ] Dual purpose of step codes clarified (structure + cross-reference)
+- [x] Prompt file structure documented (phase header, step headers, prose instructions)
+- [x] Step code patterns explained (O1-O15, R1-R22, D1-D15, A1-A9)
+- [x] Complete common steps reference provided
+- [x] Prompt assembly algorithm documented
+- [x] Authoring guidelines included
+- [x] Real examples from actual prompt files shown
+- [x] Dual purpose of step codes clarified (structure + cross-reference)
 
 ## Data Structures
 

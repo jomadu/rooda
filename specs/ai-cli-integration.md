@@ -11,14 +11,14 @@ Execute OODA loop prompts through an AI CLI tool that can read files, modify cod
 5. Capture AI CLI exit status for error handling
 
 ## Acceptance Criteria
-- [ ] Prompt piped to kiro-cli via stdin
-- [ ] --no-interactive flag disables interactive prompts
-- [ ] --trust-all-tools flag bypasses permission prompts
-- [ ] AI can read files from repository
-- [ ] AI can write/modify files in repository
-- [ ] AI can execute bash commands
-- [ ] AI can commit changes to git
-- [ ] Script continues to next iteration regardless of AI CLI exit status
+- [x] Prompt piped to kiro-cli via stdin
+- [x] --no-interactive flag disables interactive prompts
+- [x] --trust-all-tools flag bypasses permission prompts
+- [x] AI can read files from repository
+- [x] AI can write/modify files in repository
+- [x] AI can execute bash commands
+- [x] AI can commit changes to git
+- [x] Script continues to next iteration regardless of AI CLI exit status
 
 ## Data Structures
 

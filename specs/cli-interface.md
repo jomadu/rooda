@@ -11,13 +11,13 @@ Enable users to invoke OODA loop procedures through a command-line interface, su
 5. Execute iteration loop with configured parameters
 
 ## Acceptance Criteria
-- [ ] Procedure-based invocation loads OODA files from config
-- [ ] Explicit flag invocation accepts four OODA phase files directly
-- [ ] Explicit flags override config-based procedure settings
-- [ ] Config file resolves relative to script location
-- [ ] Missing files produce clear error messages
-- [ ] Invalid arguments produce usage help
-- [ ] Max iterations can be specified or defaults to procedure config
+- [x] Procedure-based invocation loads OODA files from config
+- [x] Explicit flag invocation accepts four OODA phase files directly
+- [x] Explicit flags override config-based procedure settings
+- [x] Config file resolves relative to script location
+- [x] Missing files produce clear error messages
+- [x] Invalid arguments produce usage help
+- [x] Max iterations can be specified or defaults to procedure config
 
 ## Data Structures
 

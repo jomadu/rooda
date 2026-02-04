@@ -6,16 +6,16 @@ AGENTS.md is the interface between agents and the repository. It defines how age
 
 ## Acceptance Criteria
 
-- [ ] AGENTS.md contains Work Tracking System section with query/update/complete commands
-- [ ] AGENTS.md contains Story/Bug Input section defining where to read task descriptions
-- [ ] AGENTS.md contains Planning System section with draft location and publishing mechanism
-- [ ] AGENTS.md contains Build/Test/Lint Commands section with specific commands
-- [ ] AGENTS.md contains Specification Definition section with file paths/patterns
-- [ ] AGENTS.md contains Implementation Definition section with file paths/patterns
-- [ ] AGENTS.md contains Quality Criteria section with boolean PASS/FAIL criteria
-- [ ] All commands in AGENTS.md are empirically verified to work
-- [ ] AGENTS.md is updated when operational learnings occur
-- [ ] AGENTS.md includes rationale (the "why") for key decisions
+- [x] AGENTS.md contains Work Tracking System section with query/update/complete commands
+- [x] AGENTS.md contains Story/Bug Input section defining where to read task descriptions
+- [x] AGENTS.md contains Planning System section with draft location and publishing mechanism
+- [x] AGENTS.md contains Build/Test/Lint Commands section with specific commands
+- [x] AGENTS.md contains Specification Definition section with file paths/patterns
+- [x] AGENTS.md contains Implementation Definition section with file paths/patterns
+- [x] AGENTS.md contains Quality Criteria section with boolean PASS/FAIL criteria
+- [x] All commands in AGENTS.md are empirically verified to work
+- [x] AGENTS.md is updated when operational learnings occur
+- [x] AGENTS.md includes rationale (the "why") for key decisions
 
 ## What's in AGENTS.md?
 

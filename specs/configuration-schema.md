@@ -11,12 +11,12 @@ Enable users to define custom OODA loop procedures by mapping procedure names to
 5. Query configuration at runtime using yq
 
 ## Acceptance Criteria
-- [ ] YAML structure supports nested procedure definitions
-- [ ] Required fields (observe, orient, decide, act) validated at runtime
-- [ ] Optional fields (display, summary, description, default_iterations) supported
-- [ ] yq queries successfully extract procedure configuration
-- [ ] Missing procedures return clear error messages
-- [ ] File paths resolved relative to script directory
+- [x] YAML structure supports nested procedure definitions
+- [x] Required fields (observe, orient, decide, act) validated at runtime
+- [x] Optional fields (display, summary, description, default_iterations) supported
+- [x] yq queries successfully extract procedure configuration
+- [x] Missing procedures return clear error messages
+- [x] File paths resolved relative to script directory
 
 ## Data Structures
 

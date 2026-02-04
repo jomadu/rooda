@@ -11,13 +11,13 @@ Enable users to understand and effectively use the ralph-wiggum-ooda framework t
 5. Extend the framework with custom procedures
 
 ## Acceptance Criteria
-- [ ] README.md contains installation instructions, basic workflow, and links to detailed docs
-- [ ] docs/ directory contains detailed guides for concepts, workflows, and troubleshooting
-- [ ] All code examples in documentation are verified working
-- [ ] Documentation matches actual script behavior (no contradictions)
-- [ ] Each procedure has usage examples with expected outcomes
-- [ ] Common error scenarios have troubleshooting guidance
-- [ ] Documentation follows progressive disclosure (quick start → detailed guides)
+- [x] README.md contains installation instructions, basic workflow, and links to detailed docs
+- [x] docs/ directory contains detailed guides for concepts, workflows, and troubleshooting
+- [x] All code examples in documentation are verified working
+- [x] Documentation matches actual script behavior (no contradictions)
+- [x] Each procedure has usage examples with expected outcomes
+- [x] Common error scenarios have troubleshooting guidance
+- [x] Documentation follows progressive disclosure (quick start → detailed guides)
 - [ ] Links between documents work correctly
 
 ## Data Structures

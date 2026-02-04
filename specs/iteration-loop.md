@@ -12,13 +12,13 @@ Execute OODA loop procedures through controlled iteration cycles that clear cont
 6. Repeat until termination condition met
 
 ## Acceptance Criteria
-- [ ] Loop executes until max iterations reached or Ctrl+C pressed
+- [x] Loop executes until max iterations reached or Ctrl+C pressed
 - [x] Each iteration exits completely, clearing AI context (kiro-cli exits after each invocation; bash script persists by design)
-- [ ] Iteration counter increments correctly
-- [ ] Max iterations of 0 means unlimited (loop until Ctrl+C)
-- [ ] Max iterations defaults to procedure config or 0 if not specified
-- [ ] Progress displayed between iterations
-- [ ] Git push happens after each iteration
+- [x] Iteration counter increments correctly
+- [x] Max iterations of 0 means unlimited (loop until Ctrl+C)
+- [x] Max iterations defaults to procedure config or 0 if not specified
+- [x] Progress displayed between iterations
+- [x] Git push happens after each iteration
 
 ## Data Structures
 
