@@ -21,6 +21,7 @@ Options:
   <procedure>              Named procedure from config (bootstrap, build, etc.)
   -c, --config <file>      Path to config file (default: rooda-config.yml)
   --version                Show version number
+  --list-procedures        List all available procedures from config
   -o, --observe <file>     Path to observe phase prompt
   -r, --orient <file>      Path to orient phase prompt
   -d, --decide <file>      Path to decide phase prompt
@@ -41,12 +42,45 @@ Examples:
   ./rooda.sh build -m 5
   ./rooda.sh build --verbose
   ./rooda.sh build --quiet
+  ./rooda.sh --list-procedures
   ./rooda.sh -o prompts/observe_specs.md \\
             -r prompts/orient_gap.md \\
             -d prompts/decide_gap_plan.md \\
             -a prompts/act_plan.md \\
             -m 1
 EOF
+}
+
+list_procedures() {
+    local config_file="$1"
+    
+    if [ ! -f "$config_file" ]; then
+        echo "Error: Configuration file not found: $config_file"
+        exit 1
+    fi
+    
+    echo "Available procedures:"
+    echo ""
+    
+    local procedures
+    procedures=$(yq eval '.procedures | keys | .[]' "$config_file")
+    
+    while IFS= read -r proc; do
+        local display summary
+        display=$(yq eval ".procedures.$proc.display // \"\"" "$config_file")
+        summary=$(yq eval ".procedures.$proc.summary // \"\"" "$config_file")
+        
+        if [ -n "$display" ]; then
+            echo "  $proc - $display"
+        else
+            echo "  $proc"
+        fi
+        
+        if [ -n "$summary" ]; then
+            echo "    $summary"
+        fi
+        echo ""
+    done <<< "$procedures"
 }
 
 # Detect OS for platform-specific instructions
@@ -222,6 +256,12 @@ if [[ "$1" == "--version" ]]; then
     exit 0
 fi
 
+# Check for list-procedures flag
+if [[ "$1" == "--list-procedures" ]]; then
+    list_procedures "$CONFIG_FILE"
+    exit 0
+fi
+
 # First positional argument is procedure name (optional)
 if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]]; then
     PROCEDURE="$1"
@@ -236,6 +276,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --help|-h)
             show_help
+            exit 0
+            ;;
+        --list-procedures)
+            list_procedures "$CONFIG_FILE"
             exit 0
             ;;
         --config|-c)
