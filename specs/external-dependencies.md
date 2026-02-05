@@ -3,6 +3,18 @@
 ## Job to be Done
 Enable users to install and verify all required external tools before running ralph-wiggum-ooda procedures, preventing runtime failures due to missing dependencies.
 
+## Dependency Philosophy
+
+**Minimal Required, Maximum Flexibility**
+
+Only `yq` is truly required for ralph-wiggum-ooda to function. Everything else is configurable or project-specific:
+
+- **yq (required)** - Core dependency for parsing rooda-config.yml. No substitution possible.
+- **kiro-cli (default, configurable)** - Default AI CLI tool, but can be substituted with any AI CLI that supports piping prompts and tool access (claude-cli, aider, cursor, etc.). The framework pipes prompts to stdin and expects the AI to have filesystem and command execution capabilities.
+- **bd/beads (project-specific, optional)** - Default work tracking system used in examples and AGENTS.md templates, but entirely project-specific. Projects can use GitHub Issues, file-based tracking, Jira, Linear, or any other system. AGENTS.md documents whatever system the project uses.
+
+This philosophy enables ralph-wiggum-ooda to adapt to existing project workflows rather than forcing specific tools.
+
 ## Activities
 1. Check for required dependencies at script startup
 2. Report missing dependencies with installation instructions
@@ -10,9 +22,11 @@ Enable users to install and verify all required external tools before running ra
 4. Document all external tools and their purposes
 
 ## Acceptance Criteria
-- [x] All external dependencies documented (yq, kiro-cli, bd)
+- [x] Core dependency (yq) documented with installation instructions
+- [x] Default configurable dependencies (kiro-cli) documented with substitution guidance
+- [x] Project-specific optional dependencies (bd) documented with alternatives
+- [x] Dependency philosophy clearly stated
 - [x] Version requirements specified where applicable
-- [x] Installation instructions provided per platform
 - [x] Dependency checking implemented in rooda.sh for critical tools
 
 ## Data Structures
@@ -59,8 +73,20 @@ yq --version
 
 **Verification:** rooda.sh checks for yq at startup (lines 15-19)
 
+### Default Dependencies (Configurable)
+
 #### kiro-cli (AI CLI tool)
 **Purpose:** Execute OODA prompts through AI chat interface with tool access
+
+**Default:** kiro-cli is the default AI CLI used in documentation and examples
+
+**Substitution:** Can be replaced with any AI CLI that supports:
+- Reading prompts from stdin (piped input)
+- Filesystem access (read/write files)
+- Command execution (run bash commands)
+- Non-interactive mode
+
+**Alternatives:** claude-cli, aider, cursor, or custom AI CLI wrappers
 
 **Minimum Version:** 1.0.0 (requires --no-interactive and --trust-all-tools flags)
 
@@ -74,8 +100,22 @@ kiro-cli --version
 
 **Verification:** Script pipes prompt to `kiro-cli chat --no-interactive --trust-all-tools`
 
+**Configuration:** To use a different AI CLI, modify the pipe command in rooda.sh (line 161)
+
+### Project-Specific Dependencies (Optional)
+
 #### bd (beads work tracking)
 **Purpose:** Query and update work tracking system for task management
+
+**Default:** bd (beads) is used in examples and AGENTS.md templates
+
+**Project-Specific:** Work tracking is entirely project-specific. Projects can use:
+- GitHub Issues
+- File-based tracking (PLAN.md, TODO.md)
+- Jira, Linear, Asana
+- Any system that can be queried and updated via CLI or API
+
+**AGENTS.md Role:** The "Work Tracking System" section in AGENTS.md documents whatever system the project uses, including query/update commands.
 
 **Minimum Version:** 0.1.0 (requires --json flag support)
 
@@ -89,6 +129,8 @@ bd --version
 - Alternative: Download binary from https://github.com/jomadu/beads/releases
 
 **Verification:** AGENTS.md documents `bd ready --json` command
+
+**Note:** If not using bd, update AGENTS.md with your project's work tracking commands
 
 ### Optional Dependencies
 
@@ -134,6 +176,13 @@ function check_dependencies():
             print error_message(dependency)
             print installation_instructions(dependency)
             exit 1
+        
+        if version_required(dependency):
+            version = extract_version(dependency)
+            if version < minimum_version:
+                print error_message(dependency, version, minimum_version)
+                print upgrade_instructions(dependency)
+                exit 1
     
     for each optional_dependency:
         if not command_exists(dependency):
@@ -145,17 +194,18 @@ function check_dependencies():
 
 **Current Implementation:**
 - rooda.sh checks for yq at startup (required)
-- No checks for kiro-cli or bd (assumed present)
-- No version validation
+- rooda.sh validates yq version >= 4.0.0 (lines 112-120)
+- rooda.sh checks for kiro-cli at startup (default, but can be modified)
+- rooda.sh checks for bd at startup (project-specific, can be removed if using different work tracking)
 
 ## Edge Cases
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | yq not installed | Script exits with error and installation instructions |
-| yq v3 installed (incompatible) | Script may fail with cryptic YAML parsing errors |
-| kiro-cli not installed | Script fails when piping prompt (no early detection) |
-| bd not installed | AGENTS.md commands fail (no early detection) |
+| yq v3 installed (incompatible) | Script exits with error: "yq version 4.0.0 or higher required (found X.X.X)" and upgrade instructions |
+| kiro-cli not installed | Script exits with error (default behavior, can be modified for other AI CLIs) |
+| bd not installed | Script exits with error (can be removed if using different work tracking) |
 | shellcheck not installed | Lint command fails but documented as optional |
 | git not installed | Commit operations fail (not critical for testing) |
 
@@ -163,6 +213,7 @@ function check_dependencies():
 
 **Source files:**
 - `src/rooda.sh` (lines 15-19) - yq dependency check
+- `src/rooda.sh` (lines 112-120) - yq version validation (requires v4.0.0+)
 - `src/rooda.sh` (line 161) - kiro-cli invocation
 - `AGENTS.md` - Documents bd commands and shellcheck usage
 
@@ -208,7 +259,7 @@ Install with: brew install yq
 - Script exits with status 1
 - Error message provides installation instructions
 
-### Example 3: Version Check (Not Implemented)
+### Example 3: Version Check (Implemented)
 
 **Input:**
 ```bash
@@ -217,38 +268,49 @@ yq --version
 ./rooda.sh bootstrap
 ```
 
-**Expected Behavior:**
-Script should detect incompatible yq v3 and warn user, but currently does not validate version.
+**Expected Output:**
+```
+Error: yq version 4.0.0 or higher required (found 3.4.1)
+Upgrade with: brew upgrade yq
+```
+
+**Verification:**
+- Script exits with status 1
+- Error message shows detected version and required minimum
+- Provides upgrade instructions
 
 ## Notes
 
-**Design Decision:** Only yq is checked at startup because it's required immediately for config parsing. kiro-cli and bd are used later in execution, so their absence causes runtime failures rather than startup failures.
+**Design Decision:** Only yq is truly required. kiro-cli and bd are checked at startup by default but can be modified or removed based on project needs.
 
 **Rationale for Minimum Versions:**
 - yq v4.0.0: Script uses v4 syntax (`.procedures.$PROCEDURE.observe`)
-- kiro-cli 1.0.0: Requires --no-interactive and --trust-all-tools flags
-- bd 0.1.0: Requires --json flag for structured output
+- kiro-cli 1.0.0: Requires --no-interactive and --trust-all-tools flags (if using kiro-cli)
+- bd 0.1.0: Requires --json flag for structured output (if using bd)
 
 **Consumer vs Framework:**
-- Consumers need: yq, kiro-cli, bd (required for all procedures)
+- Consumers need: yq (required), AI CLI of choice (kiro-cli or alternative), work tracking system of choice (bd or alternative)
 - Framework development needs: shellcheck (optional, for bash linting)
 - Both need: git (optional, for version control)
 
+**Substitution Examples:**
+- Replace kiro-cli with claude-cli: Modify pipe command in rooda.sh
+- Replace bd with GitHub Issues: Update AGENTS.md with `gh issue` commands
+- Replace bd with file-based: Update AGENTS.md to read/write PLAN.md or TODO.md
+
 ## Known Issues
 
-1. **No version validation:** Script checks if yq exists but not if it's v4+. Users with yq v3 will get cryptic YAML parsing errors.
+1. **Dependency checks assume defaults:** Script checks for kiro-cli and bd at startup, but these are configurable. Projects using alternatives need to modify rooda.sh dependency checks.
 
-2. **Late failure for kiro-cli/bd:** Script doesn't check for kiro-cli or bd at startup, so users discover missing tools only when procedures execute.
+2. **Platform-specific instructions:** Installation commands assume macOS (brew) or Linux package managers. Windows/WSL users need different instructions.
 
-3. **Platform-specific instructions:** Installation commands assume macOS (brew) or Linux package managers. Windows/WSL users need different instructions.
-
-4. **No automated installer:** Users must manually install all dependencies. No bootstrap script to automate setup.
+3. **No automated installer:** Users must manually install all dependencies. No bootstrap script to automate setup.
 
 ## Areas for Improvement
 
-1. **Add version validation:** Check yq version and warn if < v4.0.0
-2. **Early dependency checks:** Validate kiro-cli and bd presence at startup
-3. **Automated installer:** Provide setup script that installs all dependencies
-4. **Platform detection:** Detect OS and provide appropriate installation commands
-5. **Dependency matrix:** Document tested version combinations
-6. **Docker image:** Provide pre-configured container with all dependencies
+1. **Configurable dependency checks:** Allow projects to disable kiro-cli/bd checks via config if using alternatives
+2. **Automated installer:** Provide setup script that installs all dependencies
+3. **Platform detection:** Detect OS and provide appropriate installation commands
+4. **Dependency matrix:** Document tested version combinations
+5. **Docker image:** Provide pre-configured container with all dependencies
+6. **AI CLI abstraction:** Create adapter layer so different AI CLIs can be swapped without modifying rooda.sh

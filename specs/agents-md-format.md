@@ -1,8 +1,21 @@
 # AGENTS.md Specification
 
-## Purpose
+## Job to be Done
 
 AGENTS.md is the interface between agents and the repository. It defines how agents interact with project-specific workflows, tools, and conventions.
+
+## Acceptance Criteria
+
+- [x] AGENTS.md contains Work Tracking System section with query/update/complete commands
+- [x] AGENTS.md contains Story/Bug Input section defining where to read task descriptions
+- [x] AGENTS.md contains Planning System section with draft location and publishing mechanism
+- [x] AGENTS.md contains Build/Test/Lint Commands section with specific commands
+- [x] AGENTS.md contains Specification Definition section with file paths/patterns
+- [x] AGENTS.md contains Implementation Definition section with file paths/patterns
+- [x] AGENTS.md contains Quality Criteria section with boolean PASS/FAIL criteria
+- [x] All commands in AGENTS.md are empirically verified to work
+- [x] AGENTS.md is updated when operational learnings occur
+- [x] AGENTS.md includes rationale (the "why") for key decisions
 
 ## What's in AGENTS.md?
 
@@ -155,12 +168,22 @@ AGENTS.md is a working hypothesis about how the project operates. It should be u
 - Quality criteria don't match project needs
 - New patterns or conventions are discovered
 
-### Capture the Why
-When updating AGENTS.md, include rationale:
-- Why this command instead of another
-- Why these file paths
-- Why these quality criteria
-- What was learned that prompted the update
+### Incorporate Learnings, Don't Append Diary Entries
+When updating AGENTS.md:
+- **Incorporate into existing sections** - Update commands, paths, or criteria directly where they live
+- **Include inline rationale** - Brief comment explaining why (e.g., "# Using npm test instead of jest directly - works with project setup")
+- **No dated diary entries** - Don't append "YYYY-MM-DD: discovered X" logs
+- **Exception:** Significant architectural decisions may warrant dated entries if historical context matters
+
+**Examples:**
+```markdown
+# Good: Incorporated learning
+**Test:** npm test  # Changed from jest - works with project's custom config
+
+# Bad: Diary entry
+**Operational Learnings**
+**2026-02-03:** Changed test command from jest to npm test because jest didn't work with project config.
+```
 
 ### Keep It Up to Date
 - **Agents update** when they discover errors or learn new operational details during any procedure
@@ -203,19 +226,76 @@ AGENTS.md is the authoritative definition of how agents interact with the projec
 - When adopting new conventions
 - When onboarding new team members (clarify ambiguities)
 
-## Path Conventions
+## Examples
 
-**Consumer projects** (using ralph-wiggum-ooda):
-- Copy components to `prompts/` directory at project root (flat structure)
-- Config file references `prompts/*.md`
-- Examples in this spec use `prompts/` to match consumer convention
+### Example 1: Node.js Project with GitHub Issues
 
-**Framework repository** (ralph-wiggum-ooda itself):
-- Components stored in `src/components/` (organized internal structure)
-- Config file references `src/components/*.md`
-- Consumers copy from `src/components/` to their `prompts/`
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: GitHub Issues
+Query: gh issue list --label ready --json
+Update: gh issue edit <id> --add-label in-progress
+Complete: gh issue close <id>
 
-This separation allows the framework to maintain organized structure while consumers get simple flat layout.
+## Build/Test/Lint Commands
+Test: npm test
+Build: npm run build
+Lint: npm run lint
+
+## Specification Definition
+Location: specs/*.md
+
+## Implementation Definition
+Location: src/**/*.{js,ts}
+```
+
+### Example 2: Go Project with Beads
+
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: beads (bd CLI)
+Query: bd ready --json
+Update: bd update <id> --status in_progress
+Complete: bd close <id> --reason "Completed X"
+
+## Build/Test/Lint Commands
+Test: go test ./...
+Build: go build ./...
+Lint: golangci-lint run
+
+## Specification Definition
+Location: docs/specs/*.md
+
+## Implementation Definition
+Location: pkg/**/*.go, cmd/**/*.go
+```
+
+### Example 3: Python Project with File-Based Tracking
+
+**AGENTS.md:**
+```markdown
+## Work Tracking System
+System: File-based
+Query: ls tasks/ready/*.md
+Update: mv tasks/ready/<id>.md tasks/in-progress/
+Complete: mv tasks/in-progress/<id>.md tasks/done/
+
+## Story/Bug Input
+Location: TASK.md at project root
+
+## Build/Test/Lint Commands
+Test: pytest
+Build: python -m build
+Lint: ruff check .
+
+## Specification Definition
+Location: specs/*.md
+
+## Implementation Definition
+Location: src/**/*.py
+```
 
 ## Anti-Patterns
 

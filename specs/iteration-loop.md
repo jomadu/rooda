@@ -12,13 +12,13 @@ Execute OODA loop procedures through controlled iteration cycles that clear cont
 6. Repeat until termination condition met
 
 ## Acceptance Criteria
-- [ ] Loop executes until max iterations reached or Ctrl+C pressed
-- [ ] Each iteration exits completely, clearing AI context
-- [ ] Iteration counter increments correctly
-- [ ] Max iterations of 0 means unlimited (loop until Ctrl+C)
-- [ ] Max iterations defaults to procedure config or 0 if not specified
-- [ ] Progress displayed between iterations
-- [ ] Git push happens after each iteration
+- [x] Loop executes until max iterations reached or Ctrl+C pressed
+- [x] Each iteration exits completely, clearing AI context (kiro-cli exits after each invocation; bash script persists by design)
+- [x] Iteration counter increments correctly
+- [x] Max iterations of 0 means unlimited (loop until Ctrl+C)
+- [x] Max iterations defaults to procedure config or 0 if not specified
+- [x] Progress displayed between iterations
+- [x] Git push happens after each iteration
 
 ## Data Structures
 
@@ -92,7 +92,7 @@ done
 
 **Related specs:**
 - `cli-interface.md` - Defines how MAX_ITERATIONS is set from CLI or config
-- `prompt-composition.md` - Defines create_prompt() function behavior
+- `component-authoring.md` - Defines create_prompt() function behavior
 - `ai-cli-integration.md` - Defines kiro-cli invocation (to be created)
 
 ## Examples
@@ -188,15 +188,15 @@ Reached max iterations: 1
 
 **Design Rationale:**
 
-The iteration loop is the core mechanism that prevents LLM context degradation. Each iteration is a complete script execution—the bash process starts, loads prompts, pipes to AI CLI, pushes changes, then exits. This exit-and-restart pattern clears all context from the AI's memory between iterations.
+The iteration loop is the core mechanism that prevents LLM context degradation. Each iteration invokes kiro-cli as a separate process—the AI CLI starts fresh, processes the prompt, executes tools, then exits completely. This exit-and-restart pattern clears all AI context between iterations. The bash script itself persists across iterations (it's a single bash process running a while loop), but the AI's memory is cleared each time kiro-cli exits.
 
 **Why Exit Between Iterations:**
 
-LLMs advertise 200K token windows but degrade in quality as context fills. Usable capacity is closer to 176K, and performance drops significantly beyond 60% utilization. By exiting completely after each iteration, the AI stays perpetually in its "smart zone" (40-60% utilization) where output quality remains high.
+LLMs advertise 200K token windows but degrade in quality as context fills. Usable capacity is closer to 176K, and performance drops significantly beyond 60% utilization. By invoking kiro-cli fresh each iteration (via pipe: `create_prompt | kiro-cli chat`), the AI stays perpetually in its "smart zone" (40-60% utilization) where output quality remains high.
 
 **File-Based State:**
 
-While the AI's context clears, file-based state persists: AGENTS.md, work tracking, specs, and code remain on disk. The next iteration reads these files fresh, providing continuity without conversational baggage.
+While the AI's context clears (kiro-cli exits), file-based state persists: AGENTS.md, work tracking, specs, and code remain on disk. The bash script continues running, and the next iteration pipes a fresh prompt to a new kiro-cli invocation. This provides continuity without conversational baggage.
 
 **Iteration Counter:**
 
@@ -213,8 +213,6 @@ The loop doesn't check if kiro-cli succeeds. If the AI CLI fails, the script con
 ## Known Issues
 
 **No kiro-cli error handling:** If kiro-cli exits with non-zero status, the loop continues anyway. This could lead to repeated failures without termination.
-
-**Git push failures:** If git push fails for reasons other than missing remote branch, the error is silent and the loop continues.
 
 **Iteration display off-by-one:** The separator shows "LOOP $ITERATION" after incrementing, so it displays the next iteration number, not the one that just completed. This is confusing but matches the implementation.
 

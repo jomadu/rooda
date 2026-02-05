@@ -10,13 +10,13 @@ Write the draft plan to the location specified in AGENTS.md:
 - Include acceptance criteria where relevant
 - Make it complete - plans are disposable, cheap to regenerate
 
-## A6: Update AGENTS.md if Learned Something New
+## A6: Incorporate Learnings into AGENTS.md
 
 If operational learnings occurred during planning:
-- Update AGENTS.md with new information
-- Capture the why - document rationale
-- Keep it up to date
-- Examples: discovered new patterns, clarified definitions, refined quality criteria
+- **Incorporate into existing sections** - Update commands, paths, or criteria where they live
+- **Add inline rationale** - Brief comment explaining why (e.g., "# Using X instead of Y - reason")
+- **Don't append diary entries** - No dated logs like "YYYY-MM-DD: discovered X"
+- Examples: discovered new patterns → update definitions; clarified criteria → refine Quality Criteria section
 
 ## A2: Commit Changes
 

@@ -9,15 +9,9 @@
 bd ready --json
 ```
 
-**View issue details:**
-```bash
-bd show <id> --json
-```
-
 **Update status:**
 ```bash
 bd update <id> --status in_progress
-bd update <id> --status blocked
 ```
 
 **Close issue:**
@@ -25,48 +19,43 @@ bd update <id> --status blocked
 bd close <id> --reason "Completed X"
 ```
 
-**Sync with git:**
+**Create issue with dependencies:**
 ```bash
-bd sync
+bd create --title "Title" --description "Desc" --deps blocks:issue-id --priority 2  # Priority range: 0-4 or P0-P4
 ```
 
 ## Story/Bug Input
 
-**For draft-plan-story-to-spec and draft-plan-bug-to-spec procedures:**
-- Use `bd show $TASK_ID --json` to read story/bug description
-- Extract `title` and `description` fields from JSON output
-- Task ID should be provided via environment variable or command-line argument
+Stories and bugs are documented in `TASK.md` at project root.
 
 ## Planning System
 
 **Draft plan location:** `PLAN.md` at project root
 
-**Publishing mechanism:** Agent reads `PLAN.md` and runs `bd create` commands to file issues with appropriate dependencies and priorities
-
-**Workflow:**
-1. Draft procedures write/iterate on `PLAN.md`
-2. Publish procedure reads `PLAN.md` and creates beads issues
-3. Build procedure implements from beads work tracking
+**Publishing mechanism:** Agent reads `PLAN.md` and runs `bd create` commands to file issues
 
 ## Build/Test/Lint Commands
 
-**This is a documentation repository (bash scripts + markdown).**
+**Framework Dependencies:**
+- yq (required) - YAML parsing for rooda-config.yml
+- kiro-cli (default, configurable) - AI CLI tool, can substitute with claude-cli, aider, etc.
 
-**Test:** No automated tests (manual verification of script execution)
+**Project Dependencies:**
+- bd (optional) - Work tracking system used in this project, not framework-required
 
-**Build:** No build step required (bash scripts are interpreted)
+**Test:** Manual verification (no automated tests)
 
-**Lint:** 
+**Build:** Not required (bash scripts are interpreted)
+
+**Lint:**
 ```bash
-shellcheck rooda.sh  # Lint bash script (if installed)
+shellcheck src/rooda.sh
 ```
-
-**Note:** shellcheck may not be installed on all systems. Install with `brew install shellcheck` on macOS.
 
 **Verification:**
 ```bash
-./rooda.sh bootstrap  # Verify script runs (use explicit flags due to YAML parser issue)
-bd ready --json       # Verify beads integration works
+./src/rooda.sh bootstrap --max-iterations 1
+bd ready --json
 ```
 
 ## Specification Definition
@@ -75,90 +64,72 @@ bd ready --json       # Verify beads integration works
 
 **Format:** Markdown specifications following JTBD structure
 
-**Patterns:**
-- `specs/agents-md-format.md` - AGENTS.md format specification
-- `specs/specification-system.md` - Spec system design
-- `specs/TEMPLATE.md` - Template for new specs
-
-**Rationale:** Specifications define the framework methodology (JTBD, spec system, AGENTS.md format). These are distinct from user-facing documentation.
+**Exclude:** `specs/README.md`, `specs/TEMPLATE.md`, `specs/specification-system.md`
 
 ## Implementation Definition
 
-**Location:** `src/rooda.sh` and `src/components/*.md`
+**Location:** `src/rooda.sh`, `src/prompts/*.md`, `docs/*.md`, and `scripts/*.sh`
 
-**Patterns:** 
-- `src/rooda.sh` - Main loop script
+**Patterns:**
+- `src/rooda.sh` - Main loop script (root `rooda.sh` is wrapper for framework development)
 - `src/rooda-config.yml` - Procedure configuration
-- `src/components/*.md` - OODA prompt components
+- `src/prompts/*.md` - OODA prompt components (25 files: observe, orient, decide, act variants)
+- `docs/*.md` - User-facing documentation (4 files)
+- `scripts/*.sh` - Utility scripts (audit-links.sh, validate-prompts.sh)
 
-**Exclude:** 
+**Exclude:**
 - `.beads/*` (work tracking database)
-- `docs/*` (user-facing documentation)
 - `specs/*` (specifications)
-- `README.md`, `AGENTS.md`, `LICENSE.md` (root-level files)
-
-**Rationale:** Implementation is the bash script and composable prompt components that execute the framework. Configuration and components are co-located with the script.
+- `README.md`, `AGENTS.md`, `PLAN.md`, `TASK.md`, `LICENSE.md` (root files)
 
 ## Quality Criteria
 
-**For specifications (documentation):**
-- Clarity: Can a new user understand the framework from README.md?
-- Completeness: Are all 9 procedures documented with examples?
-- Consistency: Do docs match actual script behavior?
-- Accuracy: Do command examples work when executed?
+**For specifications:**
+- All specs have "Job to be Done" section (PASS/FAIL)
+- All specs have "Acceptance Criteria" section (PASS/FAIL)
+- All specs have "Examples" section (PASS/FAIL)
+- All command examples in specs are verified working (PASS/FAIL)  # Verification process: execute commands, validate output; distinguish executable vs pseudocode
+- No specs marked as DEPRECATED without replacement (PASS/FAIL)
 
-**For implementation (rooda.sh):**
-- Correctness: Does the script execute procedures as documented?
-- Robustness: Does error handling work for missing files/commands?
-- Maintainability: Is the bash code readable and commented?
-- Compatibility: Does it work on macOS and Linux?
+**For implementation:**
+- shellcheck passes with no errors (PASS/FAIL)
+- All procedures in config have corresponding component files (PASS/FAIL)
+- All prompt files follow structure per component-authoring.md (PASS/FAIL)  # Verify with: ./scripts/validate-prompts.sh
+- Script executes bootstrap procedure successfully (PASS/FAIL)
+- Script executes on macOS without errors (PASS/FAIL)
+- Script executes on Linux without errors (PASS/FAIL)
+
+**For documentation:**
+- All code examples in docs/ are verified working (PASS/FAIL)
+- Documentation matches script behavior (PASS/FAIL)
+- All cross-document links work correctly (PASS/FAIL)  # Verify with: ./scripts/audit-links.sh (checks internal relative paths and external URLs with 10s timeout)
+- Each procedure has usage examples (PASS/FAIL)
 
 **Refactoring triggers:**
+- Any quality criterion fails
 - Documentation contradicts script behavior
 - Script fails on documented use cases
-- Error messages are unclear or misleading
-- YAML parsing doesn't support documented config structure
+
+**Note:** Quality criteria evolved from subjective assessments to boolean PASS/FAIL checks for automated verification.
 
 ## Operational Learnings
 
-**2026-02-03:** Bootstrap procedure identified that this is a framework repository, not a typical application. The "specification" is the documentation that defines the methodology, and the "implementation" is the bash script that executes it. This differs from typical projects where specs describe features and implementation is source code.
+**Last Bootstrap Verification:** 2026-02-04T20:23:34-08:00
 
-**2026-02-03:** Beads integration is working correctly. The `bd ready --json` command returns structured JSON with issue details. Work tracking commands are operational.
+**Verified Working:**
+- shellcheck src/rooda.sh executes without errors (clean pass)
+- bd ready --json returns valid JSON with issue list
+- ./scripts/audit-links.sh validates all cross-document links
+- ./scripts/validate-prompts.sh confirms all 25 prompt files valid
+- All commands in AGENTS.md tested and functional
+- All short flags work correctly: -o, -r, -d, -a, -m, -c, -h  # Fixed -m 0 to support unlimited iterations (was being overridden by config default)
+- Repository structure matches documented patterns
 
-**2026-02-03:** There's an open issue (ralph-wiggum-ooda-i2c) about YAML parser in rooda.sh not properly handling procedure lookups. Workaround exists using explicit flags. This should be fixed to support the documented `./rooda.sh bootstrap` syntax.
-
-**2026-02-03:** shellcheck is not installed on this system. The lint command will fail until shellcheck is installed via `brew install shellcheck`. This is optional for framework operation but recommended for bash script quality.
-
-**2026-02-03:** Restructured repository into src/, specs/, docs/ to enable dogfooding:
-- Separating implementation (src/) from specifications (specs/) allows running draft-plan-impl-to-spec
-- Framework can now use its own methodology to generate specs from implementation
-- Clear separation makes it obvious what agents should analyze vs what they should read for guidance
-- Consumers copy from src/ to their project root (flat structure), while framework repo has internal organization
-- Config file paths remain prompts/*.md for consumer compatibility
-
-**2026-02-03:** Beads dependency format uses `--deps` flag with format `type:id` or just `id`:
-- Use `--deps blocks:issue-id` to indicate this issue is blocked by another issue
-- Priority format is numeric (0-4) or P0-P4, not words like high/medium/low
-- Multiple dependencies can be comma-separated: `--deps blocks:id1,blocks:id2`
-- Rationale: Discovered during publish-plan procedure when attempting to create issues with dependencies
-
-**2026-02-03:** Bootstrap validation added to act_bootstrap.md:
-- Step A2 now validates AGENTS.md structure against required sections
-- Missing sections trigger warnings in Operational Learnings
-- Guidance provided for incomplete sections
-- Required sections: Work Tracking, Story/Bug Input, Planning System, Build/Test/Lint, Spec Definition, Impl Definition, Quality Criteria
-- Rationale: Ensures AGENTS.md completeness per agents-md-format.md specification
-- yq dependency installed and working (required for YAML parsing in rooda.sh)
-- shellcheck installed and linting passes cleanly on src/rooda.sh
-- All 25 prompt components present in src/components/
-- Beads work tracking responding correctly (empty queue is valid state)
-- Repository structure matches documented patterns (src/, specs/, docs/ separation)
-- Rationale: Empirical verification during bootstrap iteration confirms AGENTS.md accuracy
-
-**2026-02-03:** Created generate-spec-index.sh for automated specs/README.md generation:
-- Script extracts JTBD from each spec file using awk pattern matching
-- Generates index with links to individual specs
-- Excludes README.md, TEMPLATE.md, and specification-system.md from listing
-- Note: agents-md-format.md lacks "## Job to be Done" section, shows "(No JTBD specified)"
-- Rationale: Automates index maintenance per specification-system.md requirements
+**Why These Definitions:**
+- Specs location chosen because project uses JTBD-based markdown specifications in dedicated directory
+- Implementation includes prompts/ because OODA prompt components are core framework logic
+- Quality criteria are boolean PASS/FAIL to enable automated verification via scripts
+- Work tracking uses beads because it provides JSON output for programmatic access
+- Planning system uses PLAN.md for draft convergence before publishing to work tracking
+- MAX_ITERATIONS uses empty string for "not set" to distinguish from explicit 0 (unlimited)  # Enables three-tier default: CLI flag > config default > 0
 

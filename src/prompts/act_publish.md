@@ -10,13 +10,13 @@ For each task in the draft plan, in dependency order:
 - Capture issue IDs for dependency references
 - Follow the order determined in decide phase
 
-## A6: Update AGENTS.md if Learned Something New
+## A6: Incorporate Learnings into AGENTS.md
 
 If operational learnings occurred during publishing:
-- Update AGENTS.md with new information
-- Capture the why - document rationale
-- Keep it up to date
-- Examples: work tracking commands that needed adjustment, new patterns discovered
+- **Incorporate into existing sections** - Update commands, paths, or criteria where they live
+- **Add inline rationale** - Brief comment explaining why (e.g., "# Using X instead of Y - reason")
+- **Don't append diary entries** - No dated logs like "YYYY-MM-DD: discovered X"
+- Examples: work tracking commands needed adjustment → update Work Tracking System section with corrected commands
 
 ## A2: Commit Changes
 

@@ -11,17 +11,26 @@ Enable users to define custom OODA loop procedures by mapping procedure names to
 5. Query configuration at runtime using yq
 
 ## Acceptance Criteria
-- [ ] YAML structure supports nested procedure definitions
-- [ ] Required fields (observe, orient, decide, act) validated at runtime
-- [ ] Optional fields (display, summary, description, default_iterations) supported
-- [ ] yq queries successfully extract procedure configuration
-- [ ] Missing procedures return clear error messages
-- [ ] File paths resolved relative to script directory
+- [x] YAML structure supports nested procedure definitions
+- [x] Required fields (observe, orient, decide, act) validated at runtime
+- [x] Optional fields (display, summary, description, default_iterations) supported
+- [x] Optional ai_tools section supports custom preset definitions
+- [x] yq queries successfully extract procedure configuration
+- [x] yq queries successfully extract ai_tools presets
+- [x] Missing procedures return clear error messages
+- [x] File paths resolved relative to script directory
+- [x] ai_tools presets validated as string type
+- [x] Unknown presets return helpful error messages
 
 ## Data Structures
 
 ### Configuration File Structure
 ```yaml
+ai_tools:
+  fast: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022"
+  thorough: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-7-sonnet-20250219"
+  custom: "your-ai-cli-command-here"
+
 procedures:
   procedure-name:
     display: "Human Readable Name"
@@ -34,7 +43,10 @@ procedures:
     default_iterations: 5
 ```
 
-**Fields:**
+**Root-level fields:**
+- `ai_tools` - Map of preset names to AI CLI commands (optional)
+
+**Procedure fields:**
 - `procedures` - Top-level map of procedure definitions (required)
 - `procedure-name` - Unique identifier for procedure, kebab-case (required)
 - `display` - Human-readable name for UI/help text (optional)
@@ -46,18 +58,47 @@ procedures:
 - `act` - File path to action phase prompt (required)
 - `default_iterations` - Default max iterations if not specified via CLI (optional, defaults to 0)
 
+### AI Tools Section
+
+The `ai_tools` section defines custom AI CLI tool presets that can be used with the `--ai-tool` flag.
+
+**Structure:**
+```yaml
+ai_tools:
+  preset-name: "ai-cli-command with flags"
+```
+
+**Hardcoded presets** (always available, no config needed):
+- `kiro-cli` - `kiro-cli chat --no-interactive --trust-all-tools`
+- `claude` - `claude-cli --no-interactive`
+- `aider` - `aider --yes`
+
+**Custom presets** can be defined in config to:
+- Use different AI models (e.g., fast vs thorough)
+- Configure team-specific AI CLI tools
+- Set project-specific flags or options
+
+**Usage:**
+```bash
+./rooda.sh build --ai-tool fast
+./rooda.sh build --ai-tool thorough
+./rooda.sh build --ai-tool kiro-cli  # hardcoded preset
+```
+
 ## Algorithm
 
 1. Parse command-line arguments to extract procedure name
 2. Resolve config file path relative to script directory
-3. Query config using yq: `.procedures.$PROCEDURE.observe|orient|decide|act`
+3. Query config for procedure OODA files: `.procedures.$PROCEDURE.observe|orient|decide|act`
 4. Validate all four OODA phase paths are non-null
 5. Extract default_iterations if max-iterations not specified via CLI
-6. Return error if procedure not found or required fields missing
+6. If --ai-tool flag specified, query config for preset: `.ai_tools.$PRESET`
+7. Return error if procedure not found or required fields missing
 
 **Pseudocode:**
 ```bash
 if procedure_specified:
+    # Query procedure OODA files
     observe = yq eval ".procedures.$PROCEDURE.observe" config
     orient = yq eval ".procedures.$PROCEDURE.orient" config
     decide = yq eval ".procedures.$PROCEDURE.decide" config
@@ -70,6 +111,15 @@ if procedure_specified:
         default_iter = yq eval ".procedures.$PROCEDURE.default_iterations" config
         if default_iter != null:
             max_iterations = default_iter
+
+if ai_tool_preset_specified:
+    # Query custom preset from config
+    custom_command = yq eval ".ai_tools.$PRESET" config
+    if custom_command != null:
+        AI_CLI_COMMAND = custom_command
+    else:
+        # Check hardcoded presets or error
+        error "Unknown AI tool preset: $PRESET"
 ```
 
 ## Edge Cases
@@ -97,7 +147,7 @@ if procedure_specified:
 
 **Related specs:**
 - `cli-interface.md` - Defines how procedure names are parsed from CLI
-- `prompt-composition.md` - Defines structure of prompt component files
+- `component-authoring.md` - Defines structure of prompt component files
 - `iteration-loop.md` - Defines how default_iterations affects loop behavior
 
 ## Examples
@@ -110,17 +160,17 @@ procedures:
   build:
     display: "Build from Plan"
     summary: "Implements tasks from plan"
-    observe: src/components/observe_plan_specs_impl.md
-    orient: src/components/orient_build.md
-    decide: src/components/decide_build.md
-    act: src/components/act_build.md
+    observe: src/prompts/observe_plan_specs_impl.md
+    orient: src/prompts/orient_build.md
+    decide: src/prompts/decide_build.md
+    act: src/prompts/act_build.md
     default_iterations: 5
 ```
 
 **Query:**
 ```bash
 yq eval ".procedures.build.observe" rooda-config.yml
-# Returns: src/components/observe_plan_specs_impl.md
+# Returns: src/prompts/observe_plan_specs_impl.md
 ```
 
 **Verification:**
@@ -149,7 +199,43 @@ procedures:
 - default_iterations defaults to 0 (infinite loop)
 - No display/summary/description required
 
-### Example 3: Missing Procedure Error
+### Example 3: Custom AI Tool Presets
+
+**Input:**
+```yaml
+ai_tools:
+  fast: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022"
+  thorough: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-7-sonnet-20250219"
+
+procedures:
+  build:
+    display: "Build from Plan"
+    summary: "Implements tasks from plan"
+    observe: src/prompts/observe_plan_specs_impl.md
+    orient: src/prompts/orient_build.md
+    decide: src/prompts/decide_build.md
+    act: src/prompts/act_build.md
+    default_iterations: 5
+```
+
+**Query:**
+```bash
+yq eval ".ai_tools.fast" rooda-config.yml
+# Returns: kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022
+```
+
+**Usage:**
+```bash
+./rooda.sh build --ai-tool fast
+./rooda.sh build --ai-tool thorough
+```
+
+**Verification:**
+- Custom presets resolve to configured commands
+- Hardcoded presets (kiro-cli, claude, aider) always available
+- Unknown presets return error with helpful message
+
+### Example 4: Missing Procedure Error
 
 **Input:**
 ```bash
