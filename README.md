@@ -43,6 +43,68 @@ If you previously installed ralph-wiggum-ooda, your installation is unaffected. 
 
 Your existing work tracking, specs, and implementation remain unchanged. Only the framework files are updated.
 
+## Configuring Your AI CLI
+
+The loop uses an AI CLI tool to execute prompts. You can configure which tool to use through multiple methods.
+
+**Configuration precedence (highest to lowest):**
+
+1. `--ai-cli` flag - Direct command override
+2. `--ai-tool` preset - Named preset (hardcoded or custom)
+3. `$ROODA_AI_CLI` environment variable
+4. Default: `kiro-cli chat --no-interactive --trust-all-tools`
+
+**Hardcoded presets:**
+
+```bash
+# Use kiro-cli (default)
+./rooda.sh build --ai-tool kiro-cli
+
+# Use Claude CLI
+./rooda.sh build --ai-tool claude
+
+# Use Aider
+./rooda.sh build --ai-tool aider
+```
+
+**Custom presets:**
+
+Define custom presets in `rooda-config.yml`:
+
+```yaml
+ai_tools:
+  fast: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022"
+  thorough: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-7-sonnet-20250219"
+  custom: "your-ai-cli-command-here"
+```
+
+Then use with `--ai-tool`:
+
+```bash
+./rooda.sh build --ai-tool fast
+```
+
+**Team workflows:**
+
+```bash
+# Individual developer using different model
+./rooda.sh build --ai-cli "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022"
+
+# Team standardizing via environment variable
+export ROODA_AI_CLI="claude-cli --no-interactive"
+./rooda.sh build
+
+# Project with custom preset in rooda-config.yml
+./rooda.sh build --ai-tool custom
+```
+
+**Troubleshooting:**
+
+If you get "Unknown AI tool preset" error:
+- Check available hardcoded presets: `kiro-cli`, `claude`, `aider`
+- Define custom presets in `rooda-config.yml` under `ai_tools` section
+- Or use `--ai-cli` flag with full command
+
 ## Basic Workflow
 
 ```bash
