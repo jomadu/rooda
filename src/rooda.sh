@@ -314,7 +314,7 @@ OBSERVE=""
 ORIENT=""
 DECIDE=""
 ACT=""
-MAX_ITERATIONS=0
+MAX_ITERATIONS=""  # Empty means not set, will use config default or 0
 PROCEDURE=""
 VERBOSE=0  # 0=default, 1=verbose, -1=quiet
 AI_CLI_COMMAND="kiro-cli chat --no-interactive --trust-all-tools"  # Default AI CLI, configurable via --ai-cli or config
@@ -473,7 +473,7 @@ if [ -n "$PROCEDURE" ]; then
     fi
     
     # Use default iterations if not specified
-    if [ "$MAX_ITERATIONS" -eq 0 ]; then
+    if [ -z "$MAX_ITERATIONS" ]; then
         DEFAULT_ITER=$(yq eval ".procedures.$PROCEDURE.default_iterations" "$CONFIG_FILE" 2>&1) || {
             echo "Error: Failed to query 'default_iterations' field from config"
             echo "  Procedure: $PROCEDURE"
@@ -481,7 +481,11 @@ if [ -n "$PROCEDURE" ]; then
             echo "  This field is optional - check config structure"
             exit 1
         }
-        [ "$DEFAULT_ITER" != "null" ] && MAX_ITERATIONS=$DEFAULT_ITER
+        if [ "$DEFAULT_ITER" != "null" ]; then
+            MAX_ITERATIONS=$DEFAULT_ITER
+        else
+            MAX_ITERATIONS=0
+        fi
     fi
 fi
 
@@ -532,7 +536,7 @@ if [ "$VERBOSE" -ge 0 ]; then
     echo "Decide:    $DECIDE"
     echo "Act:       $ACT"
     echo "Branch:    $CURRENT_BRANCH"
-    [ "$MAX_ITERATIONS" -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
+    [ -n "$MAX_ITERATIONS" ] && [ "$MAX_ITERATIONS" -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
 
@@ -559,7 +563,7 @@ EOF
 }
 
 while true; do
-    if [ "$MAX_ITERATIONS" -gt 0 ] && [ "$ITERATION" -ge "$MAX_ITERATIONS" ]; then
+    if [ -n "$MAX_ITERATIONS" ] && [ "$MAX_ITERATIONS" -gt 0 ] && [ "$ITERATION" -ge "$MAX_ITERATIONS" ]; then
         [ "$VERBOSE" -ge 0 ] && echo "Reached max iterations: $MAX_ITERATIONS"
         break
     fi
