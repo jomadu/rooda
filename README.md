@@ -43,7 +43,96 @@ If you previously installed ralph-wiggum-ooda, your installation is unaffected. 
 
 Your existing work tracking, specs, and implementation remain unchanged. Only the framework files are updated.
 
-## Configuring Your AI CLI
+## Basic Workflow
+
+```bash
+# 1. Bootstrap: create operational guide
+./rooda.sh bootstrap                                    # Create AGENTS.md
+
+# 2. Draft plan: incorporate story into specs
+./rooda.sh draft-plan-story-to-spec --max-iterations 5  # Converge draft plan
+
+# 3. Publish plan: import to work tracking
+./rooda.sh publish-plan                                 # File beads issues
+
+# 4. Build: write the specs
+./rooda.sh build --max-iterations 5                     # Write specs
+
+# 5. Draft plan: gap analysis from specs to implementation
+./rooda.sh draft-plan-spec-to-impl                      # Converge draft plan
+
+# 6. Publish plan: import to work tracking
+./rooda.sh publish-plan                                 # File beads issues
+
+# 7. Build: implement the specs
+./rooda.sh build --max-iterations 5                     # Implement code
+
+# 8. Refactor implementation
+./rooda.sh draft-plan-impl-refactor                     # Quality assessment
+./rooda.sh publish-plan                                 # File beads issues
+./rooda.sh build --max-iterations 5                     # Refactor code
+
+# 9. Refactor specs
+./rooda.sh draft-plan-spec-refactor                     # Quality assessment
+./rooda.sh publish-plan                                 # File beads issues
+./rooda.sh build --max-iterations 5                     # Refine specs
+```
+
+## The 9 Procedures
+
+| Procedure                             | ID                         | Description                                                                    | Modifies Code | Iterations |
+| ------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ | ------------- | ---------- |
+| Bootstrap Repository                  | `bootstrap`                | Creates or updates AGENTS.md operational guide for the repository              | No            | 1          |
+| Build from Plan                       | `build`                    | Implements tasks from work tracking system (only procedure that modifies code) | Yes           | 5          |
+| Draft Plan Story to Spec              | `draft-plan-story-to-spec` | Converges draft plan for incorporating story into specs                        | No            | 5          |
+| Draft Plan Bug to Spec                | `draft-plan-bug-to-spec`   | Converges draft plan for spec adjustments needed to drive bug fix              | No            | 3          |
+| Draft Plan Spec to Implementation     | `draft-plan-spec-to-impl`  | Converges draft plan from gap analysis - what's in specs but not in code       | No            | 1          |
+| Draft Plan Implementation to Spec     | `draft-plan-impl-to-spec`  | Converges draft plan from gap analysis - what's in code but not in specs       | No            | 1          |
+| Draft Plan Spec Refactoring           | `draft-plan-spec-refactor` | Converges draft plan from quality assessment of specs                          | No            | 1          |
+| Draft Plan Implementation Refactoring | `draft-plan-impl-refactor` | Converges draft plan from quality assessment of implementation                 | No            | 1          |
+| Publish Plan                          | `publish-plan`             | Publishes converged draft plan to work tracking system                         | No            | 1          |
+
+## Troubleshooting
+
+**"Agent keeps implementing the same thing"**
+- Check work tracking system—is it being updated after each iteration?
+- Verify AGENTS.md defines implementation locations correctly
+- Run bootstrap again to regenerate AGENTS.md from current repository state
+
+**"Tests keep failing"**
+- Verify AGENTS.md has correct test commands
+- Run tests manually to confirm they work
+- Update AGENTS.md with correct commands and any required setup
+
+**"Agent doesn't find existing code"**
+- This is the Achilles' heel: agents must search before implementing
+- Check if orient prompts emphasize searching the codebase
+- Verify AGENTS.md defines implementation locations accurately
+
+**"Plan goes off track"**
+- Plans are disposable—run the planning procedure again
+- Adjust specs if they're unclear or incomplete
+- Check if AGENTS.md quality criteria need refinement
+
+**"Loop runs forever"**
+- Use `--max-iterations N` to set a limit
+- Press Ctrl+C to stop immediately
+- Check if work tracking is being marked complete
+
+## Learn More
+
+- [OODA Loop](docs/ooda-loop.md) - The decision-making framework
+- [Ralph Loop](docs/ralph-loop.md) - Original methodology by Geoff Huntley
+- [Specs System](specs/specification-system.md) - How to structure specifications
+- [Spec Template](specs/TEMPLATE.md) - Template for new specs
+- [AGENTS.md Specification](specs/agents-md-format.md) - Complete AGENTS.md format
+- [Component Authoring](specs/component-authoring.md) - Detailed prompt composition breakdown
+
+---
+
+## Advanced Topics
+
+### Configuring Your AI CLI
 
 The loop uses an AI CLI tool to execute prompts. You can configure which tool to use through multiple methods.
 
@@ -105,42 +194,7 @@ If you get "Unknown AI tool preset" error:
 - Define custom presets in `rooda-config.yml` under `ai_tools` section
 - Or use `--ai-cli` flag with full command
 
-## Basic Workflow
-
-```bash
-# 1. Bootstrap: create operational guide
-./rooda.sh bootstrap                                    # Create AGENTS.md
-
-# 2. Draft plan: incorporate story into specs
-./rooda.sh draft-plan-story-to-spec --max-iterations 5  # Converge draft plan
-
-# 3. Publish plan: import to work tracking
-./rooda.sh publish-plan                                 # File beads issues
-
-# 4. Build: write the specs
-./rooda.sh build --max-iterations 5                     # Write specs
-
-# 5. Draft plan: gap analysis from specs to implementation
-./rooda.sh draft-plan-spec-to-impl                      # Converge draft plan
-
-# 6. Publish plan: import to work tracking
-./rooda.sh publish-plan                                 # File beads issues
-
-# 7. Build: implement the specs
-./rooda.sh build --max-iterations 5                     # Implement code
-
-# 8. Refactor implementation
-./rooda.sh draft-plan-impl-refactor                     # Quality assessment
-./rooda.sh publish-plan                                 # File beads issues
-./rooda.sh build --max-iterations 5                     # Refactor code
-
-# 9. Refactor specs
-./rooda.sh draft-plan-spec-refactor                     # Quality assessment
-./rooda.sh publish-plan                                 # File beads issues
-./rooda.sh build --max-iterations 5                     # Refine specs
-```
-
-## How It Works
+### How It Works
 
 The system runs as a bash loop: each iteration loads prompt files, executes them through your AI CLI, updates files on disk, then exits—clearing context completely. This fresh-context-per-iteration approach prevents LLM degradation, keeping the AI in its "smart zone" (40-60% utilization) indefinitely. File-based state (AGENTS.md, work tracking, specs, code) persists across iterations, providing memory without context pollution.
 
@@ -196,7 +250,7 @@ AGENTS.md is a living document, assumed inaccurate until verified empirically. W
 3. **Decide** - Structures plan with email verification as priority task, breaks it into implementable subtasks (email service integration, verification token generation, verification endpoint)
 4. **Act** - Writes prioritized task list to work tracking system per AGENTS.md, updates AGENTS.md if discovered new patterns, commits plan
 
-## Composable Architecture
+### Composable Architecture
 
 The system uses composable prompt files to create different procedures. Each OODA phase (observe, orient, decide, act) is implemented as a separate markdown file in the `prompts/` directory. Procedures are defined in `rooda-config.yml` by specifying which four prompt files to combine—one for each phase.
 
@@ -204,21 +258,7 @@ This composition enables significant reuse. For example, `observe_plan_specs_imp
 
 The configuration-driven approach means you can create custom procedures without writing new code—just specify which existing prompt components to combine. Want a procedure that observes only specs, orients around quality assessment, decides on refactoring, and acts by writing a plan? Map those four files in the config. The separation of concerns across OODA phases makes different combinations naturally express different task types.
 
-## The 9 Procedures
-
-| Procedure                             | ID                         | Description                                                                    | Modifies Code | Iterations |
-| ------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ | ------------- | ---------- |
-| Bootstrap Repository                  | `bootstrap`                | Creates or updates AGENTS.md operational guide for the repository              | No            | 1          |
-| Build from Plan                       | `build`                    | Implements tasks from work tracking system (only procedure that modifies code) | Yes           | 5          |
-| Draft Plan Story to Spec              | `draft-plan-story-to-spec` | Converges draft plan for incorporating story into specs                        | No            | 5          |
-| Draft Plan Bug to Spec                | `draft-plan-bug-to-spec`   | Converges draft plan for spec adjustments needed to drive bug fix              | No            | 3          |
-| Draft Plan Spec to Implementation     | `draft-plan-spec-to-impl`  | Converges draft plan from gap analysis - what's in specs but not in code       | No            | 1          |
-| Draft Plan Implementation to Spec     | `draft-plan-impl-to-spec`  | Converges draft plan from gap analysis - what's in code but not in specs       | No            | 1          |
-| Draft Plan Spec Refactoring           | `draft-plan-spec-refactor` | Converges draft plan from quality assessment of specs                          | No            | 1          |
-| Draft Plan Implementation Refactoring | `draft-plan-impl-refactor` | Converges draft plan from quality assessment of implementation                 | No            | 1          |
-| Publish Plan                          | `publish-plan`             | Publishes converged draft plan to work tracking system                         | No            | 1          |
-
-## Custom Procedures
+### Custom Procedures
 
 You can create custom procedures by editing `rooda-config.yml` or using command-line flags. Each procedure needs four prompt files (one per OODA phase) and optionally a default iteration count.
 
@@ -253,7 +293,7 @@ Then run with `./rooda.sh my-custom-procedure`.
 
 Say you've run a planning procedure that wrote tasks to a plan file, but you want to migrate those tasks into beads for better tracking. Create a custom procedure that observes the plan file and AGENTS.md, orients around understanding the task structure, decides how to map tasks to beads issues, and acts by running `bd create` commands for each task.
 
-## Key Principles
+### Key Principles
 
 **AGENTS.md as Source of Truth** - AGENTS.md defines how agents interact with the project, but it's assumed inaccurate until verified empirically. When commands fail, file paths are wrong, or quality criteria don't match reality, agents update AGENTS.md immediately—capturing not just what changed, but why. This creates operational memory that accumulates learnings across iterations.
 
@@ -269,7 +309,7 @@ Say you've run a planning procedure that wrote tasks to a plan file, but you wan
 
 **Priority-Driven Execution** - Each iteration picks the most important task from work tracking, not the next sequential task. This ensures the loop always works on what matters most. Tight tasks (one per loop) maximize smart zone utilization—the agent stays focused and effective.
 
-## Workflow Patterns
+### Workflow Patterns
 
 Common sequences showing when to use which procedure.
 
@@ -341,7 +381,7 @@ When: Code quality degrades, needs cleanup.
 ```
 When: Regular maintenance, keeping both specs and implementation quality high.
 
-## Sample Repository Structure
+### Sample Repository Structure
 
 ```
 consumer-project/
@@ -361,7 +401,7 @@ consumer-project/
     └── ...
 ```
 
-## Safety
+### Safety
 
 The loop requires `--dangerously-skip-permissions` flag in your AI CLI to run autonomously, bypassing all permission prompts. This is inherently risky.
 
@@ -374,42 +414,6 @@ The loop requires `--dangerously-skip-permissions` flag in your AI CLI to run au
 **Philosophy:** "It's not if it gets popped, it's when. And what is the blast radius?"
 
 Limit blast radius through isolation, not through hoping the AI won't do something bad. The loop will modify files, run commands, and commit changes—make sure it can't access anything you can't afford to lose.
-
-## Troubleshooting
-
-**"Agent keeps implementing the same thing"**
-- Check work tracking system—is it being updated after each iteration?
-- Verify AGENTS.md defines implementation locations correctly
-- Run bootstrap again to regenerate AGENTS.md from current repository state
-
-**"Tests keep failing"**
-- Verify AGENTS.md has correct test commands
-- Run tests manually to confirm they work
-- Update AGENTS.md with correct commands and any required setup
-
-**"Agent doesn't find existing code"**
-- This is the Achilles' heel: agents must search before implementing
-- Check if orient prompts emphasize searching the codebase
-- Verify AGENTS.md defines implementation locations accurately
-
-**"Plan goes off track"**
-- Plans are disposable—run the planning procedure again
-- Adjust specs if they're unclear or incomplete
-- Check if AGENTS.md quality criteria need refinement
-
-**"Loop runs forever"**
-- Use `--max-iterations N` to set a limit
-- Press Ctrl+C to stop immediately
-- Check if work tracking is being marked complete
-
-## Learn More
-
-- [OODA Loop](docs/ooda-loop.md) - The decision-making framework
-- [Ralph Loop](docs/ralph-loop.md) - Original methodology by Geoff Huntley
-- [Specs System](specs/specification-system.md) - How to structure specifications
-- [Spec Template](specs/TEMPLATE.md) - Template for new specs
-- [AGENTS.md Specification](specs/agents-md-format.md) - Complete AGENTS.md format
-- [Component Authoring](specs/component-authoring.md) - Detailed prompt composition breakdown
 
 ---
 
