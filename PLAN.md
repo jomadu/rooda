@@ -51,13 +51,13 @@
 ## Priority 5: Remove per-procedure ai_cli_command from config loading
 - Remove yq query for `.procedures.$PROCEDURE.ai_cli_command`
 - Remove conditional that sets AI_CLI_COMMAND from procedure config
-- Keep root-level ai_cli_command support (already removed per task)
+- Root-level ai_cli_command already removed per task requirements
 
 **Dependencies:** None (breaking change, safe to do independently)
 
 **Acceptance Criteria:**
 - Per-procedure ai_cli_command no longer queried
-- Root-level ai_cli_command remains unsupported (per task requirements)
+- Root-level ai_cli_command remains unsupported
 
 ## Priority 6: Update show_help() with new flags
 - Add --ai-tool <preset> to usage examples
@@ -89,46 +89,52 @@
 - Document $ROODA_AI_CLI environment variable
 - Update examples to show all configuration methods
 - Remove per-procedure ai_cli_command references
+- Add edge cases for preset resolution errors
 
-**Dependencies:** Priority 1-5 (implementation complete)
+**Dependencies:** Priority 1-7 (implementation complete)
 
 **Acceptance Criteria:**
-- Spec accurately reflects new implementation
+- Spec accurately reflects implemented behavior
 - All configuration methods documented
-- Examples cover common use cases
+- Examples match implementation
+- Edge cases cover preset resolution
 
 ## Priority 9: Update specs/configuration-schema.md
 - Add ai_tools section documentation
 - Document structure: map of preset names to commands
 - Add examples of custom presets
 - Remove per-procedure ai_cli_command field docs
+- Update root-level schema to show ai_tools is optional
 
 **Dependencies:** Priority 7 (config updated)
 
 **Acceptance Criteria:**
 - ai_tools section fully documented
 - Schema examples match config examples
+- Optional fields clearly marked
 
 ## Priority 10: Update specs/cli-interface.md
 - Add --ai-tool flag to arguments table
 - Document precedence order in algorithm section
 - Add examples showing --ai-tool usage
 - Update edge cases for unknown presets
+- Add example showing preset resolution error message
 
-**Dependencies:** Priority 1-5 (implementation complete)
+**Dependencies:** Priority 1-7 (implementation complete)
 
 **Acceptance Criteria:**
 - --ai-tool flag documented in arguments
 - Precedence clear in algorithm
 - Examples show preset usage
+- Edge cases match implementation
 
 ## Priority 11: Update README.md with configuration section
 - Add "Configuring Your AI CLI" section after "Installation"
-- Document all four configuration methods
+- Document all four configuration methods (--ai-cli, --ai-tool, $ROODA_AI_CLI, default)
 - Show team workflow examples
 - Include troubleshooting for unknown presets
 
-**Dependencies:** Priority 1-5 (implementation complete)
+**Dependencies:** Priority 1-7 (implementation complete)
 
 **Acceptance Criteria:**
 - Configuration section added to README
