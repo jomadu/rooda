@@ -163,11 +163,6 @@ if ! command -v yq &> /dev/null; then
     exit 1
 fi
 
-if ! command -v kiro-cli &> /dev/null; then
-    # kiro-cli check moved to after argument parsing (conditional on AI_CLI_COMMAND)
-    :
-fi
-
 # Check versions
 YQ_VERSION=$(yq --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 YQ_MAJOR=$(echo "$YQ_VERSION" | cut -d. -f1)
@@ -175,13 +170,6 @@ if [ "$YQ_MAJOR" -lt 4 ]; then
     echo "Error: yq version 4.0.0 or higher required (found $YQ_VERSION)"
     echo "Upgrade with: brew upgrade yq"
     exit 1
-fi
-
-KIRO_VERSION=$(kiro-cli --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-KIRO_MAJOR=$(echo "$KIRO_VERSION" | cut -d. -f1)
-if [ "$KIRO_MAJOR" -lt 1 ]; then
-    # kiro-cli version check moved to after argument parsing (conditional on AI_CLI_COMMAND)
-    :
 fi
 
 # Check for optional dependencies
