@@ -31,3 +31,12 @@
 
 **Status:** Complete
 **Acceptance:** All references to old flag names replaced with new names in ai-cli-integration.md
+
+### 3. Update specs/configuration-schema.md for flag renaming
+- Replace all `--ai-tool` with `--ai-cmd-preset` (5 occurrences)
+- Update ai_tools section description to reference new flag name
+- Update examples showing preset usage
+- Update algorithm pseudocode for preset resolution
+
+**Status:** Ready
+**Acceptance:** All references to `--ai-tool` replaced with `--ai-cmd-preset` in configuration-schema.md
