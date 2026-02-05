@@ -582,13 +582,33 @@ while true; do
     # Rationale: Allows loop to self-correct through empirical feedback in subsequent iterations
     create_prompt | $AI_CLI_COMMAND
 
-    if ! git push origin "$CURRENT_BRANCH" 2>&1; then
-        if git push -u origin "$CURRENT_BRANCH" 2>&1; then
+    PUSH_OUTPUT=$(git push origin "$CURRENT_BRANCH" 2>&1)
+    PUSH_EXIT=$?
+    if [ $PUSH_EXIT -ne 0 ]; then
+        PUSH_OUTPUT_FALLBACK=$(git push -u origin "$CURRENT_BRANCH" 2>&1)
+        PUSH_FALLBACK_EXIT=$?
+        if [ $PUSH_FALLBACK_EXIT -eq 0 ]; then
             echo "Created remote branch and pushed successfully"
         else
             echo "Error: Failed to push to remote"
-            echo "Possible causes: authentication failure, network issue, or merge conflict"
-            echo "Fix the issue and the next iteration will attempt to push again"
+            
+            # Parse error output to provide specific guidance
+            COMBINED_OUTPUT="$PUSH_OUTPUT $PUSH_OUTPUT_FALLBACK"
+            if echo "$COMBINED_OUTPUT" | grep -qi "permission denied\|authentication failed\|403"; then
+                echo "Cause: Authentication failure"
+                echo "Fix: Check SSH keys (ssh -T git@github.com) or credentials"
+            elif echo "$COMBINED_OUTPUT" | grep -qi "could not resolve host\|connection timed out\|network is unreachable"; then
+                echo "Cause: Network issue"
+                echo "Fix: Check internet connectivity and try again"
+            elif echo "$COMBINED_OUTPUT" | grep -qi "rejected\|non-fast-forward\|would be overwritten"; then
+                echo "Cause: Merge conflict or out-of-date branch"
+                echo "Fix: Run 'git pull --rebase origin $CURRENT_BRANCH' and resolve conflicts"
+            else
+                echo "Cause: Unknown (see error above)"
+                echo "Fix: Review git output and resolve the issue"
+            fi
+            
+            echo "The next iteration will attempt to push again"
             echo "Press Ctrl+C to stop, or Enter to continue..."
             read -r
         fi
