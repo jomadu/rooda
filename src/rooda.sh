@@ -284,6 +284,7 @@ PROCEDURE=""
 VERBOSE=0  # 0=default, 1=verbose, -1=quiet
 AI_CLI_COMMAND="kiro-cli chat --no-interactive --trust-all-tools"  # Default AI CLI, configurable via --ai-cli or config
 AI_TOOL_PRESET=""  # Preset name for --ai-tool flag
+AI_CLI_FLAG=""  # Set by --ai-cli flag (highest precedence)
 # Override with environment variable if set (precedence: --ai-cli flag > --ai-tool preset > $ROODA_AI_CLI > default)
 [ -n "$ROODA_AI_CLI" ] && AI_CLI_COMMAND="$ROODA_AI_CLI"
 # Resolve config file relative to script location
@@ -353,7 +354,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --ai-cli)
-            AI_CLI_COMMAND="$2"
+            AI_CLI_FLAG="$2"
             shift 2
             ;;
         --ai-tool)
@@ -376,10 +377,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Apply --ai-tool preset if specified (overrides $ROODA_AI_CLI)
-if [ -n "$AI_TOOL_PRESET" ]; then
+# Resolve AI CLI command with correct precedence: --ai-cli > --ai-tool > $ROODA_AI_CLI > default
+if [ -n "$AI_CLI_FLAG" ]; then
+    # --ai-cli flag has highest priority
+    AI_CLI_COMMAND="$AI_CLI_FLAG"
+elif [ -n "$AI_TOOL_PRESET" ]; then
+    # --ai-tool preset resolution
     AI_CLI_COMMAND=$(resolve_ai_tool_preset "$AI_TOOL_PRESET" "$CONFIG_FILE") || exit 1
 fi
+# Otherwise use $ROODA_AI_CLI (already set at line 288) or default
 
 # If procedure specified, load from config (explicit flags override config)
 if [ -n "$PROCEDURE" ]; then
@@ -441,12 +447,6 @@ if [ -n "$PROCEDURE" ]; then
             exit 1
         }
         [ "$DEFAULT_ITER" != "null" ] && MAX_ITERATIONS=$DEFAULT_ITER
-    fi
-    
-    # Query ai_cli_command from config if not set via --ai-cli flag
-    if [ "$AI_CLI_COMMAND" = "kiro-cli chat --no-interactive --trust-all-tools" ]; then
-        CONFIG_AI_CLI=$(yq eval ".procedures.$PROCEDURE.ai_cli_command" "$CONFIG_FILE" 2>&1)
-        [ "$CONFIG_AI_CLI" != "null" ] && [ -n "$CONFIG_AI_CLI" ] && AI_CLI_COMMAND="$CONFIG_AI_CLI"
     fi
 fi
 
