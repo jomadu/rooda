@@ -27,10 +27,24 @@ Options:
   -d, --decide <file>      Path to decide phase prompt
   -a, --act <file>         Path to act phase prompt
   -m, --max-iterations N   Maximum iterations (default: see below)
-  --ai-cli <command>       AI CLI command to use (default: kiro-cli chat --no-interactive --trust-all-tools)
+  --ai-cli <command>       AI CLI command to use (overrides all other settings)
+  --ai-tool <preset>       AI tool preset (kiro-cli, claude, aider, or custom from config)
   --verbose                Show detailed execution including full prompt
   --quiet                  Suppress non-error output
   --help, -h               Show this help message
+
+AI CLI Precedence (highest to lowest):
+  1. --ai-cli flag (direct command override)
+  2. --ai-tool preset (resolves to command via config or hardcoded)
+  3. \$ROODA_AI_CLI environment variable
+  4. Default: kiro-cli chat --no-interactive --trust-all-tools
+
+Hardcoded AI Tool Presets:
+  - kiro-cli: kiro-cli chat --no-interactive --trust-all-tools
+  - claude: claude-cli --no-interactive
+  - aider: aider --yes
+
+Custom presets can be defined in rooda-config.yml under ai_tools section.
 
 Max Iterations Default Behavior (three-tier system):
   1. Command-line --max-iterations takes precedence
@@ -42,6 +56,8 @@ Examples:
   ./rooda.sh build -m 5
   ./rooda.sh build --verbose
   ./rooda.sh build --quiet
+  ./rooda.sh build --ai-tool claude
+  ./rooda.sh build --ai-cli "custom-cli --flags"
   ./rooda.sh --list-procedures
   ./rooda.sh -o prompts/observe_specs.md \\
             -r prompts/orient_gap.md \\
