@@ -114,11 +114,13 @@ bd ready --json
 
 ## Operational Learnings
 
-**Last Bootstrap Verification:** 2026-02-04T19:54:42-08:00
+**Last Bootstrap Verification:** 2026-02-04T20:23:34-08:00
 
 **Verified Working:**
-- shellcheck src/rooda.sh executes without errors
+- shellcheck src/rooda.sh executes without errors (clean pass)
 - bd ready --json returns valid JSON with issue list
+- ./scripts/audit-links.sh validates all cross-document links
+- ./scripts/validate-prompts.sh confirms all 25 prompt files valid
 - All commands in AGENTS.md tested and functional
 - Repository structure matches documented patterns
 
