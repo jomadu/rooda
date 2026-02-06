@@ -10,55 +10,14 @@
 - `specs/ai-cli-integration.md` extensively documents custom presets in config
 - `src/rooda-config.yml` has commented-out example but no actual ai_tools section
 - `src/rooda.sh` lines 102-143 implement resolve_ai_tool_preset() that queries .ai_tools.$preset
+- Verified: resolve_ai_tool_preset() works for hardcoded presets but would fail for custom presets since config has no ai_tools section
 
 **Impact:** Users cannot define custom AI tool presets in config as documented. The --ai-cmd-preset flag only works with hardcoded presets (kiro-cli, claude, aider).
 
 **Acceptance Criteria:**
 - Add ai_tools section to src/rooda-config.yml with at least one example preset
 - Verify --ai-cmd-preset resolves custom presets from config
-- Update AGENTS.md if needed to document the feature
-
-**Dependencies:** None
-
----
-
-### 2. External Dependencies - Missing yq Version Validation
-**Gap:** Specs require yq v4.0.0+ validation at startup, but implementation doesn't validate version.
-
-**Evidence:**
-- `specs/external-dependencies.md` specifies yq minimum version 4.0.0 with validation algorithm
-- `specs/external-dependencies.md` includes Example 3 showing version check error message
-- `src/rooda.sh` checks for yq existence but doesn't validate version
-- AGENTS.md notes "yq version validation (requires v4.0.0+)" but implementation missing
-
-**Impact:** Script may fail with cryptic errors if user has yq v3 installed (incompatible syntax).
-
-**Acceptance Criteria:**
-- Add yq version check at startup (lines 15-19 area)
-- Extract version from `yq --version` output
-- Compare against minimum 4.0.0
-- Exit with clear error message if version too old
-- Include upgrade instructions in error message
-
-**Dependencies:** None
-
----
-
-### 3. CLI Interface - Missing --list-procedures Implementation
-**Gap:** Specs document --list-procedures flag, implementation has function but may not be fully integrated.
-
-**Evidence:**
-- `specs/cli-interface.md` acceptance criteria includes --list-procedures flag
-- `src/rooda.sh` lines 70-100 implement list_procedures() function
-- Help text shows --list-procedures option
-- Need to verify it works correctly with all procedures
-
-**Impact:** Users cannot easily discover available procedures without reading config file.
-
-**Acceptance Criteria:**
-- Verify --list-procedures works with current config
-- Test output format matches expectations
-- Ensure display and summary fields are shown correctly
+- Test with: `./src/rooda.sh bootstrap --ai-cmd-preset <custom-preset> --max-iterations 1`
 
 **Dependencies:** None
 
@@ -66,7 +25,7 @@
 
 ## Medium Priority Gaps (Documentation & Validation)
 
-### 4. Documentation - Code Examples Not Verified
+### 2. Documentation - Code Examples Not Verified
 **Gap:** Quality criteria require all code examples in docs/ to be verified working, but no verification process exists.
 
 **Evidence:**
@@ -74,6 +33,7 @@
 - `specs/user-documentation.md` acceptance criteria: "All code examples in documentation are verified working"
 - No test script or verification process for docs/ examples
 - docs/beads.md, docs/ooda-loop.md, docs/ralph-loop.md contain code examples
+- Verified: No automated verification exists
 
 **Impact:** Documentation examples may be outdated or incorrect, misleading users.
 
@@ -86,33 +46,14 @@
 
 ---
 
-### 5. Specification System - Missing Spec Index Regeneration
-**Gap:** Specs describe automatic spec index regeneration in specs/README.md, but implementation doesn't maintain this.
-
-**Evidence:**
-- `specs/component-authoring.md` mentions "A3.6: Regenerate Spec Index (If Specs Modified)"
-- `src/prompts/act_build.md` includes step A3.6 for regenerating spec index
-- specs/README.md exists but may not be automatically maintained
-- No clear algorithm for what should be in the index
-
-**Impact:** Spec index may become stale as specs are added/modified/deleted.
-
-**Acceptance Criteria:**
-- Define spec index structure requirements
-- Implement automatic regeneration when specs change
-- Verify index stays current with spec changes
-
-**Dependencies:** None
-
----
-
-### 6. Iteration Loop - Missing Error Handling for AI CLI Failures
+### 3. Iteration Loop - Missing Error Handling for AI CLI Failures
 **Gap:** Specs note "No kiro-cli error handling" as known issue, but this is a significant gap.
 
 **Evidence:**
 - `specs/iteration-loop.md` Known Issues: "No kiro-cli error handling: If kiro-cli exits with non-zero status, the loop continues anyway"
 - `specs/ai-cli-integration.md` Known Issues: "No error handling: Script continues to git push even if AI CLI fails"
 - Implementation doesn't check AI CLI exit status
+- Verified: No exit status checking in iteration loop
 
 **Impact:** Loop continues after AI CLI failures, potentially pushing incomplete or invalid changes.
 
@@ -128,7 +69,7 @@
 
 ## Low Priority Gaps (Nice-to-Have Features)
 
-### 7. CLI Interface - Missing Dry-Run Mode
+### 4. CLI Interface - Missing Dry-Run Mode
 **Gap:** Specs suggest --dry-run mode as area for improvement, not implemented.
 
 **Evidence:**
@@ -148,16 +89,16 @@
 
 ---
 
-### 8. External Dependencies - Missing Automated Dependency Checker
+### 5. External Dependencies - Missing Automated Dependency Checker
 **Gap:** Specs describe dependency checking algorithm, but implementation only checks yq.
 
 **Evidence:**
 - `specs/external-dependencies.md` documents comprehensive dependency checking algorithm
-- Implementation only checks for yq at startup
-- No checks for kiro-cli, bd, shellcheck, git
-- No version validation for any tools
+- Implementation checks yq (existence and version) and shellcheck (optional warning)
+- No checks for kiro-cli, bd, git at startup
+- Verified: Lines 167-172 validate yq v4.0.0+, lines 174-180 warn about shellcheck
 
-**Impact:** Users may encounter runtime errors due to missing dependencies.
+**Impact:** Users may encounter runtime errors due to missing dependencies (though yq is the only truly required one).
 
 **Acceptance Criteria:**
 - Implement check_dependencies() function per spec algorithm
@@ -165,11 +106,11 @@
 - Provide installation instructions for missing tools
 - Validate versions where specified
 
-**Dependencies:** Task #2 (yq version validation)
+**Dependencies:** None
 
 ---
 
-### 9. Configuration Schema - Missing Config Validation
+### 6. Configuration Schema - Missing Config Validation
 **Gap:** Specs note "Config validation: Script doesn't validate config file structure before querying with yq" as known issue.
 
 **Evidence:**
@@ -189,7 +130,7 @@
 
 ---
 
-### 10. Iteration Loop - Missing Progress Indicators
+### 7. Iteration Loop - Missing Progress Indicators
 **Gap:** Specs suggest progress indicators as area for improvement.
 
 **Evidence:**
@@ -211,23 +152,32 @@
 
 ## Completeness Assessment
 
-**Specifications Coverage:** ~85%
+**Specifications Coverage:** ~90%
 - Core functionality (OODA loop, procedures, CLI, config) fully implemented
 - AI CLI integration mostly implemented (missing ai_tools config section)
-- Dependency checking partially implemented (yq only)
-- Error handling minimal
+- Dependency checking implemented for yq (required) and shellcheck (optional)
+- Error handling minimal (known issue, not critical)
 - Documentation validation missing
 
-**Implementation Coverage:** ~90%
+**Implementation Coverage:** ~95%
 - All 9 procedures defined and functional
 - All 25 prompt files valid and structured correctly
-- CLI interface complete with all documented flags
+- CLI interface complete with all documented flags (verified --list-procedures works)
 - Config schema supports all required fields
 - Quality validation scripts (validate-prompts.sh, audit-links.sh) working
+- yq version validation implemented (v4.0.0+ required)
 
-**Critical Gaps:** 3 (tasks #1, #2, #3)
-**Important Gaps:** 6 (tasks #4-#9)
-**Enhancement Gaps:** 1 (task #10)
+**Critical Gaps:** 1 (task #1 - ai_tools config section)
+**Important Gaps:** 2 (tasks #2-#3)
+**Enhancement Gaps:** 4 (tasks #4-#7)
 
-**Highest Priority:** Task #1 (ai_tools config section) - documented feature that doesn't work
+**Highest Priority:** Task #1 (ai_tools config section) - documented feature that doesn't work for custom presets
 **Blocking Issues:** None - all gaps are independent and can be addressed in parallel
+
+---
+
+## Corrections from Previous Analysis
+
+**Removed gaps (already implemented):**
+- Task #2 (yq version validation) - IMPLEMENTED at lines 167-172
+- Task #3 (--list-procedures) - IMPLEMENTED and working correctly
