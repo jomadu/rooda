@@ -166,9 +166,10 @@ Written specs with extracted JTBDs:
 | Spec | Job to be Done |
 |------|----------------|
 | [iteration-loop](iteration-loop.md) | Execute AI coding agents through controlled OODA iteration cycles that clear AI context between runs, preventing LLM degradation while maintaining file-based state continuity. |
+| [configuration](configuration.md) | Define custom OODA procedures, AI CLI presets, and project-specific settings through a three-tier configuration system — workspace, global, and environment variables — with sensible built-in defaults for zero-config startup. |
 
 Pending specs (not yet written):
-`prompt-composition.md`, `ai-cli-integration.md`, `error-handling.md`, `cli-interface.md`, `configuration.md`, `agents-md-format.md`, `operational-knowledge.md`, `distribution.md`, `observability.md`, `procedures.md`
+`prompt-composition.md`, `ai-cli-integration.md`, `error-handling.md`, `cli-interface.md`, `agents-md-format.md`, `operational-knowledge.md`, `distribution.md`, `observability.md`, `procedures.md`
 
 ## How to Write Specs
 
