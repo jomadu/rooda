@@ -17,7 +17,7 @@ Engineering managers and tech leads deciding whether to adopt rooda for their te
 
 **Orchestrate AI coding agents through structured OODA iteration loops to autonomously build, plan, and maintain software from specifications.**
 
-The developer wants to define what should be built (specs), point an AI agent at the work, and have it iterate toward a solution — with fresh context each cycle, quality gates preventing regressions, and file-based state providing continuity. The loop should run unattended, self-correct through empirical feedback, and produce working, tested software.
+The developer wants to define what should be built (specs), point an AI agent at the work, and have it iterate toward a solution — with fresh context each cycle and file-based state providing continuity. The loop should run unattended, self-correct through empirical feedback, and produce working, tested software. Quality gates (tests, lints) and git operations are driven by the prompts, not the loop orchestrator.
 
 ## Related Jobs
 
@@ -33,7 +33,7 @@ The developer wants to define what should be built (specs), point an AI agent at
 ## Emotional Jobs
 
 - **Feel confident the loop is working** — clear progress indicators, iteration counts, and error messages so the developer isn't anxious about what's happening.
-- **Feel in control** — ability to stop, resume, dry-run, and override at every level. The loop is a tool, not a black box.
+- **Feel in control** — ability to stop, dry-run, and override at every level. The loop is a tool, not a black box.
 - **Feel safe** — sandboxing guidance, blast radius awareness, and no silent failures that corrupt the codebase.
 
 ## Desired Outcomes (Success Metrics)
@@ -57,11 +57,9 @@ The previous iteration (archived in `archive/`) was a bash script (`rooda.sh`) t
 |---|---|
 | Bash script — fragile, hard to test, platform-specific | Go binary — testable, cross-platform, single artifact |
 | Required `yq` external dependency | Built-in YAML/config parsing |
-| No error handling for AI CLI failures | Structured error handling with configurable retry/timeout |
-| No prompt size validation | Token budget awareness before piping to AI CLI |
+| No error handling for AI CLI failures | Structured error handling with configurable failure threshold and `<promise>` output signals |
 | No dry-run mode | `--dry-run` flag shows assembled prompt without executing |
-| No resume capability | Iteration state persisted to enable resume after interruption |
-| No observability during iteration | Structured logging, progress display, timing per iteration |
+| No observability during iteration | Loop-level progress display with timing per iteration; `--verbose` streams AI CLI output |
 | Duplicate validation code | Clean architecture with shared validation |
 | Config validation at runtime only | Upfront config validation with clear error messages |
 | Manual file copying for installation | Single binary distribution, embedded default prompts |
@@ -69,7 +67,7 @@ The previous iteration (archived in `archive/`) was a bash script (`rooda.sh`) t
 ## Jobs to Be Done
 
 ### J1: Execute OODA Iterations
-Run AI coding agents through controlled OODA iteration cycles with fresh context per run, quality gates, and file-based state continuity. This is the core loop — everything else feeds into or out of it.
+Run AI coding agents through controlled OODA iteration cycles with fresh context per run and file-based state continuity. This is the core loop — everything else feeds into or out of it.
 
 ### J2: Compose and Assemble Prompts
 Combine four OODA phase prompt files (observe, orient, decide, act) and optional user-provided context into a single executable prompt, supporting both embedded defaults and user-provided custom prompts.
@@ -93,7 +91,7 @@ Enable users to install rooda as a single binary with no external dependencies, 
 Detect, report, and recover from failures — AI CLI crashes, network issues, test failures, invalid configs — with configurable retry logic, timeouts, and graceful degradation.
 
 ### J9: Observe and Control Loop Execution
-Provide visibility into what the loop is doing (timing, iteration progress, phase execution) and controls to stop, resume, dry-run, and override behavior.
+Provide visibility into what the loop is doing (timing, iteration progress, outcome) and controls to stop, dry-run, and override behavior.
 
 ### J10: Maintain Project Operational Knowledge
 Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. This is the read-verify-update lifecycle that keeps AGENTS.md accurate across iterations.
