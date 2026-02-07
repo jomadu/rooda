@@ -27,7 +27,7 @@ The developer wants to define what should be built (specs), point an AI agent at
 - **Publish plans to work tracking** — import a converged draft plan into the project's work tracking system (beads, GitHub Issues, file-based, etc.).
 - **Build from plan** — implement tasks from the work tracking system. The only procedure that modifies code.
 - **Provide context to guide a procedure** — pass runtime hints to any procedure execution (e.g., "focus on the auth module", "the new feature should integrate with the payment service") that steer the agent's focus without changing procedure definitions or prompt files.
-- **Configure procedures for a team** — define custom OODA procedures, AI CLI presets, and project-specific settings without modifying framework code.
+- **Configure procedures for a team** — define custom OODA procedures, AI command aliases, and project-specific settings without modifying framework code.
 - **Distribute and install the tool** — get rooda running on a new machine or in a CI/CD pipeline with minimal friction and no external dependencies.
 
 ## Emotional Jobs
@@ -73,10 +73,10 @@ Run AI coding agents through controlled OODA iteration cycles with fresh context
 Combine four OODA phase prompt files (observe, orient, decide, act) and optional user-provided context into a single executable prompt, supporting both embedded defaults and user-provided custom prompts.
 
 ### J3: Integrate with AI CLI Tools
-Pipe assembled prompts to a configurable AI CLI tool with support for presets, environment variables, and direct command override. Built-in support for kiro-cli, claude, github copilot, and cursor agent, with extensibility for custom tools.
+Pipe assembled prompts to a configurable AI CLI tool with support for command aliases, environment variables, and direct command override. Built-in support for kiro-cli, claude, github copilot, and cursor agent, with extensibility for custom tools.
 
 ### J4: Configure Procedures and Settings
-Define custom OODA procedures, AI CLI presets, and project-specific settings through a three-tier configuration system — workspace (`./`), global (`~/.config/rooda/`), and environment variables — with sensible built-in defaults for zero-config startup. Tiers merge with clear precedence (CLI flags > env vars > workspace > global > built-in defaults) and provenance tracking so users know where each setting comes from.
+Define custom OODA procedures, AI command aliases, and project-specific settings through a three-tier configuration system — workspace (`./`), global (`<config_dir>/`), and environment variables — with sensible built-in defaults for zero-config startup. Tiers merge with clear precedence (CLI flags > env vars > workspace > global > built-in defaults) and provenance tracking so users know where each setting comes from.
 
 ### J5: Provide a Command-Line Interface
 Expose all framework capabilities through a CLI that supports named procedures, explicit OODA phase flags, global options, and helpful error messages.
@@ -103,14 +103,14 @@ Every procedure reads AGENTS.md first as the source of truth for project-specifi
 |---|---|---|
 | [iteration-loop](iteration-loop.md) | J1 | Execute OODA cycles with fresh context, termination control, and state continuity |
 | [prompt-composition](prompt-composition.md) | J2, J5 | Assemble four OODA phase files and optional user-provided context into a single prompt, with embedded defaults |
-| [ai-cli-integration](ai-cli-integration.md) | J3 | Pipe prompts to configurable AI CLI tools with preset resolution |
+| [ai-cli-integration](ai-cli-integration.md) | J3 | Pipe prompts to configurable AI CLI tools with alias resolution |
 | [error-handling](error-handling.md) | J8 | Retry logic, timeouts, failure detection, and graceful degradation |
 
 ### Configuration & Interface
 | Topic | Job | Description |
 |---|---|---|
 | [cli-interface](cli-interface.md) | J5 | Command-line argument parsing, procedure invocation, help text |
-| [configuration](configuration.md) | J4 | YAML config schema, procedure definitions, AI tool presets, defaults |
+| [configuration](configuration.md) | J4 | YAML config schema, procedure definitions, AI command aliases, defaults |
 | [agents-md-format](agents-md-format.md) | J6 | AGENTS.md structure, required sections, field definitions |
 | [operational-knowledge](operational-knowledge.md) | J10 | Read-verify-update lifecycle for AGENTS.md across all procedures |
 
@@ -166,7 +166,7 @@ Written specs with extracted JTBDs:
 | Spec | Job to be Done |
 |------|----------------|
 | [iteration-loop](iteration-loop.md) | Execute AI coding agents through controlled OODA iteration cycles that clear AI context between runs, preventing LLM degradation while maintaining file-based state continuity. |
-| [configuration](configuration.md) | Define custom OODA procedures, AI CLI presets, and project-specific settings through a three-tier configuration system — workspace, global, and environment variables — with sensible built-in defaults for zero-config startup. |
+| [configuration](configuration.md) | Define custom OODA procedures, AI command aliases, and project-specific settings through a three-tier configuration system — workspace, global, and environment variables — with sensible built-in defaults for zero-config startup. |
 
 Pending specs (not yet written):
 `prompt-composition.md`, `ai-cli-integration.md`, `error-handling.md`, `cli-interface.md`, `agents-md-format.md`, `operational-knowledge.md`, `distribution.md`, `observability.md`, `procedures.md`

@@ -29,8 +29,9 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 - [ ] If AI CLI output contains `<promise>FAILURE</promise>`, iteration counts as a failure (increments `ConsecutiveFailures`) even if exit code is 0
 - [ ] Each iteration invokes the AI CLI as a separate process, ensuring fresh context
 - [ ] Iteration counter increments correctly (0-indexed internal, 1-indexed display)
-- [ ] Max iterations resolved with precedence: `--max-iterations` CLI flag > `--unlimited` CLI flag > procedure `default_max_iterations` > `loop.default_max_iterations` > built-in default (5)
+- [ ] Max iterations resolved with precedence: `--max-iterations` CLI flag > `--unlimited` CLI flag > procedure `iteration_mode`/`default_max_iterations` > `loop.iteration_mode`/`loop.default_max_iterations` > built-in default (mode=max-iterations, count=5)
 - [ ] `--unlimited` flag overrides max iterations to nil (no limit)
+- [ ] Procedure-level `iteration_mode` overrides global `loop.iteration_mode`
 - [ ] Procedure-level `default_max_iterations` overrides global `loop.default_max_iterations`
 - [ ] Progress displayed between iterations (iteration number, elapsed time)
 - [ ] AI CLI exit status is captured and checked after each iteration
@@ -73,12 +74,14 @@ type IterationState struct {
 
 ### Loop Configuration
 
-The `loop` section in `rooda-config.yml` defines global defaults for loop execution. Procedures can override `default_max_iterations`.
+The `loop` section in `rooda-config.yml` defines global defaults for loop execution. Procedures can override `default_max_iterations` and `ai_cmd_alias`.
 
 ```yaml
 loop:
-  default_max_iterations: 5    # Global default (built-in default: 5)
-  failure_threshold: 3         # Consecutive failures before abort (built-in default: 3)
+  iteration_mode: max-iterations  # "max-iterations" or "unlimited" (built-in default: max-iterations)
+  default_max_iterations: 5       # Global default (built-in default: 5). Must be >= 1. Ignored when mode is unlimited.
+  failure_threshold: 3            # Consecutive failures before abort (built-in default: 3)
+  ai_cmd_alias: claude            # Default AI command alias for all procedures
 
 procedures:
   bootstrap:
@@ -89,6 +92,13 @@ procedures:
     act: prompts/act_bootstrap.md
   build:
     default_max_iterations: 10
+    ai_cmd_alias: thorough     # This procedure uses a beefier model
+    observe: prompts/observe_plan_specs_impl.md
+    orient: prompts/orient_build.md
+    decide: prompts/decide_build.md
+    act: prompts/act_build.md
+  long-running:
+    iteration_mode: unlimited  # Overrides loop.iteration_mode for this procedure
     observe: prompts/observe_plan_specs_impl.md
     orient: prompts/orient_build.md
     decide: prompts/decide_build.md
@@ -98,9 +108,18 @@ procedures:
 **Precedence for max iterations:**
 1. `--max-iterations N` CLI flag (highest)
 2. `--unlimited` CLI flag (sets to nil)
-3. Procedure `default_max_iterations`
-4. `loop.default_max_iterations`
-5. Built-in default: 5
+3. Procedure `iteration_mode` + `default_max_iterations`
+4. `loop.iteration_mode` + `loop.default_max_iterations`
+5. Built-in default: mode=max-iterations, count=5
+
+**Precedence for AI command (consistent with max iterations — procedure overrides loop, env vars set loop level):**
+1. `--ai-cmd` CLI flag (direct command, highest)
+2. `--ai-cmd-alias` CLI flag (alias name)
+3. Procedure `ai_cmd` (direct command)
+4. Procedure `ai_cmd_alias` (alias name)
+5. `loop.ai_cmd` (merged: env var > workspace > global)
+6. `loop.ai_cmd_alias` (merged: env var > workspace > global)
+7. Error — no AI command configured
 
 ### LoopStatus
 
@@ -134,9 +153,10 @@ Each iteration's outcome is determined by two independent signals: the AI CLI pr
 ## Algorithm
 
 1. Load configuration (CLI flags > env vars > workspace config > global config > built-in defaults)
-2. Initialize fresh `IterationState`
-3. Register signal handlers for SIGINT and SIGTERM
-4. Enter iteration loop:
+2. Resolve AI command (see configuration.md AI Command Resolution)
+3. Initialize fresh `IterationState`
+4. Register signal handlers for SIGINT and SIGTERM
+5. Enter iteration loop:
 
 ```
 function RunLoop(state IterationState, config Config) -> LoopStatus:
@@ -196,7 +216,7 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
     return state.Status
 ```
 
-5. On signal (SIGINT/SIGTERM):
+6. On signal (SIGINT/SIGTERM):
    - Log interruption
    - Exit with appropriate code
 
@@ -205,7 +225,7 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | `--unlimited` flag passed | Loop runs indefinitely until Ctrl+C, failure threshold, or AI signals `SUCCESS` |
-| No max iterations configured anywhere | Uses built-in default of 5 |
+| No max iterations configured anywhere | Uses built-in default: mode=max-iterations, count=5 |
 | AI output contains `<promise>SUCCESS</promise>` | Loop terminates with status `completed` regardless of exit code |
 | AI output contains `<promise>FAILURE</promise>` with exit code 0 | Counts as failure — increment `ConsecutiveFailures` (output signal overrides exit code) |
 | AI CLI exits non-zero, no output signal | Process failure — increment `ConsecutiveFailures`, continue loop |
@@ -224,7 +244,7 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
 - **error-handling** — Retry logic, timeout, failure detection patterns
 - **observability** — Structured logging, timing, progress display
 - **cli-interface** — Provides `--max-iterations`, `--unlimited`, `--dry-run`, `--context`
-- **configuration** — Resolves iteration settings from three-tier config system
+- **configuration** — Resolves iteration settings and AI command from three-tier config system
 
 ## Implementation Mapping
 
