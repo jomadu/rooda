@@ -40,7 +40,8 @@
 #
 #   Example presets:
 #
-# ai_tools:
+ai_tools:
+  cursor-agent: "cursor agent -p -f --stream-partial-output --output-format stream-json"
 #   fast: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-5-haiku-20241022"
 #   thorough: "kiro-cli chat --no-interactive --trust-all-tools --model claude-3-7-sonnet-20250219"
 #   custom: "your-ai-cli-command-here"
