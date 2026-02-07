@@ -1,33 +1,207 @@
 # Specifications
 
-This directory contains specifications for the ralph-wiggum-ooda framework. Each specification follows the Jobs-to-be-Done (JTBD) structure defined in [specification-system.md](specification-system.md).
+This directory contains specifications for **rooda v2** — a Go rewrite of the ralph-wiggum-ooda framework. Each specification follows the Jobs-to-be-Done (JTBD) structure: one spec per topic of concern, organized by the job it serves.
+
+## Customer Types
+
+### Job Executor
+The developer running rooda to orchestrate AI coding agents. They invoke procedures, monitor iteration progress, and steer the loop when it drifts. They care about: reliable execution, clear feedback, fast iteration cycles, and minimal setup friction.
+
+### Product Lifecycle Support Team
+People who install, configure, upgrade, and maintain rooda across projects and teams. This includes DevOps engineers setting up CI/CD pipelines, team leads standardizing tooling, and contributors to the framework itself. They care about: easy distribution, cross-platform support, testability, and clean extensibility.
+
+### Buyer
+Engineering managers and tech leads deciding whether to adopt rooda for their teams. They care about: clear value proposition, low adoption risk, observable outcomes, and alignment with existing workflows.
+
+## Core Functional Job
+
+**Orchestrate AI coding agents through structured OODA iteration loops to autonomously build, plan, and maintain software from specifications.**
+
+The developer wants to define what should be built (specs), point an AI agent at the work, and have it iterate toward a solution — with fresh context each cycle, quality gates preventing regressions, and file-based state providing continuity. The loop should run unattended, self-correct through empirical feedback, and produce working, tested software.
+
+## Related Jobs
+
+- **Sync the agent-project interface** — analyze a repository and create or update the operational guide (AGENTS.md) so agents can interact with the project effectively. Works whether AGENTS.md exists or not — creates from scratch on first run, reconciles with actual repo state on subsequent runs. This is a direct-action procedure (not planning) because AGENTS.md must exist before any planning procedure can run (chicken-and-egg: plans need AGENTS.md to know where plans live).
+- **Audit what exists** — assess specs, implementation, AGENTS.md, or the gap between specs and implementation, producing an audit report. Audits don't modify anything — they identify what needs attention. Audit output feeds as context into planning procedures.
+- **Plan work by type and target** — given a work item classified by conventional commit type (feat, fix, refactor, chore) and a target (spec or impl), produce a prioritized task list that agents can execute. Procedures are cheap because OODA components are reused across types — a `draft-plan-spec-feat` and `draft-plan-spec-fix` may share most of their observe/act components, differing only in orient/decide.
+- **Publish plans to work tracking** — import a converged draft plan into the project's work tracking system (beads, GitHub Issues, file-based, etc.).
+- **Build from plan** — implement tasks from the work tracking system. The only procedure that modifies code.
+- **Provide context to guide a procedure** — pass runtime hints to any procedure execution (e.g., "focus on the auth module", "the new feature should integrate with the payment service") that steer the agent's focus without changing procedure definitions or prompt files.
+- **Configure procedures for a team** — define custom OODA procedures, AI CLI presets, and project-specific settings without modifying framework code.
+- **Distribute and install the tool** — get rooda running on a new machine or in a CI/CD pipeline with minimal friction and no external dependencies.
+
+## Emotional Jobs
+
+- **Feel confident the loop is working** — clear progress indicators, iteration counts, and error messages so the developer isn't anxious about what's happening.
+- **Feel in control** — ability to stop, resume, dry-run, and override at every level. The loop is a tool, not a black box.
+- **Feel safe** — sandboxing guidance, blast radius awareness, and no silent failures that corrupt the codebase.
+
+## Desired Outcomes (Success Metrics)
+
+When executing the core functional job, the developer measures success by:
+
+- Minimize the time to go from specs to working implementation
+- Minimize the number of iterations that produce no useful progress
+- Minimize the setup effort to start using rooda on a new project
+- Minimize the time to diagnose why an iteration failed
+- Minimize the risk of AI-generated code breaking existing functionality
+- Maximize the percentage of iterations where the AI stays in its "smart zone" (40-60% context utilization)
+- Maximize the reusability of prompt components across different procedures
+- Maximize the observability of what the loop is doing at any moment
+
+## What Changed from v1 (Archive)
+
+The previous iteration (archived in `archive/`) was a bash script (`rooda.sh`) that shelled out to `yq` for YAML parsing and piped prompts to an AI CLI. It validated the core concept — composable OODA prompts, fresh context per iteration, file-based state — but had significant operational limitations:
+
+| v1 Limitation | v2 Approach |
+|---|---|
+| Bash script — fragile, hard to test, platform-specific | Go binary — testable, cross-platform, single artifact |
+| Required `yq` external dependency | Built-in YAML/config parsing |
+| No error handling for AI CLI failures | Structured error handling with configurable retry/timeout |
+| No prompt size validation | Token budget awareness before piping to AI CLI |
+| No dry-run mode | `--dry-run` flag shows assembled prompt without executing |
+| No resume capability | Iteration state persisted to enable resume after interruption |
+| No observability during iteration | Structured logging, progress display, timing per iteration |
+| Duplicate validation code | Clean architecture with shared validation |
+| Config validation at runtime only | Upfront config validation with clear error messages |
+| Manual file copying for installation | Single binary distribution, embedded default prompts |
+
+## Jobs to Be Done
+
+### J1: Execute OODA Iterations
+Run AI coding agents through controlled OODA iteration cycles with fresh context per run, quality gates, and file-based state continuity. This is the core loop — everything else feeds into or out of it.
+
+### J2: Compose and Assemble Prompts
+Combine four OODA phase prompt files (observe, orient, decide, act) and optional user-provided context into a single executable prompt, supporting both embedded defaults and user-provided custom prompts.
+
+### J3: Integrate with AI CLI Tools
+Pipe assembled prompts to a configurable AI CLI tool with support for presets, environment variables, and direct command override. Built-in support for kiro-cli, claude, github copilot, and cursor agent, with extensibility for custom tools.
+
+### J4: Configure Procedures and Settings
+Define custom OODA procedures, AI CLI presets, and project-specific settings through a three-tier configuration system — workspace (`./`), global (`~/.config/rooda/`), and environment variables — with sensible built-in defaults for zero-config startup. Tiers merge with clear precedence (CLI flags > env vars > workspace > global > built-in defaults) and provenance tracking so users know where each setting comes from.
+
+### J5: Provide a Command-Line Interface
+Expose all framework capabilities through a CLI that supports named procedures, explicit OODA phase flags, global options, and helpful error messages.
+
+### J6: Define the Agent-Project Interface
+Specify the AGENTS.md format — required sections, field definitions, and structural conventions — that serves as the contract between AI agents and the repository. Covers work tracking, build commands, spec/impl definitions, and quality criteria. This is the schema; J10 covers the runtime lifecycle.
+
+### J7: Distribute and Install
+Enable users to install rooda as a single binary with no external dependencies, supporting macOS, Linux, and CI/CD environments.
+
+### J8: Handle Errors and Build Resilience
+Detect, report, and recover from failures — AI CLI crashes, network issues, test failures, invalid configs — with configurable retry logic, timeouts, and graceful degradation.
+
+### J9: Observe and Control Loop Execution
+Provide visibility into what the loop is doing (timing, iteration progress, phase execution) and controls to stop, resume, dry-run, and override behavior.
+
+### J10: Maintain Project Operational Knowledge
+Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. This is the read-verify-update lifecycle that keeps AGENTS.md accurate across iterations.
+
+## Topics of Concern
+
+### Execution Engine
+| Topic | Job | Description |
+|---|---|---|
+| [iteration-loop](iteration-loop.md) | J1 | Execute OODA cycles with fresh context, termination control, and state continuity |
+| [prompt-composition](prompt-composition.md) | J2, J5 | Assemble four OODA phase files and optional user-provided context into a single prompt, with embedded defaults |
+| [ai-cli-integration](ai-cli-integration.md) | J3 | Pipe prompts to configurable AI CLI tools with preset resolution |
+| [error-handling](error-handling.md) | J8 | Retry logic, timeouts, failure detection, and graceful degradation |
+
+### Configuration & Interface
+| Topic | Job | Description |
+|---|---|---|
+| [cli-interface](cli-interface.md) | J5 | Command-line argument parsing, procedure invocation, help text |
+| [configuration](configuration.md) | J4 | YAML config schema, procedure definitions, AI tool presets, defaults |
+| [agents-md-format](agents-md-format.md) | J6 | AGENTS.md structure, required sections, field definitions |
+| [operational-knowledge](operational-knowledge.md) | J10 | Read-verify-update lifecycle for AGENTS.md across all procedures |
+
+### Distribution & Operations
+| Topic | Job | Description |
+|---|---|---|
+| [distribution](distribution.md) | J7 | Single binary build, embedded prompts, cross-platform support |
+| [observability](observability.md) | J9 | Structured logging, progress display, iteration timing, dry-run mode |
+
+### Procedure Library
+| Topic | Job | Description |
+|---|---|---|
+| [procedures](procedures.md) | J1, J2 | Predefined procedure definitions and the embedded default prompts they compose from |
+
+**Complete procedure list (16):**
+
+Direct-action:
+| Procedure | Description |
+|---|---|
+| `agents-sync` | Create or update AGENTS.md by analyzing the repository |
+| `build` | Implement tasks from work tracking (only procedure that modifies code) |
+| `publish-plan` | Publish converged draft plan to work tracking system |
+
+Audits (produce reports, don't modify anything):
+| Procedure | Description |
+|---|---|
+| `audit-spec` | Quality assessment of specs |
+| `audit-impl` | Quality assessment of implementation |
+| `audit-agents` | Accuracy assessment of AGENTS.md against actual repo state |
+| `audit-spec-to-impl` | Gap analysis: what's in specs but not in code (execute SDD) |
+| `audit-impl-to-spec` | Gap analysis: what's in code but not in specs (align brownfield with SDD) |
+
+Planning — spec-targeted (work → specs):
+| Procedure | Description |
+|---|---|
+| `draft-plan-spec-feat` | Plan new capability incorporation into specs |
+| `draft-plan-spec-fix` | Plan spec adjustment to drive a correction |
+| `draft-plan-spec-refactor` | Plan spec restructuring from task file |
+| `draft-plan-spec-chore` | Plan spec maintenance from task file |
+
+Planning — impl-targeted (work → implementation):
+| Procedure | Description |
+|---|---|
+| `draft-plan-impl-feat` | Plan new capability implementation |
+| `draft-plan-impl-fix` | Plan implementation correction |
+| `draft-plan-impl-refactor` | Plan implementation restructuring from task file |
+| `draft-plan-impl-chore` | Plan implementation maintenance from task file |
 
 ## How to Write Specs
 
-Use [TEMPLATE.md](TEMPLATE.md) as a starting point for new specifications. Follow the structure and guidelines in [specification-system.md](specification-system.md).
+Each spec follows the JTBD template structure:
 
-## Specifications
+```markdown
+# [Topic Name]
 
-### [AGENTS.md Specification](agents-md-format.md)
-AGENTS.md is the interface between agents and the repository. It defines how agents interact with project-specific workflows, tools, and conventions.
+## Job to be Done
+[What user outcome does this enable?]
 
-### [AI CLI Integration](ai-cli-integration.md)
-Execute OODA loop prompts through an AI CLI tool that can read files, modify code, run commands, and interact with the repository autonomously.
+## Activities
+[Key steps or operations]
 
-### [CLI Interface](cli-interface.md)
-Enable users to invoke OODA loop procedures through a command-line interface, supporting both named procedures from configuration and explicit OODA phase file specification.
+## Acceptance Criteria
+- [ ] [Verifiable outcome]
 
-### [Component Authoring](component-authoring.md)
-Enable developers to create and modify OODA component prompt files that can be composed into executable procedures.
+## Data Structures
+[Types, schemas, formats]
 
-### [Configuration Schema](configuration-schema.md)
-Enable users to define custom OODA loop procedures by mapping procedure names to composable prompt component files, supporting both predefined framework procedures and user-defined custom procedures.
+## Algorithm
+[Logic, pseudocode, flow]
 
-### [External Dependencies](external-dependencies.md)
-Enable users to install and verify all required external tools before running ralph-wiggum-ooda procedures, preventing runtime failures due to missing dependencies.
+## Edge Cases
+[Boundary conditions and error scenarios]
 
-### [Iteration Loop Control](iteration-loop.md)
-Execute OODA loop procedures through controlled iteration cycles that clear context between runs, preventing LLM degradation while maintaining file-based state continuity.
+## Dependencies
+[Prerequisites]
 
-### [User Documentation](user-documentation.md)
-Enable users to understand and effectively use the ralph-wiggum-ooda framework through clear, accessible documentation that guides them from installation through advanced usage.
+## Implementation Mapping
+[Source files and related specs]
+
+## Examples
+[Input/output pairs with verification]
+
+## Notes
+[Design rationale and decisions]
+```
+
+**Principles:**
+- One topic per file, named with lowercase hyphens (`iteration-loop.md`)
+- Outcome-focused, not mechanism-focused
+- Acceptance criteria must be testable
+- Include design rationale ("capture the why")
+- Reference related specs in Implementation Mapping

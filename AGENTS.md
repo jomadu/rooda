@@ -1,5 +1,45 @@
 # Agent Instructions
 
+## Issue Tracking
+
+This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+
+## Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --status in_progress  # Claim work
+bd close <id>         # Complete work
+bd sync               # Sync with git
+```
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+
 ## Work Tracking System
 
 **System:** beads (bd CLI)
@@ -19,14 +59,14 @@ bd update <id> --status in_progress
 bd close <id> --reason "Completed X"
 ```
 
-**Create issue with dependencies:**
+**Create issue:**
 ```bash
-bd create --title "Title" --description "Desc" --deps blocks:issue-id --priority 2  # Priority range: 0-4 or P0-P4
+bd create --title "Title" --description "Desc" --priority 2  # Priority range: 0-4 or P0-P4
 ```
 
 ## Story/Bug Input
 
-Stories and bugs are documented in `TASK.md` at project root.
+Stories and bugs are documented in `TASK.md` at project root. Create this file before running `draft-plan-story-to-spec` or `draft-plan-bug-to-spec` procedures.
 
 ## Planning System
 
@@ -36,12 +76,10 @@ Stories and bugs are documented in `TASK.md` at project root.
 
 ## Build/Test/Lint Commands
 
-**Framework Dependencies:**
-- yq (required) - YAML parsing for rooda-config.yml
-- kiro-cli (default, configurable) - AI CLI tool, can substitute with claude-cli, aider, etc.
-
-**Project Dependencies:**
-- bd (optional) - Work tracking system used in this project, not framework-required
+**Dependencies:**
+- yq >= 4.0.0 (required) — YAML parsing for rooda-config.yml
+- AI CLI tool (configurable) — default: kiro-cli, can substitute with claude, aider, cursor-agent
+- bd (beads CLI) — issue tracking
 
 **Test:** Manual verification (no automated tests)
 
@@ -49,38 +87,41 @@ Stories and bugs are documented in `TASK.md` at project root.
 
 **Lint:**
 ```bash
-shellcheck src/rooda.sh
+shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 ```
 
-**Verification:**
+**Verify script works:**
 ```bash
-./src/rooda.sh bootstrap --max-iterations 1
-bd ready --json
+./rooda.sh --version
+./rooda.sh --list-procedures
 ```
 
 ## Specification Definition
 
 **Location:** `specs/*.md`
 
-**Format:** Markdown specifications following JTBD structure
+**Format:** Markdown specifications following JTBD structure (see `specs/README.md` for index and template)
 
-**Exclude:** `specs/README.md`, `specs/TEMPLATE.md`, `specs/specification-system.md`
+**Exclude:** `specs/README.md` (index file, not a spec)
+
+**Current state:** v2 Go rewrite specs — `specs/README.md` defines the job map and topics of concern; individual spec files referenced in the README are not yet written.
 
 ## Implementation Definition
 
-**Location:** `src/rooda.sh`, `src/prompts/*.md`, `docs/*.md`, and `scripts/*.sh`
+**Location:** `rooda.sh`, `rooda-config.yml`, `prompts/*.md`
 
 **Patterns:**
-- `src/rooda.sh` - Main loop script (root `rooda.sh` is wrapper for framework development)
-- `src/rooda-config.yml` - Procedure configuration
-- `src/prompts/*.md` - OODA prompt components (25 files: observe, orient, decide, act variants)
-- `docs/*.md` - User-facing documentation (4 files)
-- `scripts/*.sh` - Utility scripts (audit-links.sh, validate-prompts.sh)
+- `rooda.sh` — Main OODA loop script (bash, v0.1.0)
+- `rooda-config.yml` — Procedure definitions and AI tool presets
+- `prompts/*.md` — 25 OODA prompt component files (observe_*, orient_*, decide_*, act_*)
 
 **Exclude:**
-- `.beads/*` (work tracking database)
-- `specs/*` (specifications)
-- `README.md`, `AGENTS.md`, `PLAN.md`, `TASK.md`, `LICENSE.md` (root files)
+- `archive/` — archived v1 implementation (preserved for reference)
+- `.beads/` — work tracking database
+- `specs/` — specifications
+- `AGENTS.md`, `PLAN.md`, `TASK.md` — operational files
+
+**Note:** The `goify` branch restructured the project — files moved from `src/` to root level, and v1 artifacts archived in `archive/`. There is no Go implementation yet; v2 is in the specification phase.
 
 ## Quality Criteria
 
@@ -88,48 +129,39 @@ bd ready --json
 - All specs have "Job to be Done" section (PASS/FAIL)
 - All specs have "Acceptance Criteria" section (PASS/FAIL)
 - All specs have "Examples" section (PASS/FAIL)
-- All command examples in specs are verified working (PASS/FAIL)  # Verification process: execute commands, validate output; distinguish executable vs pseudocode
-- No specs marked as DEPRECATED without replacement (PASS/FAIL)
+- No broken cross-references between specs (PASS/FAIL)
 
 **For implementation:**
-- shellcheck passes with no errors (PASS/FAIL)
-- All procedures in config have corresponding component files (PASS/FAIL)
-- All prompt files follow structure per component-authoring.md (PASS/FAIL)  # Verify with: ./scripts/validate-prompts.sh
-- Script executes bootstrap procedure successfully (PASS/FAIL)
-- Script executes on macOS without errors (PASS/FAIL)
-- Script executes on Linux without errors (PASS/FAIL)
-
-**For documentation:**
-- All code examples in docs/ are verified working (PASS/FAIL)
-- Documentation matches script behavior (PASS/FAIL)
-- All cross-document links work correctly (PASS/FAIL)  # Verify with: ./scripts/audit-links.sh (checks internal relative paths and external URLs with 10s timeout)
-- Each procedure has usage examples (PASS/FAIL)
+- All procedures in rooda-config.yml have corresponding prompt files that exist (PASS/FAIL)
+- `./rooda.sh --version` executes without errors (PASS/FAIL)
+- `./rooda.sh --list-procedures` executes without errors (PASS/FAIL)
+- shellcheck passes on rooda.sh with no errors (PASS/FAIL) — requires shellcheck installed
 
 **Refactoring triggers:**
 - Any quality criterion fails
-- Documentation contradicts script behavior
-- Script fails on documented use cases
-
-**Note:** Quality criteria evolved from subjective assessments to boolean PASS/FAIL checks for automated verification.
+- Documentation contradicts actual behavior
+- Referenced files or paths don't exist
 
 ## Operational Learnings
 
-**Last Bootstrap Verification:** 2026-02-04T20:23:34-08:00
+**Last Bootstrap Verification:** 2026-02-06
 
 **Verified Working:**
-- shellcheck src/rooda.sh executes without errors (clean pass)
-- bd ready --json returns valid JSON with issue list
-- ./scripts/audit-links.sh validates all cross-document links
-- ./scripts/validate-prompts.sh confirms all 25 prompt files valid
-- All commands in AGENTS.md tested and functional
-- All short flags work correctly: -o, -r, -d, -a, -m, -c, -h  # Fixed -m 0 to support unlimited iterations (was being overridden by config default)
-- Repository structure matches documented patterns
+- `./rooda.sh --version` returns v0.1.0
+- `./rooda.sh --list-procedures` lists 9 procedures
+- `bd ready --json` returns valid JSON
+- All 25 prompt files in `prompts/` exist and are referenced by rooda-config.yml
+- rooda-config.yml parses without errors
+
+**Verified Not Working / Missing:**
+- shellcheck not installed on this machine — `shellcheck rooda.sh` cannot run
+- No automated test suite exists
+- No CI/CD pipeline configured
+- Individual v2 spec files (e.g., iteration-loop.md, cli-interface.md) referenced in `specs/README.md` do not yet exist
 
 **Why These Definitions:**
-- Specs location chosen because project uses JTBD-based markdown specifications in dedicated directory
-- Implementation includes prompts/ because OODA prompt components are core framework logic
-- Quality criteria are boolean PASS/FAIL to enable automated verification via scripts
-- Work tracking uses beads because it provides JSON output for programmatic access
-- Planning system uses PLAN.md for draft convergence before publishing to work tracking
-- MAX_ITERATIONS uses empty string for "not set" to distinguish from explicit 0 (unlimited)  # Enables three-tier default: CLI flag > config default > 0
-
+- Implementation is at root level (not `src/`) because `goify` branch restructured the project
+- Specs use JTBD format per `specs/README.md` — v2 Go rewrite follows jobs-to-be-done methodology
+- Archive preserved for reference but excluded from active implementation — prevents agents from modifying deprecated code
+- Quality criteria are boolean PASS/FAIL for clear automated verification
+- No build step because current implementation is bash (v2 Go will need `go build`, `go test`, `golangci-lint`)
