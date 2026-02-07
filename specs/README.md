@@ -161,6 +161,17 @@ Planning — impl-targeted (work → implementation):
 | `draft-plan-impl-refactor` | Plan implementation restructuring from task file |
 | `draft-plan-impl-chore` | Plan implementation maintenance from task file |
 
+## Specification Status
+
+Written specs with extracted JTBDs:
+
+| Spec | Job to be Done |
+|------|----------------|
+| [iteration-loop](iteration-loop.md) | Execute AI coding agents through controlled OODA iteration cycles that clear AI context between runs, preventing LLM degradation while maintaining file-based state continuity. |
+
+Pending specs (not yet written):
+`prompt-composition.md`, `ai-cli-integration.md`, `error-handling.md`, `cli-interface.md`, `configuration.md`, `agents-md-format.md`, `operational-knowledge.md`, `distribution.md`, `observability.md`, `procedures.md`
+
 ## How to Write Specs
 
 Each spec follows the JTBD template structure:
