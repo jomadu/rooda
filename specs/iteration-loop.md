@@ -45,7 +45,8 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 - [ ] Dry-run mode displays assembled prompt with clear section markers
 - [ ] Dry-run mode displays resolved configuration with provenance
 - [ ] Dry-run mode exits with code 0 if all validations pass
-- [ ] Dry-run mode exits with code 1 if any validation fails (with clear error message)
+- [ ] Dry-run mode exits with code 1 if user error (invalid flags, unknown procedure)
+- [ ] Dry-run mode exits with code 2 if config error (missing AI command, invalid config, missing prompt files)
 - [ ] Dry-run mode does not execute AI CLI
 - [ ] AI CLI output always captured and scanned for `<promise>` signals, regardless of `--verbose`
 - [ ] AI CLI output buffered with configurable max size (`loop.max_output_buffer`, default: 10485760 bytes = 10MB)

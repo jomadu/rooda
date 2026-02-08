@@ -26,8 +26,14 @@ The developer wants to invoke rooda procedures with minimal typing, override con
 - [ ] `--max-iterations <n>` overrides default max iterations for the procedure (must be >= 1)
 - [ ] `--unlimited` sets iteration mode to unlimited (overrides `--max-iterations`)
 - [ ] `--dry-run` displays assembled prompt without executing AI CLI
+- [ ] `--dry-run` exits with code 0 if validation passes (config valid, prompts exist, AI command found)
+- [ ] `--dry-run` exits with code 1 if user error (invalid flags, unknown procedure)
+- [ ] `--dry-run` exits with code 2 if config error (missing AI command, invalid config, missing prompt files)
 - [ ] `--context <text>` injects user-provided context into prompt composition
 - [ ] `--context-file <path>` reads context from file and injects into prompt composition
+- [ ] Multiple `--context` flags accumulate (all contexts injected in order)
+- [ ] Multiple `--context-file` flags accumulate (all file contents injected in order)
+- [ ] `--context` and `--context-file` can be mixed (all accumulate in CLI arg order)
 - [ ] `--ai-cmd <command>` overrides AI command for this execution (direct command string)
 - [ ] `--ai-cmd-alias <alias>` overrides AI command using a named alias
 - [ ] `--ai-cmd` takes precedence over `--ai-cmd-alias` when both provided
@@ -35,8 +41,10 @@ The developer wants to invoke rooda procedures with minimal typing, override con
 - [ ] `--quiet` suppresses all non-error output
 - [ ] `--log-level <level>` sets log level (debug, info, warn, error)
 - [ ] `--config <path>` specifies alternate workspace config file path
+- [ ] Prompt file paths in CLI overrides (--observe, --orient, --decide, --act) resolve relative to --config file's directory if --config provided, else relative to ./rooda-config.yml directory
 - [ ] `--observe <file>`, `--orient <file>`, `--decide <file>`, `--act <file>` override individual OODA phase prompt files
-- [ ] Multiple `--context` flags accumulate (all contexts injected)
+- [ ] OODA phase override files validated at config load time (fail fast before execution)
+- [ ] OODA phase validation skipped for --list-procedures and --version (info commands only)
 - [ ] `--verbose` and `--quiet` are mutually exclusive (error if both provided)
 - [ ] `--max-iterations` and `--unlimited` are mutually exclusive (error if both provided)
 - [ ] Invalid flag values produce clear error messages with expected format
@@ -63,7 +71,7 @@ type CLIArgs struct {
     Unlimited        bool              // --unlimited
     DryRun           bool              // --dry-run
     Contexts         []string          // --context <text> (multiple allowed)
-    ContextFiles     []string          // --context-file <path> (multiple allowed)
+    ContextFiles     []string          // --context-file <path> (multiple allowed, accumulate)
     AICmd            string            // --ai-cmd <command>
     AICmdAlias       string            // --ai-cmd-alias <alias>
     Verbose          bool              // --verbose
@@ -116,10 +124,12 @@ const (
    - If not: display error with suggestion to run --list-procedures
    - Exit 1
 8. Merge CLIArgs with configuration (flags override config)
-9. Validate merged configuration
+9. Validate merged configuration (skip validation for --list-procedures and --version)
    - Check mutually exclusive flags
    - Validate flag value constraints
-   - Verify AI command configured
+   - Resolve AI command (see configuration.md AI Command Resolution)
+   - If no AI command configured: error with guidance, exit 2
+   - Validate OODA phase override files exist (if provided)
    - If errors: display clear messages, exit 1 or 2
 10. Execute procedure with merged configuration
 11. Exit with appropriate code based on outcome
@@ -368,6 +378,9 @@ POSIX convention — users expect both forms to work.
 
 **Why short flags for common options?**
 Reduces typing for frequently used flags. Only the most common flags get short versions to avoid namespace pollution.
+
+**Short Flag Policy:**
+Short flags are reserved for the most frequently used operations only. Future flags will use long form only to avoid namespace pollution. Current short flags (`-v`, `-q`, `-n`, `-u`, `-d`, `-c`, `-h`) are considered stable and will not change.
 
 ### Flag Categories
 
