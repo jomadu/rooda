@@ -26,11 +26,13 @@ The developer wants to start using rooda on a new project with zero configuratio
 - [ ] Global config at `<config_dir>/rooda-config.yml` is loaded if present, ignored if absent
 - [ ] Global config directory resolved as: `ROODA_CONFIG_HOME` env var > `$XDG_CONFIG_HOME/rooda/` > `~/.config/rooda/`
 - [ ] Workspace config at `./rooda-config.yml` is loaded if present, ignored if absent
+- [ ] `--config <path>` CLI flag specifies an alternate workspace config file path (overrides `./rooda-config.yml`)
 - [ ] Environment variables with `ROODA_` prefix override config file values
 - [ ] CLI flags override all other sources
 - [ ] Precedence order is: CLI flags > env vars > workspace config > global config > built-in defaults
 - [ ] Workspace config overrides global config for all overlapping fields
 - [ ] Procedure definitions in workspace config merge with (not replace) built-in defaults — workspace procedures add to or override individual built-in procedures, but don't remove other built-in procedures
+- [ ] When a workspace or global config overrides a procedure field, only the specified fields override the built-in; unspecified fields inherit from the built-in procedure (field-level merging, not full replacement)
 - [ ] AI command aliases in workspace config merge with built-in aliases — workspace aliases add to or override individual built-in aliases
 - [ ] Loop settings (`iteration_mode`, `default_max_iterations`, `failure_threshold`, `ai_cmd`, `ai_cmd_alias`) follow the same precedence chain
 - [ ] `iteration_mode` field accepted at loop and procedure levels, resolved through tier precedence
@@ -48,6 +50,7 @@ The developer wants to start using rooda on a new project with zero configuratio
 - [ ] `ROODA_LOOP_AI_CMD_ALIAS` environment variable sets `loop.ai_cmd_alias` (overrides config file, but procedure-level overrides it)
 - [ ] `ROODA_LOOP_ITERATION_MODE` environment variable sets `loop.iteration_mode` (`max-iterations` or `unlimited`)
 - [ ] `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` environment variable sets the default max iterations (must be >= 1)
+- [ ] `ROODA_LOOP_ITERATION_TIMEOUT` environment variable sets the iteration timeout in seconds (must be >= 1)
 - [ ] Prompt file paths in procedures resolved relative to the config file that defines them (workspace or global) or as embedded resources (built-in defaults)
 - [ ] Built-in default procedures include all 16 v2 procedures with embedded prompt files
 - [ ] Custom procedures can reference prompt files on the filesystem
@@ -78,17 +81,34 @@ type Config struct {
 ```go
 type LoopConfig struct {
     IterationMode        IterationMode // Iteration mode (built-in default: ModeMaxIterations)
-    DefaultMaxIterations int           // Global default (built-in default: 5). Must be >= 1 when set. 0 = not set.
+    DefaultMaxIterations *int          // Global default (built-in default: 5). Must be >= 1 when set. nil = not set (inherit).
+    IterationTimeout     *int          // Per-iteration timeout in seconds (built-in default: nil). nil = no timeout.
+    MaxOutputBuffer      int           // Max AI CLI output buffer in bytes (built-in default: 10485760 = 10MB). Must be >= 1024.
     FailureThreshold     int           // Consecutive failures before abort (built-in default: 3)
+    LogLevel             LogLevel      // Loop log level (built-in default: LogLevelInfo)
+    ShowAIOutput         bool          // Stream AI CLI output to terminal (built-in default: false)
     AICmd                string        // Default AI command (direct command string, optional)
     AICmdAlias           string        // Default AI command alias name (resolved from AICmdAliases, optional)
 }
+
+type LogLevel string
+
+const (
+    LogLevelDebug LogLevel = "debug"
+    LogLevelInfo  LogLevel = "info"
+    LogLevelWarn  LogLevel = "warn"
+    LogLevelError LogLevel = "error"
+)
 ```
 
 **Fields:**
 - `IterationMode` — Controls whether iterations are limited or unlimited. Built-in default: `ModeMaxIterations`. Empty string means not set (for merging — after built-in defaults are applied, always has a value).
-- `DefaultMaxIterations` — Global default iteration limit. Built-in default: 5. Must be >= 1 when set. 0 means not set (for merging). Ignored when `IterationMode` is `ModeUnlimited`.
+- `DefaultMaxIterations` — Global default iteration limit. Built-in default: pointer to 5. nil means not set (for merging). When not nil, must be >= 1. Ignored when `IterationMode` is `ModeUnlimited`.
+- `IterationTimeout` — Per-iteration timeout in seconds. Built-in default: nil (no timeout). nil means not set (for merging) or no timeout (after merging). When not nil, must be >= 1. If AI CLI execution exceeds this duration, process is killed and iteration counts as failure.
+- `MaxOutputBuffer` — Maximum AI CLI output buffer size in bytes. Built-in default: 10485760 (10MB). Must be >= 1024. If output exceeds this, buffer is truncated from beginning (keeping most recent output for signal scanning).
 - `FailureThreshold` — Consecutive failures before the loop aborts. Built-in default: 3. Must be >= 1.
+- `LogLevel` — Loop log level. Built-in default: `LogLevelInfo`. Valid values: `debug`, `info`, `warn`, `error`.
+- `ShowAIOutput` — Stream AI CLI output to terminal. Built-in default: false.
 - `AICmd` — Direct AI command string. If set, takes precedence over `AICmdAlias`. Empty means not set.
 - `AICmdAlias` — Name of an alias from `AICmdAliases` to use as the default AI command. Empty means not set. If both `AICmd` and `AICmdAlias` are set, `AICmd` wins.
 
@@ -104,7 +124,9 @@ type Procedure struct {
     Decide               string        // Path to decide phase prompt file, or embedded resource name
     Act                  string        // Path to act phase prompt file, or embedded resource name
     IterationMode        IterationMode // Override loop iteration mode ("" = inherit from loop)
-    DefaultMaxIterations int           // Override loop.default_max_iterations (0 = inherit from loop). Must be >= 1 when set.
+    DefaultMaxIterations *int          // Override loop.default_max_iterations (nil = inherit from loop). Must be >= 1 when set.
+    IterationTimeout     *int          // Override loop.iteration_timeout (nil = inherit from loop). Must be >= 1 when set. Seconds.
+    MaxOutputBuffer      *int          // Override loop.max_output_buffer (nil = inherit from loop). Must be >= 1024 when set. Bytes.
     AICmd                string        // Override AI command for this procedure (optional)
     AICmdAlias           string        // Override AI command alias for this procedure (optional)
 }
@@ -113,7 +135,9 @@ type Procedure struct {
 **Fields:**
 - `Observe`, `Orient`, `Decide`, `Act` — Paths to prompt markdown files. For built-in procedures, these reference embedded resources. For user-defined procedures, these are filesystem paths resolved relative to the config file location.
 - `IterationMode` — Optional per-procedure override. Empty string means inherit from loop settings. When set to `ModeUnlimited`, `DefaultMaxIterations` is ignored.
-- `DefaultMaxIterations` — Optional per-procedure override. 0 means inherit from `loop.default_max_iterations`. Must be >= 1 when set.
+- `DefaultMaxIterations` — Optional per-procedure override. nil means inherit from `loop.default_max_iterations`. When not nil, must be >= 1.
+- `IterationTimeout` — Optional per-procedure timeout override in seconds. nil means inherit from `loop.iteration_timeout`. When not nil, must be >= 1.
+- `MaxOutputBuffer` — Optional per-procedure output buffer size override in bytes. nil means inherit from `loop.max_output_buffer`. When not nil, must be >= 1024.
 - `AICmd` — Optional per-procedure AI command override. If set, takes precedence over `AICmdAlias`. Empty means inherit from loop settings.
 - `AICmdAlias` — Optional per-procedure AI command alias. Empty means inherit from loop settings. If both `AICmd` and `AICmdAlias` are set, `AICmd` wins.
 
@@ -153,7 +177,11 @@ Both workspace and global config files share the same schema:
 loop:
   iteration_mode: max-iterations  # "max-iterations" or "unlimited" (built-in default: max-iterations)
   default_max_iterations: 5       # Default max iterations (must be >= 1). Ignored when mode is unlimited.
+  iteration_timeout: 300          # Per-iteration timeout in seconds (nil/omitted = no timeout, built-in default: nil)
+  max_output_buffer: 10485760     # Max AI CLI output buffer in bytes (built-in default: 10485760 = 10MB)
   failure_threshold: 3            # Consecutive failures before abort
+  log_level: info                 # "debug", "info", "warn", "error" (built-in default: info)
+  show_ai_output: false           # Stream AI CLI output to terminal (built-in default: false)
   ai_cmd_alias: claude            # Default AI command alias for all procedures
   # ai_cmd: "custom-cli --flags"  # Or set a direct command (overrides ai_cmd_alias)
 
@@ -201,7 +229,10 @@ var BuiltInDefaults = Config{
     Loop: LoopConfig{
         IterationMode:        ModeMaxIterations,
         DefaultMaxIterations: 5,
+        MaxOutputBuffer:      10485760,  // 10MB
         FailureThreshold:     3,
+        LogLevel:             LogLevelInfo,
+        ShowAIOutput:         false,
     },
     AICmdAliases: map[string]string{
         "kiro-cli":     "kiro-cli chat --no-interactive --trust-all-tools",
@@ -222,7 +253,10 @@ var BuiltInDefaults = Config{
 | `ROODA_LOOP_AI_CMD_ALIAS` | AI command alias name (resolved from merged config) | string |
 | `ROODA_LOOP_ITERATION_MODE` | `loop.iteration_mode` (`max-iterations` or `unlimited`) | string |
 | `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` | `loop.default_max_iterations` (must be >= 1) | int |
+| `ROODA_LOOP_ITERATION_TIMEOUT` | `loop.iteration_timeout` (seconds, must be >= 1) | int |
 | `ROODA_LOOP_FAILURE_THRESHOLD` | `loop.failure_threshold` | int |
+| `ROODA_LOG_LEVEL` | `loop.log_level` (debug, info, warn, error) | string |
+| `ROODA_SHOW_AI_OUTPUT` | `loop.show_ai_output` (true, false) | bool |
 
 Environment variables use the `ROODA_` prefix. They override config file values but are overridden by CLI flags.
 
@@ -269,10 +303,19 @@ function LoadConfig(cliFlags CLIFlags) -> (Config, error):
     if env("ROODA_LOOP_FAILURE_THRESHOLD") != "":
         config.Loop.FailureThreshold = parseInt(env("ROODA_LOOP_FAILURE_THRESHOLD"))
         provenance["loop.failure_threshold"] = ConfigSource{TierEnvVar, "", config.Loop.FailureThreshold}
+    if env("ROODA_LOOP_ITERATION_TIMEOUT") != "":
+        config.Loop.IterationTimeout = parseInt(env("ROODA_LOOP_ITERATION_TIMEOUT"))
+        provenance["loop.iteration_timeout"] = ConfigSource{TierEnvVar, "", config.Loop.IterationTimeout}
+    if env("ROODA_LOG_LEVEL") != "":
+        config.Loop.LogLevel = LogLevel(env("ROODA_LOG_LEVEL"))
+        provenance["loop.log_level"] = ConfigSource{TierEnvVar, "", config.Loop.LogLevel}
+    if env("ROODA_SHOW_AI_OUTPUT") != "":
+        config.Loop.ShowAIOutput = parseBool(env("ROODA_SHOW_AI_OUTPUT"))
+        provenance["loop.show_ai_output"] = ConfigSource{TierEnvVar, "", config.Loop.ShowAIOutput}
 
     // 5. Apply CLI flags (highest precedence)
     if cliFlags.MaxIterations != nil:
-        config.Loop.DefaultMaxIterations = *cliFlags.MaxIterations
+        config.Loop.DefaultMaxIterations = cliFlags.MaxIterations
         provenance["loop.default_max_iterations"] = ConfigSource{TierCLIFlag, "", *cliFlags.MaxIterations}
     // Additional CLI flag overrides applied by caller (--ai-cmd, --ai-cmd-alias, etc.)
 
@@ -309,12 +352,24 @@ function mergeConfig(base Config, overlay ConfigFile, provenance map, tier Confi
     if overlay.Loop.IterationMode != "":
         base.Loop.IterationMode = overlay.Loop.IterationMode
         provenance["loop.iteration_mode"] = ConfigSource{tier, filePath, overlay.Loop.IterationMode}
-    if overlay.Loop.DefaultMaxIterations != 0:
+    if overlay.Loop.DefaultMaxIterations != nil:
         base.Loop.DefaultMaxIterations = overlay.Loop.DefaultMaxIterations
-        provenance["loop.default_max_iterations"] = ConfigSource{tier, filePath, overlay.Loop.DefaultMaxIterations}
+        provenance["loop.default_max_iterations"] = ConfigSource{tier, filePath, *overlay.Loop.DefaultMaxIterations}
     if overlay.Loop.FailureThreshold != 0:
         base.Loop.FailureThreshold = overlay.Loop.FailureThreshold
         provenance["loop.failure_threshold"] = ConfigSource{tier, filePath, overlay.Loop.FailureThreshold}
+    if overlay.Loop.IterationTimeout != nil:
+        base.Loop.IterationTimeout = overlay.Loop.IterationTimeout
+        provenance["loop.iteration_timeout"] = ConfigSource{tier, filePath, *overlay.Loop.IterationTimeout}
+    if overlay.Loop.MaxOutputBuffer != 0:
+        base.Loop.MaxOutputBuffer = overlay.Loop.MaxOutputBuffer
+        provenance["loop.max_output_buffer"] = ConfigSource{tier, filePath, overlay.Loop.MaxOutputBuffer}
+    if overlay.Loop.LogLevel != "":
+        base.Loop.LogLevel = overlay.Loop.LogLevel
+        provenance["loop.log_level"] = ConfigSource{tier, filePath, overlay.Loop.LogLevel}
+    if overlay.Loop.ShowAIOutput:
+        base.Loop.ShowAIOutput = overlay.Loop.ShowAIOutput
+        provenance["loop.show_ai_output"] = ConfigSource{tier, filePath, overlay.Loop.ShowAIOutput}
     if overlay.Loop.AICmd != "":
         base.Loop.AICmd = overlay.Loop.AICmd
         provenance["loop.ai_cmd"] = ConfigSource{tier, filePath, overlay.Loop.AICmd}
@@ -327,20 +382,77 @@ function mergeConfig(base Config, overlay ConfigFile, provenance map, tier Confi
         base.AICmdAliases[name] = command
         provenance["ai_cmd_aliases." + name] = ConfigSource{tier, filePath, command}
 
-    // Merge procedures (overlay adds to or overrides individual procedures)
+    // Merge procedures (field-level merge: overlay fields override built-in, unspecified fields inherit)
     for name, proc in overlay.Procedures:
-        // Resolve prompt file paths relative to config file directory
-        configDir = dirname(filePath)
-        proc.Observe = resolvePath(configDir, proc.Observe)
-        proc.Orient = resolvePath(configDir, proc.Orient)
-        proc.Decide = resolvePath(configDir, proc.Decide)
-        proc.Act = resolvePath(configDir, proc.Act)
-
-        base.Procedures[name] = proc
-        provenance["procedures." + name] = ConfigSource{tier, filePath, proc}
+        baseProcedure, exists = base.Procedures[name]
+        if !exists:
+            // New procedure not in base — must have all required fields specified
+            baseProcedure = Procedure{}
+        
+        // Merge fields: overlay non-empty/non-zero values override base, else inherit from base
+        if proc.Display != "":
+            baseProcedure.Display = proc.Display
+        if proc.Summary != "":
+            baseProcedure.Summary = proc.Summary
+        if proc.Description != "":
+            baseProcedure.Description = proc.Description
+        if proc.Observe != "":
+            baseProcedure.Observe = resolvePath(dirname(filePath), proc.Observe)
+        if proc.Orient != "":
+            baseProcedure.Orient = resolvePath(dirname(filePath), proc.Orient)
+        if proc.Decide != "":
+            baseProcedure.Decide = resolvePath(dirname(filePath), proc.Decide)
+        if proc.Act != "":
+            baseProcedure.Act = resolvePath(dirname(filePath), proc.Act)
+        if proc.IterationMode != "":
+            baseProcedure.IterationMode = proc.IterationMode
+        if proc.DefaultMaxIterations != nil:
+            baseProcedure.DefaultMaxIterations = proc.DefaultMaxIterations
+        if proc.IterationTimeout != nil:
+            baseProcedure.IterationTimeout = proc.IterationTimeout
+        if proc.MaxOutputBuffer != nil:
+            baseProcedure.MaxOutputBuffer = proc.MaxOutputBuffer
+        if proc.AICmd != "":
+            baseProcedure.AICmd = proc.AICmd
+        if proc.AICmdAlias != "":
+            baseProcedure.AICmdAlias = proc.AICmdAlias
+        
+        base.Procedures[name] = baseProcedure
+        provenance["procedures." + name] = ConfigSource{tier, filePath, baseProcedure}
 
     return base
 ```
+
+### Prompt File Loading
+
+Prompt file paths are resolved based on an internal prefix:
+
+```
+function LoadPrompt(path string, configDir string, embeddedFS embed.FS) -> ([]byte, error):
+    // Check for internal builtin: prefix
+    if strings.HasPrefix(path, "builtin:"):
+        // Strip prefix and load from embedded resources
+        embeddedPath = strings.TrimPrefix(path, "builtin:")
+        content, err = embeddedFS.ReadFile(embeddedPath)
+        if err:
+            return error("embedded prompt not found: %s", path)
+        return content, nil
+    
+    // No prefix = filesystem path, resolved relative to config directory
+    fsPath = filepath.Join(configDir, path)
+    content, err = os.ReadFile(fsPath)
+    if err:
+        return error("prompt file not found: %s (resolved to %s)", path, fsPath)
+    return content, nil
+```
+
+**Implementation notes:**
+- Built-in procedures use internal `builtin:` prefix (e.g., `builtin:prompts/observe_build.md`) in code
+- The prefix is never exposed in config files or to users
+- Custom procedures use filesystem paths (e.g., `my-prompts/observe.md`) resolved relative to config directory
+- To override a built-in prompt, specify the filesystem path in config (e.g., `observe: prompts/observe_build.md`)
+- Field-level merge preserves `builtin:` prefixed paths when not overridden
+- No naming conflicts possible — built-in paths always have prefix, user paths never do
 
 ### Config Validation
 
@@ -349,12 +461,18 @@ function validateConfig(config Config) -> error:
     // Validate loop settings
     if config.Loop.IterationMode != ModeMaxIterations && config.Loop.IterationMode != ModeUnlimited:
         return error("loop.iteration_mode must be 'max-iterations' or 'unlimited', got '%s'", config.Loop.IterationMode)
-    if config.Loop.DefaultMaxIterations < 0:
-        return error("loop.default_max_iterations must be >= 1 when set, got %d", config.Loop.DefaultMaxIterations)
-    if config.Loop.IterationMode == ModeMaxIterations && config.Loop.DefaultMaxIterations < 1:
-        return error("loop.default_max_iterations must be >= 1 when iteration_mode is 'max-iterations', got %d", config.Loop.DefaultMaxIterations)
+    if config.Loop.IterationMode == ModeMaxIterations && config.Loop.DefaultMaxIterations == nil:
+        return error("loop.default_max_iterations must be set when iteration_mode is 'max-iterations'")
+    if config.Loop.DefaultMaxIterations != nil && *config.Loop.DefaultMaxIterations < 1:
+        return error("loop.default_max_iterations must be >= 1 when set, got %d", *config.Loop.DefaultMaxIterations)
     if config.Loop.FailureThreshold < 1:
         return error("loop.failure_threshold must be >= 1, got %d", config.Loop.FailureThreshold)
+    if config.Loop.IterationTimeout != nil && *config.Loop.IterationTimeout < 1:
+        return error("loop.iteration_timeout must be >= 1 when set, got %d", *config.Loop.IterationTimeout)
+    if config.Loop.MaxOutputBuffer < 1024:
+        return error("loop.max_output_buffer must be >= 1024, got %d", config.Loop.MaxOutputBuffer)
+    if config.Loop.LogLevel != LogLevelDebug && config.Loop.LogLevel != LogLevelInfo && config.Loop.LogLevel != LogLevelWarn && config.Loop.LogLevel != LogLevelError:
+        return error("loop.log_level must be 'debug', 'info', 'warn', or 'error', got '%s'", config.Loop.LogLevel)
 
     // Validate procedures
     for name, proc in config.Procedures:
@@ -368,8 +486,12 @@ function validateConfig(config Config) -> error:
             return error("procedure %s: act is required", name)
         if proc.IterationMode != "" && proc.IterationMode != ModeMaxIterations && proc.IterationMode != ModeUnlimited:
             return error("procedure %s: iteration_mode must be '', 'max-iterations', or 'unlimited', got '%s'", name, proc.IterationMode)
-        if proc.DefaultMaxIterations != 0 && proc.DefaultMaxIterations < 1:
-            return error("procedure %s: default_max_iterations must be >= 1 when set, got %d", name, proc.DefaultMaxIterations)
+        if proc.DefaultMaxIterations != nil && *proc.DefaultMaxIterations < 1:
+            return error("procedure %s: default_max_iterations must be >= 1 when set, got %d", name, *proc.DefaultMaxIterations)
+        if proc.IterationTimeout != nil && *proc.IterationTimeout < 1:
+            return error("procedure %s: iteration_timeout must be >= 1 when set, got %d", name, *proc.IterationTimeout)
+        if proc.MaxOutputBuffer != nil && *proc.MaxOutputBuffer < 1024:
+            return error("procedure %s: max_output_buffer must be >= 1024 when set, got %d", name, *proc.MaxOutputBuffer)
 
     // Validate AI command aliases (values must be non-empty strings)
     for name, command in config.AICmdAliases:
@@ -465,21 +587,21 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
     if exists:
         if proc.IterationMode == ModeUnlimited:
             return nil, config.Provenance["procedures." + procedureName]
-        if proc.IterationMode == ModeMaxIterations && proc.DefaultMaxIterations > 0:
-            return &proc.DefaultMaxIterations, config.Provenance["procedures." + procedureName]
-        // proc.IterationMode == ModeMaxIterations && proc.DefaultMaxIterations == 0:
+        if proc.IterationMode == ModeMaxIterations && proc.DefaultMaxIterations != nil:
+            return proc.DefaultMaxIterations, config.Provenance["procedures." + procedureName]
+        // proc.IterationMode == ModeMaxIterations && proc.DefaultMaxIterations == nil:
         //   mode set but count inherits from loop — fall through
         // proc.IterationMode == "": inherit everything from loop — fall through
-        if proc.IterationMode == "" && proc.DefaultMaxIterations > 0:
+        if proc.IterationMode == "" && proc.DefaultMaxIterations != nil:
             // No mode override but explicit count — use count with loop's mode
             if config.Loop.IterationMode == ModeUnlimited:
                 return nil, config.Provenance["loop.iteration_mode"]  // mode governs
-            return &proc.DefaultMaxIterations, config.Provenance["procedures." + procedureName]
+            return proc.DefaultMaxIterations, config.Provenance["procedures." + procedureName]
 
     // 4. Loop-level iteration_mode and default_max_iterations (already merged from tiers)
     if config.Loop.IterationMode == ModeUnlimited:
         return nil, config.Provenance["loop.iteration_mode"]
-    return &config.Loop.DefaultMaxIterations, config.Provenance["loop.default_max_iterations"]
+    return config.Loop.DefaultMaxIterations, config.Provenance["loop.default_max_iterations"]
 ```
 
 ## Edge Cases
@@ -490,20 +612,22 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
 | No config files exist, AI command provided via flag | Works using built-in defaults for procedures and loop settings |
 | Global config exists, no workspace config | Global config merges with built-in defaults |
 | Both global and workspace config exist | Workspace overrides global for overlapping values; non-overlapping values from both are kept |
-| Workspace config defines procedure that overrides a built-in | Workspace procedure replaces the built-in procedure entirely (all fields) |
+| Workspace config defines procedure that overrides a built-in | Workspace procedure fields override the built-in; unspecified fields inherit from built-in (field-level merge) |
 | Workspace config defines new procedure not in built-ins | New procedure added alongside built-in procedures |
 | Global config defines procedure, workspace does not | Global procedure is available alongside built-in procedures |
 | Environment variable `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` set to non-integer | Error: "ROODA_LOOP_DEFAULT_MAX_ITERATIONS must be an integer, got 'abc'" |
 | Environment variable `ROODA_LOOP_DEFAULT_MAX_ITERATIONS=0` | Error: "ROODA_LOOP_DEFAULT_MAX_ITERATIONS must be >= 1, got 0" |
-| `ROODA_LOOP_ITERATION_MODE=unlimited` | Sets loop iteration mode to unlimited |
 | `ROODA_LOOP_ITERATION_MODE=invalid-value` | Error at config validation: "loop.iteration_mode must be 'max-iterations' or 'unlimited'" |
 | Config file has invalid YAML | Error with file path and parse error details |
 | Config file has unknown top-level key | Warning logged, key ignored (forward compatibility) |
 | Config file has unknown key inside `procedures` | Warning logged, key ignored |
 | Procedure references prompt file that doesn't exist | Error at validation time: "procedure 'X': observe file not found: path/to/file.md" |
-| Built-in procedure prompt file (embedded) | Loaded from Go binary via `go:embed`, not filesystem |
+| Built-in procedure prompt file (embedded) | Loaded from Go binary via `go:embed` using internal `builtin:` prefix |
 | Workspace procedure prompt file path | Resolved relative to workspace config file directory |
 | Global procedure prompt file path | Resolved relative to global config file directory |
+| User creates `./prompts/observe_build.md` file | No conflict — built-in uses `builtin:prompts/observe_build.md`, user file ignored unless explicitly referenced in config |
+| Workspace config overrides built-in prompt path | User specifies `observe: prompts/observe_build.md` → loads from filesystem, overriding built-in |
+| Workspace config at `./rooda-config.yml`, invoked from subdirectory | Prompt paths resolved relative to `./` (workspace config directory), not current working directory |
 | Global config directory doesn't exist | Silently skipped (no global config) |
 | `ROODA_CONFIG_HOME` set to non-existent directory | Silently skipped (same as missing directory) |
 | `XDG_CONFIG_HOME` set, `ROODA_CONFIG_HOME` not set | Global config at `$XDG_CONFIG_HOME/rooda/rooda-config.yml` |
@@ -520,8 +644,8 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
 | Workspace sets `loop.ai_cmd_alias`, overriding global | Workspace wins per standard tier precedence |
 | `ROODA_LOOP_AI_CMD` set, procedure has `ai_cmd_alias` | Procedure-level wins — env vars set loop-level defaults, procedure overrides loop (same as max iterations) |
 | `loop.failure_threshold: 0` in config | Error: "loop.failure_threshold must be >= 1" |
-| `loop.default_max_iterations: 0` in config | Valid — means not set (inherits built-in default). Note: 0 no longer means unlimited; use `iteration_mode: unlimited` instead. |
-| Procedure `default_max_iterations: 0` in config | Valid — means inherit from loop. Note: 0 no longer means unlimited; use `iteration_mode: unlimited` instead. |
+| `loop.default_max_iterations: 0` in config | Error: "loop.default_max_iterations must be >= 1 when set, got 0". Use omission (not specified) to inherit from parent tier. |
+| Procedure `default_max_iterations: 0` in config | Error: "procedure X: default_max_iterations must be >= 1 when set, got 0". Use omission (not specified) to inherit from loop. |
 | `iteration_mode: unlimited` at global, `default_max_iterations: 10` at workspace without mode | Unlimited — mode governs. Workspace only set count, didn't override mode, so global mode applies. |
 | `iteration_mode: invalid-value` in config | Error at validation: "loop.iteration_mode must be 'max-iterations' or 'unlimited'" |
 | Procedure `iteration_mode: unlimited` with `default_max_iterations: 5` | Unlimited for that procedure — mode governs, count ignored |
@@ -896,6 +1020,10 @@ Provenance answers the question "where did this value come from?" — essential 
 **Environment Variable Convention:**
 
 The `ROODA_` prefix follows Go CLI conventions and avoids namespace collisions. Only a small set of environment variables is supported — complex configuration belongs in YAML files. `ROODA_CONFIG_HOME` provides a rooda-specific override for the global config directory, useful for CI/CD environments or when XDG isn't appropriate. When not set, the standard `XDG_CONFIG_HOME` is respected, falling back to `~/.config/` — the conventional default for CLI tools across Linux and macOS.
+
+**Procedure-Level Environment Variables:**
+
+Procedure-specific settings (e.g., `iteration_mode`, `ai_cmd_alias`) cannot be set via environment variables. Use CLI flags (`--unlimited`, `--ai-cmd`) or config files (global or workspace) instead. This keeps the environment variable surface area minimal and encourages using config files for procedure-specific customization.
 
 **Path Resolution:**
 

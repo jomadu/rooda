@@ -25,10 +25,12 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 ## Acceptance Criteria
 
 - [ ] Loop executes until max iterations reached, Ctrl+C pressed, consecutive failure threshold hit, or AI signals success
-- [ ] If AI CLI output contains `<promise>SUCCESS</promise>`, loop terminates with status `completed` regardless of exit code
+- [ ] If AI CLI output contains `<promise>SUCCESS</promise>`, loop terminates with status `success` regardless of exit code
 - [ ] If AI CLI output contains `<promise>FAILURE</promise>`, iteration counts as a failure (increments `ConsecutiveFailures`) even if exit code is 0
+- [ ] If both `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>` are present, FAILURE takes precedence (conservative choice)
 - [ ] Each iteration invokes the AI CLI as a separate process, ensuring fresh context
 - [ ] Iteration counter increments correctly (0-indexed internal, 1-indexed display)
+- [ ] Iteration counting example: `--max-iterations 5` runs iterations 0-4 (displayed as 1-5), termination check `Iteration >= 5` prevents iteration 5 from starting
 - [ ] Max iterations resolved with precedence: `--max-iterations` CLI flag > `--unlimited` CLI flag > procedure `iteration_mode`/`default_max_iterations` > `loop.iteration_mode`/`loop.default_max_iterations` > built-in default (mode=max-iterations, count=5)
 - [ ] `--unlimited` flag overrides max iterations to nil (no limit)
 - [ ] Procedure-level `iteration_mode` overrides global `loop.iteration_mode`
@@ -38,12 +40,42 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 - [ ] Iteration outcome determined by output signals and exit code per the outcome matrix
 - [ ] Consecutive failure count tracked; loop aborts after configurable threshold (`loop.failure_threshold`, default: 3)
 - [ ] Single failure resets consecutive counter on next success
-- [ ] Dry-run mode assembles and displays the prompt once without executing AI CLI, then exits
+- [ ] Dry-run mode validates all prompt files exist and are readable
+- [ ] Dry-run mode validates AI command binary exists and is executable
+- [ ] Dry-run mode displays assembled prompt with clear section markers
+- [ ] Dry-run mode displays resolved configuration with provenance
+- [ ] Dry-run mode exits with code 0 if all validations pass
+- [ ] Dry-run mode exits with code 1 if any validation fails (with clear error message)
+- [ ] Dry-run mode does not execute AI CLI
 - [ ] AI CLI output always captured and scanned for `<promise>` signals, regardless of `--verbose`
+- [ ] AI CLI output buffered with configurable max size (`loop.max_output_buffer`, default: 10485760 bytes = 10MB)
+- [ ] If output exceeds buffer size, buffer truncated from beginning (keeps most recent output), warning logged
+- [ ] Output buffer size can be overridden per-procedure via procedure `max_output_buffer`
+- [ ] Promise signal scanning happens after AI CLI exits (not during streaming)
 - [ ] AI CLI output streamed to the terminal in real-time when `--verbose` flag is set
 - [ ] Without `--verbose`, only loop-level progress (iteration start/complete, timing, outcome) is displayed
-- [ ] Loop logs iteration number, elapsed time, and outcome (success/failure/completed) after each iteration
-- [ ] SIGINT/SIGTERM kills the AI CLI process and exits immediately
+- [ ] Loop displays iteration statistics (count, min, max, mean, stddev) at completion
+- [ ] Iteration statistics use constant memory (O(1)) regardless of iteration count
+- [ ] Partial output from crashed AI CLI processes scanned for `<promise>` signals
+- [ ] Loop terminates with status `success` when AI signals `<promise>SUCCESS</promise>`
+- [ ] Loop terminates with status `max-iters` when max iterations reached
+- [ ] Loop terminates with status `aborted` when failure threshold exceeded
+- [ ] Loop terminates with status `interrupted` when SIGINT/SIGTERM received
+- [ ] Exit code 0 for `success`, 1 for `aborted`, 2 for `max-iters`, 130 for `interrupted`
+- [ ] Loop log level configurable via `loop.log_level` (debug, info, warn, error, built-in default: info)
+- [ ] AI output streaming configurable via `loop.show_ai_output` (true, false, built-in default: false)
+- [ ] `ROODA_LOG_LEVEL` environment variable sets `loop.log_level`
+- [ ] `ROODA_SHOW_AI_OUTPUT` environment variable sets `loop.show_ai_output`
+- [ ] `--verbose` flag overrides `loop.show_ai_output` to true
+- [ ] `--quiet` flag overrides `loop.log_level` to warn
+- [ ] `--log-level=<level>` flag overrides `loop.log_level`
+- [ ] SIGINT/SIGTERM kills the AI CLI process, waits for termination (with timeout), and exits with status `interrupted`
+- [ ] If AI CLI exceeds iteration timeout, process is killed and iteration counts as failure (increments `ConsecutiveFailures`)
+- [ ] Iteration timeout configurable via `loop.iteration_timeout` (seconds, nil = no timeout, built-in default: nil)
+- [ ] Timeout can be overridden per-procedure via procedure `iteration_timeout`
+- [ ] `ROODA_LOOP_ITERATION_TIMEOUT` environment variable sets `loop.iteration_timeout`
+- [ ] If AI CLI doesn't terminate within timeout, log warning and exit anyway
+- [ ] Interrupted loops exit with code 130 (standard SIGINT exit code)
 
 ## Data Structures
 
@@ -53,24 +85,43 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 type IterationState struct {
     Iteration           int           // Current iteration number (0-indexed)
     MaxIterations       *int          // Termination threshold (nil = unlimited)
+    IterationTimeout    *int          // Per-iteration timeout in seconds (nil = no timeout)
+    MaxOutputBuffer     int           // Max AI CLI output buffer size in bytes (default: 10485760 = 10MB)
     ConsecutiveFailures int           // Consecutive AI CLI failures
     FailureThreshold    int           // Max consecutive failures before abort (default: 3)
     StartedAt           time.Time     // When the loop started
-    Status              LoopStatus    // running, completed, aborted
+    Status              LoopStatus    // running, completed, aborted, interrupted
     ProcedureName       string        // Name of the procedure being executed
-    ElapsedPerIteration []time.Duration // Timing for each completed iteration
+    Stats               IterationStats // Running statistics for iteration timing
+}
+
+type IterationStats struct {
+    Count     int           // Total iterations completed
+    TotalTime time.Duration // Sum of all iteration durations
+    MinTime   time.Duration // Fastest iteration (0 if no iterations)
+    MaxTime   time.Duration // Slowest iteration (0 if no iterations)
+    M2        float64       // Sum of squared differences from mean (for variance calculation)
 }
 ```
 
 **Fields:**
 - `Iteration` — Current iteration count, starts at 0, increments after each completed cycle
 - `MaxIterations` — Termination threshold from `--max-iterations` > `--unlimited` > procedure `default_max_iterations` > `loop.default_max_iterations` > built-in default (5). Nil means unlimited.
+- `IterationTimeout` — Per-iteration timeout in seconds. From `loop.iteration_timeout`; nil means no timeout (default). If AI CLI execution exceeds this duration, process is killed and iteration counts as failure.
+- `MaxOutputBuffer` — Maximum AI CLI output buffer size in bytes. From `loop.max_output_buffer`; default 10485760 (10MB). If output exceeds this, buffer is truncated from beginning (keeping most recent output for signal scanning).
 - `ConsecutiveFailures` — Resets to 0 on any successful iteration
 - `FailureThreshold` — From `loop.failure_threshold`; default 3. Loop aborts when `ConsecutiveFailures >= FailureThreshold`
 - `StartedAt` — Wall clock time when loop began (for total elapsed calculation)
-- `Status` — State machine: running → completed | aborted
+- `Status` — State machine: running → success | max-iters | aborted | interrupted
 - `ProcedureName` — Which procedure is executing (for logging)
-- `ElapsedPerIteration` — Duration of each iteration for performance visibility
+- `Stats` — Running statistics for iteration timing (constant memory regardless of iteration count)
+
+**IterationStats Fields:**
+- `Count` — Total iterations completed
+- `TotalTime` — Sum of all iteration durations (for mean calculation)
+- `MinTime` — Fastest iteration duration (0 if no iterations completed)
+- `MaxTime` — Slowest iteration duration (0 if no iterations completed)
+- `M2` — Sum of squared differences from mean (for variance/stddev calculation using Welford's online algorithm)
 
 ### Loop Configuration
 
@@ -80,7 +131,11 @@ The `loop` section in `rooda-config.yml` defines global defaults for loop execut
 loop:
   iteration_mode: max-iterations  # "max-iterations" or "unlimited" (built-in default: max-iterations)
   default_max_iterations: 5       # Global default (built-in default: 5). Must be >= 1. Ignored when mode is unlimited.
+  iteration_timeout: 300          # Per-iteration timeout in seconds (nil/omitted = no timeout, built-in default: nil)
+  max_output_buffer: 10485760     # Max AI CLI output buffer in bytes (built-in default: 10485760 = 10MB)
   failure_threshold: 3            # Consecutive failures before abort (built-in default: 3)
+  log_level: info                 # "debug", "info", "warn", "error" (built-in default: info)
+  show_ai_output: false           # Stream AI CLI output to terminal (built-in default: false)
   ai_cmd_alias: claude            # Default AI command alias for all procedures
 
 procedures:
@@ -128,9 +183,18 @@ type LoopStatus string
 
 const (
     StatusRunning     LoopStatus = "running"
-    StatusCompleted   LoopStatus = "completed"   // Max iterations reached or AI signaled SUCCESS
+    StatusSuccess     LoopStatus = "success"     // AI signaled SUCCESS
+    StatusMaxIters    LoopStatus = "max-iters"   // Max iterations reached
     StatusAborted     LoopStatus = "aborted"     // Failure threshold exceeded
+    StatusInterrupted LoopStatus = "interrupted" // User pressed Ctrl+C (SIGINT/SIGTERM)
 )
+```
+
+**Exit Codes:**
+- 0: StatusSuccess (AI signaled completion)
+- 1: StatusAborted (failure threshold exceeded)
+- 2: StatusMaxIters (max iterations reached, work may be incomplete)
+- 130: StatusInterrupted (SIGINT/SIGTERM)
 ```
 
 ### Iteration Outcome Matrix
@@ -141,21 +205,50 @@ Each iteration's outcome is determined by two independent signals: the AI CLI pr
 - `<promise>SUCCESS</promise>` — AI agent declares the job is done
 - `<promise>FAILURE</promise>` — AI agent declares it is blocked and cannot make further progress (not a single test failure — the agent has exhausted what it can do)
 
+**Signal precedence:** If both SUCCESS and FAILURE signals are present in output, FAILURE takes precedence.
+
 | Exit Code | Output Signal | Outcome |
 |---|---|---|
 | 0 | none | Success — reset `ConsecutiveFailures`, continue |
 | 0 | `SUCCESS` | Job done — terminate loop as `completed` |
 | 0 | `FAILURE` | Agent-reported failure — increment `ConsecutiveFailures`, continue |
+| 0 | both | FAILURE wins — increment `ConsecutiveFailures`, continue |
 | non-zero | none | Process failure — increment `ConsecutiveFailures`, continue |
 | non-zero | `SUCCESS` | Job done — terminate loop as `completed` (signal wins) |
 | non-zero | `FAILURE` | Both failed — increment `ConsecutiveFailures`, continue |
+| non-zero | both | FAILURE wins — increment `ConsecutiveFailures`, continue |
 
 ## Algorithm
 
 1. Load configuration (CLI flags > env vars > workspace config > global config > built-in defaults)
 2. Resolve AI command (see configuration.md AI Command Resolution)
 3. Initialize fresh `IterationState`
-4. Register signal handlers for SIGINT and SIGTERM
+4. Register signal handlers for SIGINT and SIGTERM:
+
+```
+function HandleSignal(state *IterationState, aiProcess *os.Process):
+    log.Info("Received interrupt signal")
+    
+    if aiProcess != nil:
+        // Kill AI CLI process
+        aiProcess.Kill()
+        
+        // Wait for termination with timeout
+        done = make(chan bool)
+        go func():
+            aiProcess.Wait()
+            done <- true
+        
+        select:
+            case <-done:
+                log.Info("AI CLI process terminated")
+            case <-time.After(5 * time.Second):
+                log.Warn("AI CLI process did not terminate within 5s timeout")
+    
+    state.Status = interrupted
+    os.Exit(130)  // Standard SIGINT exit code
+```
+
 5. Enter iteration loop:
 
 ```
@@ -163,7 +256,7 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
     while true:
         // Termination check
         if state.MaxIterations != nil AND state.Iteration >= *state.MaxIterations:
-            state.Status = completed
+            state.Status = max-iters
             break
 
         if state.ConsecutiveFailures >= state.FailureThreshold:
@@ -171,54 +264,98 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
             log.Error("Aborting: %d consecutive failures", state.ConsecutiveFailures)
             break
 
-        // Assemble prompt (delegates to prompt-composition)
-        prompt = ComposePrompt(state, config)
+        // Start iteration
+        iterationStart = time.Now()
+        log.Info("Starting iteration %d", state.Iteration+1)
 
-        // Dry-run exits here
-        if config.DryRun:
-            Display(prompt)
-            state.Status = completed
+        // Assemble prompt from OODA phase files
+        prompt, err = AssemblePrompt(config.Procedure)
+        if err:
+            log.Error("Prompt assembly failed: %v", err)
+            state.Status = aborted
             break
 
-        // Execute AI CLI (delegates to ai-cli-integration)
-        // Output is streamed to terminal and scanned for promise signals
-        iterationStart = time.Now()
-        exitCode, output = ExecuteAICLI(config.AICommand, prompt)
-        iterationDuration = time.Since(iterationStart)
+        // Execute AI CLI with assembled prompt
+        output, exitCode, err = ExecuteAICLI(config.AICommand, prompt, config.Verbose, state.IterationTimeout)
+        if err:
+            if err == ErrTimeout:
+                log.Warn("Iteration %d: AI CLI exceeded timeout (%ds)", state.Iteration+1, *state.IterationTimeout)
+                state.ConsecutiveFailures++
+                elapsed = time.Since(iterationStart)
+                updateStats(&state.Stats, elapsed)
+                state.Iteration++
+                continue
+            log.Error("AI CLI execution failed: %v", err)
+            state.Status = aborted
+            break
+
+        // Scan output for promise signals
+        hasSuccess = strings.Contains(output, "<promise>SUCCESS</promise>")
+        hasFailure = strings.Contains(output, "<promise>FAILURE</promise>")
+
+        // Determine outcome per matrix (FAILURE wins if both present)
+        if hasFailure:
+            // Agent explicitly blocked - increment failure counter
+            state.ConsecutiveFailures++
+            log.Warn("Iteration %d: AI signaled FAILURE (consecutive: %d)", 
+                state.Iteration+1, state.ConsecutiveFailures)
+        else if hasSuccess:
+            // Job complete - terminate loop
+            log.Info("Iteration %d: AI signaled SUCCESS", state.Iteration+1)
+            state.Status = success
+            elapsed = time.Since(iterationStart)
+            updateStats(&state.Stats, elapsed)
+            log.Info("Iteration %d completed in %v (SUCCESS)", state.Iteration+1, elapsed)
+            break
+        else if exitCode == 0:
+            // Success - reset failure counter
+            state.ConsecutiveFailures = 0
+            log.Info("Iteration %d succeeded", state.Iteration+1)
+        else:
+            // Process failure - increment counter
+            state.ConsecutiveFailures++
+            log.Warn("Iteration %d failed with exit code %d (consecutive: %d)", 
+                state.Iteration+1, exitCode, state.ConsecutiveFailures)
 
         // Record timing
-        state.ElapsedPerIteration = append(state.ElapsedPerIteration, iterationDuration)
+        elapsed = time.Since(iterationStart)
+        updateStats(&state.Stats, elapsed)
+        log.Info("Iteration %d completed in %v", state.Iteration+1, elapsed)
 
-        // Check output signals (take precedence over exit code)
-        if output.Contains("<promise>SUCCESS</promise>"):
-            state.Status = completed
-            log.Info("AI signaled success — job complete")
-            break
-
-        if output.Contains("<promise>FAILURE</promise>"):
-            state.ConsecutiveFailures++
-            log.Warn("AI signaled failure, consecutive failures: %d/%d",
-                state.ConsecutiveFailures, state.FailureThreshold)
-        else if exitCode != 0:
-            // No output signal — fall back to exit code
-            state.ConsecutiveFailures++
-            log.Warn("AI CLI failed (exit %d), consecutive failures: %d/%d",
-                exitCode, state.ConsecutiveFailures, state.FailureThreshold)
-        else:
-            state.ConsecutiveFailures = 0
-
-        // Increment
+        // Increment iteration counter
         state.Iteration++
-
-        // Display progress
-        log.Info("Iteration %d completed in %s", state.Iteration, iterationDuration)
 
     return state.Status
 ```
 
-6. On signal (SIGINT/SIGTERM):
-   - Log interruption
-   - Exit with appropriate code
+### Statistics Update (Welford's Online Algorithm)
+
+```
+function updateStats(stats *IterationStats, elapsed time.Duration):
+    stats.Count++
+    stats.TotalTime += elapsed
+    
+    // Update min/max
+    if stats.Count == 1 OR elapsed < stats.MinTime:
+        stats.MinTime = elapsed
+    if elapsed > stats.MaxTime:
+        stats.MaxTime = elapsed
+    
+    // Welford's online algorithm for variance
+    delta = float64(elapsed) - (float64(stats.TotalTime) / float64(stats.Count))
+    stats.M2 += delta * (float64(elapsed) - (float64(stats.TotalTime) / float64(stats.Count)))
+
+function getMean(stats IterationStats) -> time.Duration:
+    if stats.Count == 0:
+        return 0
+    return stats.TotalTime / time.Duration(stats.Count)
+
+function getStdDev(stats IterationStats) -> time.Duration:
+    if stats.Count < 2:
+        return 0
+    variance = stats.M2 / float64(stats.Count)
+    return time.Duration(math.Sqrt(variance))
+```
 
 ## Edge Cases
 
@@ -226,16 +363,21 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
 |-----------|-------------------|
 | `--unlimited` flag passed | Loop runs indefinitely until Ctrl+C, failure threshold, or AI signals `SUCCESS` |
 | No max iterations configured anywhere | Uses built-in default: mode=max-iterations, count=5 |
-| AI output contains `<promise>SUCCESS</promise>` | Loop terminates with status `completed` regardless of exit code |
+| AI output contains `<promise>SUCCESS</promise>` | Loop terminates with status `success` regardless of exit code |
 | AI output contains `<promise>FAILURE</promise>` with exit code 0 | Counts as failure — increment `ConsecutiveFailures` (output signal overrides exit code) |
 | AI CLI exits non-zero, no output signal | Process failure — increment `ConsecutiveFailures`, continue loop |
-| AI output contains both `SUCCESS` and `FAILURE` | `SUCCESS` takes precedence — loop terminates as `completed` |
-| MaxIterations = 1 | Single iteration, then exit with status `completed` (or `aborted` if iteration fails and threshold is 1) |
-| Ctrl+C during AI CLI execution | AI CLI process killed, loop exits cleanly |
-| Ctrl+C between iterations | Loop exits cleanly |
+| AI output contains both `SUCCESS` and `FAILURE` | FAILURE takes precedence — increment `ConsecutiveFailures`, continue |
+| MaxIterations = 1 | Single iteration (iteration 0, displayed as 1), then exit with status `max-iters` (or `aborted` if iteration fails and threshold is 1) |
+| MaxIterations = 5 | Runs iterations 0-4 (displayed as 1-5), termination check `Iteration >= 5` prevents iteration 5 from starting |
+| Ctrl+C during AI CLI execution | Signal handler kills AI CLI process, waits for termination (5s timeout), exits with status `interrupted` and code 130 |
+| Ctrl+C between iterations | Signal handler exits immediately with status `interrupted` and code 130 |
 | Consecutive failures reach configured threshold (default: 3) | Loop aborts with status `aborted` |
 | Successful iteration after 2 failures | `ConsecutiveFailures` resets to 0, loop continues |
-| Dry-run mode | Assemble and display prompt, exit without executing AI CLI |
+| AI CLI output exceeds max buffer size | Buffer truncated from beginning, keeps most recent output, warning logged, signal scanning uses truncated buffer |
+| AI CLI execution exceeds iteration timeout | Process killed, iteration counts as failure, loop continues (unless failure threshold reached) |
+| No iteration timeout configured | AI CLI can run indefinitely (user must Ctrl+C to interrupt) |
+| AI CLI crashes (SIGSEGV, SIGKILL, OOM) | Partial output scanned for signals; outcome determined per matrix (crash exit codes are non-zero) |
+| Dry-run mode | Validates prompt files and AI command exist, displays assembled prompt and resolved config with provenance, exits with code 0 (success) or 1 (validation failed) |
 
 ## Dependencies
 
@@ -280,12 +422,13 @@ rooda build --max-iterations 3
 [10:01:24] Iteration 3/3 starting...
 [10:02:16] Iteration 3/3 completed in 52.1s (success)
 [10:02:16] Reached max iterations: 3 (total: 2m16s)
+  Iteration timing: min=38.7s, max=52.1s, mean=45.3s, stddev=5.5s
 ```
 
 **Verification:**
 - Three OODA cycles execute
 - Only loop-level progress shown (no AI CLI output without `--verbose`)
-- Loop terminates after iteration 3 with status `completed`
+- Loop terminates after iteration 3 with status `max-iters` and exit code 2
 - Each iteration shows timing and outcome
 
 ### Example 2: Consecutive Failure Abort
@@ -312,6 +455,7 @@ rooda build --max-iterations 10
 [10:02:22] Iteration 6/10 starting...
 [10:02:35] Iteration 6/10 completed in 13.0s (failure, consecutive: 3/3)
 [10:02:35] ERROR: Aborting after 3 consecutive failures (6 iterations completed, total: 2m35s)
+  Iteration timing: min=12.0s, max=42.0s, mean=25.8s, stddev=12.3s
 ```
 
 **Verification:**
@@ -378,7 +522,7 @@ rooda build --dry-run
 **Verification:**
 - Full assembled prompt displayed
 - AI CLI not invoked
-- Exit with status `completed`
+- Exit with status `max-iters` (dry-run doesn't execute, so no success signal)
 
 ### Example 5: Dry-Run Mode with User Context
 
@@ -414,7 +558,7 @@ focus on the auth module, the JWT validation is broken
 - User context appears as a dedicated section before the OODA phases
 - Context is passed through verbatim, not interpreted by the loop
 - AI CLI not invoked
-- Exit with status `completed`
+- Exit with status `max-iters` (dry-run doesn't execute, so no success signal)
 
 ### Example 6: Unlimited Iterations with Recovery
 
@@ -438,6 +582,90 @@ rooda build --unlimited
 **Verification:**
 - Consecutive failure counter resets to 0 after iteration 4 succeeds
 - Loop continues until Ctrl+C, failure threshold, or `SUCCESS` signal
+
+### Example 7: Dry-Run Validation (Success)
+
+**Input:**
+```bash
+rooda build --dry-run --ai-cmd-alias claude
+```
+
+**Expected Output:**
+```
+=== Dry-Run: build ===
+
+Configuration:
+  AI Command: claude-cli --no-interactive (cli: --ai-cmd-alias "claude" → built-in alias)
+  Max Iterations: 10 (workspace: ./rooda-config.yml)
+  Iteration Timeout: none (built-in)
+  Max Output Buffer: 10MB (built-in)
+  Failure Threshold: 3 (built-in)
+
+Validation:
+  ✓ AI command binary exists: /usr/local/bin/claude-cli
+  ✓ Prompt file exists: builtin:prompts/observe_plan_specs_impl.md
+  ✓ Prompt file exists: builtin:prompts/orient_build.md
+  ✓ Prompt file exists: builtin:prompts/decide_build.md
+  ✓ Prompt file exists: builtin:prompts/act_build.md
+
+Assembled Prompt (12,450 bytes):
+────────────────────────────────────────
+# OBSERVE
+[observe phase content...]
+
+# ORIENT
+[orient phase content...]
+
+# DECIDE
+[decide phase content...]
+
+# ACT
+[act phase content...]
+────────────────────────────────────────
+
+Dry-run complete. Ready to execute: rooda build --ai-cmd-alias claude
+```
+
+**Verification:**
+- All validations pass
+- Prompt assembled and displayed with section markers
+- Configuration shown with provenance
+- Exit code 0
+
+### Example 8: Dry-Run Validation (Failure)
+
+**Input:**
+```bash
+rooda build --dry-run --ai-cmd nonexistent-cli
+```
+
+**Expected Output:**
+```
+=== Dry-Run: build ===
+
+Configuration:
+  AI Command: nonexistent-cli (cli: --ai-cmd)
+  Max Iterations: 10 (workspace: ./rooda-config.yml)
+  Iteration Timeout: none (built-in)
+  Max Output Buffer: 10MB (built-in)
+  Failure Threshold: 3 (built-in)
+
+Validation:
+  ✗ AI command binary not found: nonexistent-cli
+    Searched PATH: /usr/local/bin:/usr/bin:/bin
+  ✓ Prompt file exists: builtin:prompts/observe_plan_specs_impl.md
+  ✓ Prompt file exists: builtin:prompts/orient_build.md
+  ✓ Prompt file exists: builtin:prompts/decide_build.md
+  ✓ Prompt file exists: builtin:prompts/act_build.md
+
+Error: Dry-run validation failed
+```
+
+**Verification:**
+- AI command validation fails
+- Clear error message with searched paths
+- Exit code 1
+- Prompt not displayed (validation failed before assembly)
 
 ## Notes
 
@@ -464,3 +692,31 @@ Internal state is 0-indexed (starts at 0) for clean comparison logic (`Iteration
 **No State Persistence By Design:**
 
 The loop does not persist its own state to disk. File-based state continuity — AGENTS.md, work tracking, specs, and code on disk — is the resume mechanism. If the loop is interrupted, the user simply runs it again; the AI agent picks up from whatever state the files are in. This keeps the loop simple and avoids a class of bugs around stale state files, concurrent execution guards, and corrupted checkpoints.
+
+**No Pause/Resume Support:**
+
+The loop does not support pausing and resuming execution. Ctrl+C terminates the loop immediately (after killing the AI CLI process and waiting for cleanup). If interrupted, the user must restart the procedure from iteration 0.
+
+This is by design: file-based state continuity (AGENTS.md, work tracking, specs, code on disk) provides the resume mechanism. The agent picks up from whatever state the files are in, regardless of which iteration the loop was on when interrupted. Restarting from iteration 0 gives the agent fresh context, which is often desirable.
+
+If preserving iteration count or statistics across restarts becomes important, a future version could add state persistence via `--resume-from=<state-file>`. For now, the added complexity is not justified by the use case.
+
+**Crash Handling:**
+
+When the AI CLI crashes (segfault, OOM kill, kernel termination), Go's `exec.Command` returns whatever output was written to stdout/stderr before termination. This partial output is scanned for `<promise>` signals using the same logic as clean exits. Crashes produce non-zero exit codes, so the outcome matrix applies identically: if partial output contains `<promise>FAILURE</promise>`, the agent-reported failure is logged; otherwise, it's logged as a process failure. Both increment `ConsecutiveFailures`.
+
+**Logging and Verbosity:**
+
+Loop log level and AI output streaming follow the standard precedence chain: CLI flags (`--verbose`, `--quiet`, `--log-level`) > environment variables (`ROODA_LOG_LEVEL`, `ROODA_SHOW_AI_OUTPUT`) > workspace config > global config > built-in defaults (log_level=info, show_ai_output=false).
+
+Log levels:
+- **debug**: Prompt assembly, config resolution, signal scanning, internal state
+- **info**: Iteration start/complete, timing, outcome, statistics (default)
+- **warn**: Failures, timeouts, buffer truncation, signal handling
+- **error**: Abort conditions, pre-execution failures
+
+The `--verbose` flag is shorthand for setting `show_ai_output=true`. The `--quiet` flag is shorthand for setting `log_level=warn`. Both override all lower-precedence sources.
+
+**Observability:**
+
+Detailed logging behavior (format, output destination, structured fields), metrics export, and observability platform integrations are specified in `observability.md`. The iteration loop emits log events at defined levels (debug, info, warn, error) that the observability system captures, formats, and exports according to configuration.
