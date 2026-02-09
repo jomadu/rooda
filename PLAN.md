@@ -1,245 +1,273 @@
-# Draft Plan: Spec-to-Implementation Gap Closure
+# Gap Analysis Plan: v2 Specs vs v0.1.0 Implementation
 
-**Status:** Draft (not yet published to work tracking)
+**Context:** v2 specifications describe a Go rewrite with 16 procedures and 13 critical features. Current v0.1.0 bash implementation has 9 procedures and is missing most v2 features.
 
-**Context:** v2 specifications describe a Go rewrite with advanced features (promise signals, failure tracking, timeouts, dry-run, context injection, signal handling, iteration statistics, audit procedures). Current implementation is v0.1.0 bash with basic OODA loop functionality. Gap analysis identified 13 critical missing features and 4 lower-priority improvements.
+**Root Cause:** v2 specs describe the target Go implementation; v0.1.0 bash is the current working prototype.
 
-**Strategy:** Implement v2 Go rewrite as the foundation, then layer features in dependency order.
-
----
-
-## Priority 1: Foundation (Go Rewrite Core)
-
-### Task 1.1: Go Project Bootstrap
-- Initialize Go module structure (cmd/, internal/, pkg/)
-- Set up build system (Makefile, go.mod, go.sum)
-- Embed default prompt files using go:embed
-- Create main.go entry point with version flag
-- **Acceptance:** `go build` produces working binary, `./rooda --version` displays version
-
-### Task 1.2: Configuration System
-- Implement 3-tier config loading (workspace, global, env vars)
-- Implement YAML parsing for rooda-config.yml
-- Implement config validation (required fields, prompt file existence)
-- Implement provenance tracking (record where each value came from)
-- Implement AI command resolution (direct, alias, env var, default)
-- **Acceptance:** Config loads from all tiers with correct precedence, validation catches errors, provenance displayed in dry-run
-
-### Task 1.3: CLI Argument Parsing
-- Implement flag parsing with cobra or stdlib flag
-- Support long flags (--max-iterations, --dry-run, --verbose, --quiet, --context, --context-file, --ai-cmd, --ai-cmd-alias, --observe, --orient, --decide, --act, --config, --log-level, --unlimited)
-- Support short flags (-v, -q, -n, -u, -d, -c)
-- Implement mutual exclusivity checks (--verbose/--quiet, --max-iterations/--unlimited)
-- Implement help text generation (global help, procedure-specific help, --list-procedures)
-- **Acceptance:** All flags parse correctly, help text displays, mutual exclusivity enforced
-
-### Task 1.4: Prompt Composition
-- Implement prompt assembly from 4 OODA phase files
-- Support embedded default prompts (go:embed)
-- Support filesystem prompt overrides
-- Implement context injection (--context and --context-file)
-- Implement path resolution (relative to config file directory)
-- **Acceptance:** Prompts assemble correctly, context injected in correct location, overrides work
+**Resolution Strategy:** Implement v2 Go rewrite following the prioritized task list below.
 
 ---
 
-## Priority 2: Core Loop Features
+## Priority 0: Foundation (Go Implementation Bootstrap)
 
-### Task 2.1: Basic Iteration Loop
-- Implement iteration loop with counter and max iterations
-- Implement AI CLI process spawning (exec.Command)
-- Implement output capture (stdout/stderr)
-- Implement iteration progress display
-- Implement loop termination (max iterations, Ctrl+C)
-- **Acceptance:** Loop executes N iterations, displays progress, terminates correctly
+### Task 1: Initialize Go Module and Project Structure
+- Create `go.mod` with module name `github.com/maxdunn/ralph-wiggum-ooda`
+- Create directory structure: `cmd/rooda/`, `internal/{config,loop,ai,cli,prompt}/`
+- Add `.gitignore` for Go artifacts (`*.exe`, `*.test`, `vendor/`, `dist/`)
+- **Acceptance:** `go mod init` succeeds, directory structure matches spec
 
-### Task 2.2: Promise Signal Detection
-- Implement output scanning for `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>`
-- Implement outcome determination (promise signals override exit code)
-- Implement loop termination on SUCCESS signal
-- Implement FAILURE precedence when both signals present
-- **Acceptance:** Loop terminates on SUCCESS signal, FAILURE signal overrides exit code 0, both signals → FAILURE wins
+### Task 2: Implement Core Data Structures
+- Define `Config`, `LoopConfig`, `Procedure` structs per configuration.md
+- Define `IterationState`, `LoopStatus`, `IterationStats` per iteration-loop.md
+- Define `LogLevel`, `TimestampFormat`, `LogEvent` per observability.md
+- **Acceptance:** All structs compile, match spec field definitions
 
-### Task 2.3: Failure Threshold Tracking
-- Implement ConsecutiveFailures counter
-- Implement failure threshold check (default: 3)
-- Implement counter reset on success
-- Implement loop abort on threshold exceeded
-- Implement configurable threshold (loop.failure_threshold, procedure.failure_threshold)
-- **Acceptance:** Loop aborts after 3 consecutive failures, counter resets on success, threshold configurable
-
-### Task 2.4: Iteration Timeout
-- Implement per-iteration timeout (loop.iteration_timeout, procedure.iteration_timeout)
-- Implement process killing (SIGTERM → wait 5s → SIGKILL)
-- Implement timeout as failure (increments ConsecutiveFailures)
-- Implement partial output capture from timed-out processes
-- **Acceptance:** Timed-out iterations killed and counted as failures, partial output captured
-
-### Task 2.5: Signal Handling
-- Implement SIGINT/SIGTERM handler
-- Implement AI CLI process cleanup on interrupt
-- Implement graceful termination (kill AI CLI, wait, exit with code 130)
-- Implement zombie process prevention
-- **Acceptance:** Ctrl+C kills AI CLI cleanly, no zombie processes, exit code 130
+### Task 3: Implement Built-in Defaults
+- Embed 25 prompt files using `go:embed` directive
+- Define built-in procedure definitions (16 procedures)
+- Define built-in AI command aliases (kiro-cli, claude, copilot, cursor-agent)
+- **Acceptance:** `BuiltInDefaults` variable compiles, all 16 procedures defined
 
 ---
 
-## Priority 3: Observability & Usability
+## Priority 1: Core Loop (Iteration Engine)
 
-### Task 3.1: Dry-Run Mode
-- Implement --dry-run flag
-- Implement config validation without execution
-- Implement prompt assembly display
-- Implement AI command validation (binary exists and executable)
-- Implement exit codes (0=valid, 1=user error, 2=config error)
-- **Acceptance:** Dry-run validates config, displays assembled prompt, checks AI command, exits without executing
+### Task 4: Implement Prompt Composition
+- Implement `AssemblePrompt()` function per prompt-composition.md
+- Support four OODA phase files + optional user context
+- Support embedded prompts (builtin: prefix) and filesystem prompts
+- **Acceptance:** Assembled prompt matches spec format, context injection works
 
-### Task 3.2: Iteration Statistics
-- Implement timing tracking (start/end per iteration)
-- Implement running statistics (min, max, mean, stddev)
-- Implement constant-memory statistics (O(1) space)
-- Implement statistics display at loop completion
-- Implement conditional stddev display (omit when count < 2)
-- **Acceptance:** Statistics displayed at completion, correct values, constant memory usage
+### Task 5: Implement AI CLI Execution
+- Implement `ExecuteAICLI()` function per ai-cli-integration.md
+- Pipe assembled prompt to AI CLI process
+- Capture stdout/stderr with configurable buffer size
+- **Acceptance:** AI CLI executes, output captured, exit code returned
 
-### Task 3.3: Output Buffering
-- Implement configurable output buffer (loop.max_output_buffer, default: 10MB)
-- Implement buffer truncation from beginning when exceeded
-- Implement warning log on truncation
-- Implement per-procedure buffer override (procedure.max_output_buffer)
-- **Acceptance:** Output buffered up to limit, truncated from beginning when exceeded, warning logged
+### Task 6: Implement Promise Signal Scanning
+- Scan output for `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>`
+- Implement outcome matrix per iteration-loop.md (FAILURE wins if both present)
+- **Acceptance:** Signal detection works, outcome matrix logic correct
 
-### Task 3.4: Logging System
-- Implement structured logging (iteration, command, exit code, duration)
-- Implement log levels (debug, info, warn, error)
-- Implement configurable log level (loop.log_level, --log-level, ROODA_LOOP_LOG_LEVEL)
-- Implement --verbose and --quiet overrides
-- **Acceptance:** Logs structured, log level configurable, --verbose/--quiet work
+### Task 7: Implement Consecutive Failure Tracking
+- Track `ConsecutiveFailures` counter across iterations
+- Reset counter on success, increment on failure
+- Abort when `ConsecutiveFailures >= FailureThreshold`
+- **Acceptance:** Failure tracking works, abort at threshold
 
-### Task 3.5: Exit Code Semantics
-- Implement exit code constants (0=success, 1=user error, 2=config error, 3=execution error, 130=interrupted)
-- Implement exit code selection based on loop status
-- Implement status tracking (success, max-iters, aborted, interrupted)
-- **Acceptance:** Exit codes match spec, status tracked correctly
+### Task 8: Implement Iteration Loop
+- Implement `RunLoop()` function per iteration-loop.md
+- Termination conditions: max iterations, failure threshold, SUCCESS signal, SIGINT
+- Iteration counter (0-indexed internal, 1-indexed display)
+- **Acceptance:** Loop executes, terminates correctly, exit codes match spec
 
----
+### Task 9: Implement Iteration Timeouts
+- Add per-iteration timeout with SIGTERM → SIGKILL escalation
+- Timeout always counts as failure (promise signals ignored)
+- **Acceptance:** Timeout kills process, increments failure counter
 
-## Priority 4: Procedures
-
-### Task 4.1: Procedure Metadata
-- Implement procedure categories (direct-action, audit, planning)
-- Implement procedure validation (name, description, OODA files, iteration limits)
-- Implement --list-procedures with categories
-- Implement procedure-specific help text
-- **Acceptance:** Procedures categorized, validation works, help text displays
-
-### Task 4.2: Audit Procedures (5 procedures)
-- Create prompts for audit-spec (observe_specs.md, orient_quality.md, decide_audit_report.md, act_audit_report.md)
-- Create prompts for audit-impl (observe_impl.md, orient_quality.md, decide_audit_report.md, act_audit_report.md)
-- Create prompts for audit-agents (observe_agents.md, orient_agents_accuracy.md, decide_audit_report.md, act_audit_report.md)
-- Create prompts for audit-spec-to-impl (observe_plan_specs_impl.md, orient_gap.md, decide_audit_report.md, act_audit_report.md)
-- Create prompts for audit-impl-to-spec (observe_plan_specs_impl.md, orient_gap.md, decide_audit_report.md, act_audit_report.md)
-- Add procedure definitions to rooda-config.yml
-- **Acceptance:** All 5 audit procedures defined, prompts exist, procedures execute
-
-### Task 4.3: Iteration Mode System
-- Implement IterationMode enum (max-iterations, unlimited, promise-driven)
-- Implement mode resolution (CLI > procedure > loop > default)
-- Implement promise-driven mode (loop until SUCCESS signal)
-- Implement --unlimited flag
-- **Acceptance:** All 3 modes work, resolution precedence correct, --unlimited overrides max iterations
+### Task 10: Implement Signal Handling
+- Handle SIGINT/SIGTERM: kill AI CLI, wait for termination, exit 130
+- **Acceptance:** Ctrl+C terminates cleanly, no zombie processes
 
 ---
 
-## Priority 5: Distribution & Polish
+## Priority 2: Observability (Logging and Diagnostics)
 
-### Task 5.1: Single Binary Distribution
-- Implement go:embed for all default prompts
-- Implement build script for cross-platform binaries (macOS, Linux)
-- Implement version embedding (ldflags)
-- Create release artifacts (tar.gz, checksums)
-- **Acceptance:** Single binary runs without external dependencies, version embedded, cross-platform builds work
+### Task 11: Implement Structured Logging
+- Implement log event emission at four levels (debug, info, warn, error)
+- Implement logfmt formatting (timestamp, level, message, fields)
+- Support five timestamp formats (time, time-ms, relative, iso, none)
+- **Acceptance:** Log output matches spec format, levels filter correctly
 
-### Task 5.2: Homebrew Distribution
-- Create Homebrew formula (docs/HOMEBREW_SETUP.md already exists)
-- Test installation via brew
-- Document installation process
-- **Acceptance:** `brew install rooda` works, binary in PATH
+### Task 12: Implement Iteration Statistics
+- Implement Welford's online algorithm for constant-memory stats
+- Calculate count, min, max, mean, stddev
+- Display at loop completion (omit stddev when count < 2)
+- **Acceptance:** Statistics correct, memory usage O(1)
 
-### Task 5.3: Documentation
-- Update README.md for v2
-- Update AGENTS.md with v2 commands
-- Create CHANGELOG.md
-- Document migration from v0.1.0 bash to v2 Go
-- **Acceptance:** Documentation complete, migration guide clear
+### Task 13: Implement Dry-Run Mode
+- Validate config, prompt files, AI command without executing
+- Display assembled prompt and resolved config with provenance
+- Exit 0 if valid, 1 if invalid
+- **Acceptance:** Dry-run validates, displays prompt, doesn't execute AI CLI
 
----
+### Task 14: Implement Verbose Mode
+- Stream AI CLI output to terminal in real-time
+- Set `show_ai_output=true` and `log_level=debug`
+- **Acceptance:** Verbose mode streams output, shows debug logs
 
-## Priority 6: Testing & Quality
-
-### Task 6.1: Unit Tests
-- Write tests for config loading and validation
-- Write tests for prompt composition
-- Write tests for promise signal detection
-- Write tests for failure tracking
-- Write tests for iteration statistics
-- **Acceptance:** Core logic covered by unit tests, tests pass
-
-### Task 6.2: Integration Tests
-- Write tests for full loop execution
-- Write tests for timeout handling
-- Write tests for signal handling
-- Write tests for dry-run mode
-- **Acceptance:** End-to-end scenarios covered, tests pass
-
-### Task 6.3: Linting & Formatting
-- Set up golangci-lint
-- Configure linters (gofmt, govet, staticcheck, errcheck)
-- Add lint command to Makefile
-- Fix all lint errors
-- **Acceptance:** `make lint` passes with no errors
+### Task 15: Implement Output Buffering
+- Configurable max buffer size (default 10MB)
+- Truncate from beginning if exceeded, keep most recent output
+- Log warning when truncated
+- **Acceptance:** Buffer truncation works, signals at end preserved
 
 ---
 
-## Task Count Summary
+## Priority 3: Configuration (Three-Tier System)
 
-- **Foundation:** 4 tasks
-- **Core Loop:** 5 tasks
-- **Observability:** 5 tasks
-- **Procedures:** 3 tasks
-- **Distribution:** 3 tasks
-- **Testing:** 3 tasks
+### Task 16: Implement Config Loading
+- Load built-in defaults → global config → workspace config → env vars → CLI flags
+- Resolve global config directory (ROODA_CONFIG_HOME > XDG_CONFIG_HOME/rooda > ~/.config/rooda)
+- Parse YAML config files using `gopkg.in/yaml.v3`
+- **Acceptance:** Config loads from all tiers, merges correctly
 
-**Total:** 23 tasks
+### Task 17: Implement Config Merging
+- Field-level merge (overlay non-empty/non-zero values override base)
+- Procedures merge additively (workspace adds to built-in, doesn't replace)
+- AI command aliases merge additively
+- **Acceptance:** Merging works, workspace overrides global, both override built-in
+
+### Task 18: Implement Provenance Tracking
+- Track which tier provided each resolved value
+- Display provenance in dry-run and verbose modes
+- **Acceptance:** Provenance correct, displayed in dry-run
+
+### Task 19: Implement Config Validation
+- Validate at load time (fail fast before execution)
+- Check required fields, type constraints, file existence
+- Clear error messages with file path and line number
+- **Acceptance:** Validation catches errors, messages actionable
+
+### Task 20: Implement Environment Variable Resolution
+- Support `ROODA_LOOP_*` environment variables per configuration.md
+- Override config file values at loop level
+- **Acceptance:** Env vars override config, CLI flags override env vars
+
+### Task 21: Implement AI Command Resolution
+- Resolve with precedence: --ai-cmd > --ai-cmd-alias > procedure ai_cmd > procedure ai_cmd_alias > loop.ai_cmd > loop.ai_cmd_alias
+- Error if no AI command configured (list all ways to set one)
+- **Acceptance:** Resolution follows precedence, error message helpful
+
+### Task 22: Implement Max Iterations Resolution
+- Resolve with precedence: --max-iterations > --unlimited > procedure iteration_mode/default_max_iterations > loop settings
+- **Acceptance:** Resolution follows precedence, unlimited mode works
 
 ---
 
-## Dependencies
+## Priority 4: Procedures (Missing 7 of 16)
 
-```
-1.1 (Go Bootstrap) → 1.2 (Config) → 1.3 (CLI) → 1.4 (Prompts)
-                   ↓
-                  2.1 (Basic Loop) → 2.2 (Promise Signals) → 2.3 (Failure Tracking)
-                                  ↓
-                                 2.4 (Timeout) → 2.5 (Signal Handling)
-                                  ↓
-                                 3.1 (Dry-Run)
-                                  ↓
-                                 3.2 (Statistics) → 3.3 (Buffering) → 3.4 (Logging) → 3.5 (Exit Codes)
-                                  ↓
-                                 4.1 (Metadata) → 4.2 (Audit Procedures) → 4.3 (Iteration Modes)
-                                  ↓
-                                 5.1 (Binary) → 5.2 (Homebrew) → 5.3 (Docs)
-                                  ↓
-                                 6.1 (Unit Tests) → 6.2 (Integration Tests) → 6.3 (Linting)
-```
+### Task 23: Add Missing Audit Procedures
+- Add `audit-spec`, `audit-impl`, `audit-agents`, `audit-spec-to-impl`, `audit-impl-to-spec`
+- All use existing prompt files (observe_specs.md, observe_impl.md, etc.)
+- Default max iterations: 1 (read-only assessments)
+- **Acceptance:** All 5 audit procedures defined, use correct prompts
+
+### Task 24: Add Missing Planning Procedures
+- Add `draft-plan-spec-feat`, `draft-plan-impl-feat`
+- Use existing prompt files (observe_story_task_specs_impl.md, etc.)
+- Default max iterations: 5
+- **Acceptance:** Both planning procedures defined, use correct prompts
+
+### Task 25: Rename Existing Procedures to Match v2
+- Rename `draft-plan-story-to-spec` → `draft-plan-spec-feat`
+- Rename `draft-plan-bug-to-spec` → `draft-plan-spec-fix`
+- Rename `draft-plan-spec-to-impl` → `audit-spec-to-impl` (audit, not planning)
+- Rename `draft-plan-impl-to-spec` → `audit-impl-to-spec` (audit, not planning)
+- Rename `draft-plan-spec-refactor` → `draft-plan-spec-refactor` (no change)
+- Rename `draft-plan-impl-refactor` → `draft-plan-impl-refactor` (no change)
+- Add `draft-plan-spec-chore`, `draft-plan-impl-chore`
+- **Acceptance:** All 16 procedures match v2 naming, categories correct
 
 ---
 
-## Notes
+## Priority 5: CLI Interface
 
-- **Bash implementation preservation:** v0.1.0 bash implementation remains functional during Go rewrite. No breaking changes to existing workflows until v2 is ready.
-- **Incremental delivery:** Each task produces a working artifact. Foundation tasks produce a minimal working binary. Core loop tasks add features incrementally.
-- **Prompt reuse:** Many audit procedures reuse existing prompts (observe_specs.md, observe_impl.md, orient_gap.md, orient_quality.md). Only need to create audit-specific decide/act prompts.
-- **Testing strategy:** Unit tests written alongside implementation (not deferred to end). Integration tests added after core loop complete.
-- **Migration path:** v0.1.0 bash and v2 Go can coexist. Users migrate when v2 reaches feature parity (after Task 4.3).
+### Task 26: Implement CLI Argument Parsing
+- Parse procedure name, flags, and context per cli-interface.md
+- Support short flags (-v, -q, -n, -u, -d, -c, -h)
+- Validate mutually exclusive flags (--verbose/--quiet, --max-iterations/--unlimited)
+- **Acceptance:** All flags parse correctly, validation works
+
+### Task 27: Implement Help Text Generation
+- Global help (--help with no procedure)
+- Procedure-specific help (rooda <procedure> --help)
+- List procedures (--list-procedures)
+- **Acceptance:** Help text matches spec format, all procedures listed
+
+### Task 28: Implement Exit Codes
+- 0: success, 1: aborted, 2: max-iters, 130: interrupted
+- User errors: 1, config errors: 2, execution errors: 3
+- **Acceptance:** Exit codes match spec
+
+---
+
+## Priority 6: Distribution
+
+### Task 29: Implement Single Binary Build
+- Add `go build` target to produce `rooda` binary
+- Embed all 25 prompt files using `go:embed`
+- **Acceptance:** `go build` produces single binary, prompts embedded
+
+### Task 30: Add Cross-Platform Support
+- Test on macOS, Linux
+- Handle platform-specific config directory resolution
+- **Acceptance:** Binary runs on macOS and Linux
+
+### Task 31: Add Installation Instructions
+- Update README.md with installation steps
+- Document `go install` or binary download
+- **Acceptance:** Installation instructions clear, tested
+
+---
+
+## Priority 7: Testing
+
+### Task 32: Add Unit Tests for Core Functions
+- Test prompt composition (AssemblePrompt)
+- Test config loading and merging
+- Test AI command resolution
+- Test max iterations resolution
+- Test promise signal scanning
+- Test failure tracking
+- **Acceptance:** Tests pass, coverage > 70%
+
+### Task 33: Add Integration Tests
+- Test full loop execution with mock AI CLI
+- Test dry-run mode
+- Test verbose mode
+- Test signal handling
+- **Acceptance:** Integration tests pass
+
+---
+
+## Out of Scope (Documented but Not Implemented in v0.1.0)
+
+**Undocumented bash features (working but not in specs):**
+- Git push automation with fallback (creates remote branch if needed)
+- Platform detection (macOS/Linux)
+- Fuzzy procedure name matching (suggests closest match)
+- AI tool preset resolution (hardcoded + custom from config)
+
+**Action:** Document these in v2 specs or remove from Go implementation if not needed.
+
+---
+
+## Summary
+
+**Total Tasks:** 33
+- Priority 0 (Foundation): 3 tasks
+- Priority 1 (Core Loop): 7 tasks
+- Priority 2 (Observability): 5 tasks
+- Priority 3 (Configuration): 7 tasks
+- Priority 4 (Procedures): 3 tasks
+- Priority 5 (CLI Interface): 3 tasks
+- Priority 6 (Distribution): 3 tasks
+- Priority 7 (Testing): 2 tasks
+
+**Estimated Effort:** 
+- Foundation: 1-2 days
+- Core Loop: 3-4 days
+- Observability: 2-3 days
+- Configuration: 3-4 days
+- Procedures: 1 day
+- CLI Interface: 2 days
+- Distribution: 1 day
+- Testing: 2-3 days
+
+**Total:** 15-23 days (3-5 weeks)
+
+**Critical Path:** Foundation → Core Loop → Configuration → CLI Interface → Distribution
+
+**Parallel Work Possible:** Observability, Procedures, Testing can be done in parallel with Configuration/CLI after Core Loop is complete.
