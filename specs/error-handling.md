@@ -27,6 +27,8 @@ Detect, report, and recover from failures — AI CLI crashes, network issues, te
 - [ ] Missing prompt files detected at load time (fail fast)
 - [ ] AI command binary validated at load time (exists and executable)
 - [ ] Dry-run mode validates all above without executing AI CLI
+- [ ] Dry-run mode exits with code 0 if all validations pass
+- [ ] Dry-run mode exits with code 1 if any validation fails (user error, config error, missing files)
 - [ ] Validation errors include file path, line number (if applicable), and clear fix guidance
 - [ ] If config validation fails, exit with code 1 and error message
 
@@ -403,13 +405,13 @@ Output: Exit with code 130
 
 **Output:**
 ```
-[INFO] Starting iteration 1/5
-[ERROR] AI CLI failed: exit code 1 (consecutive failures: 1/3)
-[INFO] Starting iteration 2/5
-[ERROR] AI CLI failed: exit code 1 (consecutive failures: 2/3)
-[INFO] Starting iteration 3/5
-[ERROR] AI CLI failed: exit code 1 (consecutive failures: 3/3)
-[ERROR] Aborting: failure threshold exceeded (3 consecutive failures)
+[21:00:00.000] INFO Starting iteration 1/5 procedure=build
+[21:00:05.100] ERROR AI CLI failed exit_code=1 consecutive_failures=1 threshold=3
+[21:00:05.200] INFO Starting iteration 2/5 procedure=build
+[21:00:10.300] ERROR AI CLI failed exit_code=1 consecutive_failures=2 threshold=3
+[21:00:10.400] INFO Starting iteration 3/5 procedure=build
+[21:00:15.500] ERROR AI CLI failed exit_code=1 consecutive_failures=3 threshold=3
+[21:00:15.600] ERROR Loop aborted consecutive_failures=3 threshold=3
 Exit code: 1
 ```
 
@@ -422,11 +424,11 @@ Exit code: 1
 
 **Output:**
 ```
-[INFO] Starting iteration 1/5
-[ERROR] AI CLI failed: exit code 1 (consecutive failures: 1/3)
-[INFO] Starting iteration 2/5
-[INFO] AI CLI succeeded (output contains <promise>SUCCESS</promise>)
-[INFO] Loop completed successfully
+[21:00:00.000] INFO Starting iteration 1/5 procedure=build
+[21:00:05.100] ERROR AI CLI failed exit_code=1 consecutive_failures=1 threshold=3
+[21:00:05.200] INFO Starting iteration 2/5 procedure=build
+[21:00:20.300] INFO AI CLI succeeded promise_signal=SUCCESS
+[21:00:20.400] INFO Loop completed status=success iterations=2 total_elapsed=20.4s
 Exit code: 0
 ```
 
@@ -437,9 +439,9 @@ Exit code: 0
 
 **Output:**
 ```
-[INFO] Starting iteration 1/5
-[WARN] AI CLI exited with code 1, but output contains <promise>SUCCESS</promise> (treating as success)
-[INFO] Loop completed successfully
+[21:00:00.000] INFO Starting iteration 1/5 procedure=build
+[21:00:15.100] WARN AI CLI exited with non-zero code but promise signal indicates success exit_code=1 promise_signal=SUCCESS
+[21:00:15.200] INFO Loop completed status=success iterations=1 total_elapsed=15.2s
 Exit code: 0
 ```
 
@@ -451,11 +453,11 @@ Exit code: 0
 
 **Output:**
 ```
-[INFO] Starting iteration 1/5
-[WARN] AI CLI exceeded timeout (60s), sending SIGTERM
-[WARN] AI CLI did not terminate within 5s, sending SIGKILL
-[ERROR] AI CLI failed: timeout exceeded after 60s (consecutive failures: 1/3)
-[INFO] Starting iteration 2/5
+[21:00:00.000] INFO Starting iteration 1/5 procedure=build
+[21:01:00.100] WARN AI CLI exceeded timeout timeout=60s action=sending_sigterm
+[21:01:05.200] WARN AI CLI did not terminate gracefully action=sending_sigkill
+[21:01:05.300] ERROR AI CLI failed reason=timeout timeout=60s consecutive_failures=1 threshold=3
+[21:01:05.400] INFO Starting iteration 2/5 procedure=build
 ...
 ```
 
@@ -466,10 +468,7 @@ Exit code: 0
 
 **Output:**
 ```
-[ERROR] Config validation failed: rooda-config.yml:12
-  Field: loop.iteration_timeout
-  Error: timeout must be positive or nil
-  Suggestion: Set to a positive number of seconds, or remove to disable timeout
+[21:00:00.000] ERROR Config validation failed file=rooda-config.yml line=12 field=loop.iteration_timeout error="timeout must be positive or nil" suggestion="Set to a positive number of seconds, or remove to disable timeout"
 Exit code: 1
 ```
 
@@ -483,12 +482,7 @@ Exit code: 1
 
 **Output:**
 ```
-[ERROR] No AI command configured
-  You must specify an AI command via one of:
-    - CLI flag: --ai-cmd "command" or --ai-cmd-alias "alias"
-    - Config file: loop.ai_cmd or loop.ai_cmd_alias
-    - Built-in aliases: kiro-cli, claude, copilot, cursor-agent
-  Example: rooda build --ai-cmd-alias kiro-cli
+[21:00:00.000] ERROR No AI command configured error="must specify AI command via CLI flag (--ai-cmd or --ai-cmd-alias), config file (loop.ai_cmd or loop.ai_cmd_alias), or built-in alias (kiro-cli, claude, copilot, cursor-agent)" suggestion="Example: rooda build --ai-cmd-alias kiro-cli"
 Exit code: 1
 ```
 
@@ -500,9 +494,9 @@ Exit code: 1
 
 **Output:**
 ```
-[INFO] Starting iteration 1/5
-[WARN] AI CLI output exceeded buffer size (5242880 bytes > 1048576 bytes), truncating from beginning
-[INFO] Iteration 1 complete (15.3s)
+[21:00:00.000] INFO Starting iteration 1/5 procedure=build
+[21:00:15.100] WARN AI CLI output exceeded buffer size actual_size=5242880 buffer_limit=1048576 action=truncating_from_beginning
+[21:00:15.200] INFO Completed iteration 1/5 elapsed=15.2s status=success truncated=true
 ```
 
 **Result:**
@@ -517,11 +511,11 @@ Exit code: 1
 
 **Output:**
 ```
-[INFO] Starting iteration 2/5
-[INFO] Received SIGINT, shutting down...
-[INFO] Killing AI CLI process (PID 12345)
-[INFO] AI CLI terminated
-[INFO] Loop interrupted by user
+[21:00:00.000] INFO Starting iteration 2/5 procedure=build
+[21:00:05.100] INFO Received signal signal=SIGINT action=shutting_down
+[21:00:05.200] INFO Killing AI CLI process pid=12345
+[21:00:05.300] INFO AI CLI terminated
+[21:00:05.400] INFO Loop interrupted status=interrupted
 Exit code: 130
 ```
 
