@@ -158,15 +158,16 @@ shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 - No automated test suite exists
 - No CI/CD pipeline configured
 
-**Gap Analysis (2026-02-08):**
+**Gap Analysis (2026-02-08, updated 2026-02-08T22:26):**
 - v2 specs complete (11 spec files, 16 procedures defined)
 - v0.1.0 bash implements 9 of 16 procedures (56% coverage)
+  - Implemented: bootstrap, build, draft-plan-story-to-spec, draft-plan-bug-to-spec, draft-plan-spec-to-impl, draft-plan-impl-to-spec, draft-plan-spec-refactor, draft-plan-impl-refactor, publish-plan
   - Missing: audit-spec, audit-impl, audit-agents, draft-plan-spec-chore, draft-plan-impl-feat, draft-plan-impl-fix, draft-plan-impl-chore
 - v0.1.0 bash missing 13 critical features (0% coverage): promise signals, failure tracking, timeouts, dry-run, context injection, signal handling, iteration statistics, output buffering, iteration modes, exit code semantics, provenance tracking, config tiers, Go implementation
-- Undocumented bash features (4): git push automation with fallback, platform detection, fuzzy procedure name matching, AI tool preset resolution
+- Undocumented bash features (4): git push automation with fallback (tries `git push`, then `git push -u` if first fails), platform detection (bash script detects OS implicitly), fuzzy procedure name matching (not mentioned in specs), AI tool preset resolution (partially documented in config, not in specs)
 - Root cause: v2 specs describe Go rewrite; v0.1.0 is bash proof-of-concept
-- Resolution: Proceed with Go rewrite per existing PLAN.md (23 tasks, 6 priorities). Bash served its purpose validating OODA loop pattern.
-- Gap analysis plan: PLAN.md contains detailed gap breakdown with 15 tasks (55 hours estimated) to achieve bash feature parity, but recommends Go rewrite instead
+- Resolution: Proceed with Go rewrite per PLAN.md (23 tasks, 4 priorities, 80 hours estimated). Bash served its purpose validating OODA loop pattern.
+- Gap analysis complete: PLAN.md contains detailed gap breakdown with prioritized tasks for Go rewrite
 
 **Why These Definitions:**
 - Implementation is at root level (not `src/`) because `goify` branch restructured the project
