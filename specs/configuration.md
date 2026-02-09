@@ -51,6 +51,7 @@ The developer wants to start using rooda on a new project with zero configuratio
 - [ ] `ROODA_LOOP_ITERATION_MODE` environment variable sets `loop.iteration_mode` (`max-iterations` or `unlimited`)
 - [ ] `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` environment variable sets the default max iterations (must be >= 1)
 - [ ] `ROODA_LOOP_ITERATION_TIMEOUT` environment variable sets the iteration timeout in seconds (must be >= 1)
+- [ ] `ROODA_LOG_TIMESTAMP_FORMAT` environment variable sets `loop.log_timestamp_format` (time, time-ms, relative, iso, none)
 - [ ] Prompt file paths in procedures resolved relative to the config file that defines them (workspace or global) or as embedded resources (built-in defaults)
 - [ ] Built-in default procedures include all 16 v2 procedures with embedded prompt files
 - [ ] Custom procedures can reference prompt files on the filesystem
@@ -84,11 +85,12 @@ type LoopConfig struct {
     DefaultMaxIterations *int          // Global default (built-in default: 5). Must be >= 1 when set. nil = not set (inherit).
     IterationTimeout     *int          // Per-iteration timeout in seconds (built-in default: nil). nil = no timeout.
     MaxOutputBuffer      int           // Max AI CLI output buffer in bytes (built-in default: 10485760 = 10MB). Must be >= 1024.
-    FailureThreshold     int           // Consecutive failures before abort (built-in default: 3)
-    LogLevel             LogLevel      // Loop log level (built-in default: LogLevelInfo)
-    ShowAIOutput         bool          // Stream AI CLI output to terminal (built-in default: false)
-    AICmd                string        // Default AI command (direct command string, optional)
-    AICmdAlias           string        // Default AI command alias name (resolved from AICmdAliases, optional)
+    FailureThreshold     int              // Consecutive failures before abort (built-in default: 3)
+    LogLevel             LogLevel         // Loop log level (built-in default: LogLevelInfo)
+    LogTimestampFormat   TimestampFormat  // Log timestamp format (built-in default: TimestampTime)
+    ShowAIOutput         bool             // Stream AI CLI output to terminal (built-in default: false)
+    AICmd                string           // Default AI command (direct command string, optional)
+    AICmdAlias           string           // Default AI command alias name (resolved from AICmdAliases, optional)
 }
 
 type LogLevel string
@@ -99,6 +101,16 @@ const (
     LogLevelWarn  LogLevel = "warn"
     LogLevelError LogLevel = "error"
 )
+
+type TimestampFormat string
+
+const (
+    TimestampTime     TimestampFormat = "time"      // [HH:MM:SS.mmm]
+    TimestampTimeMs   TimestampFormat = "time-ms"   // [HH:MM:SS.mmm] (alias for time)
+    TimestampRelative TimestampFormat = "relative"  // [+0.123s] relative to loop start
+    TimestampISO      TimestampFormat = "iso"       // 2026-02-08T20:59:35.877-08:00
+    TimestampNone     TimestampFormat = "none"      // No timestamp
+)
 ```
 
 **Fields:**
@@ -108,6 +120,7 @@ const (
 - `MaxOutputBuffer` — Maximum AI CLI output buffer size in bytes. Built-in default: 10485760 (10MB). Must be >= 1024. If output exceeds this, buffer is truncated from beginning (keeping most recent output for signal scanning).
 - `FailureThreshold` — Consecutive failures before the loop aborts. Built-in default: 3. Must be >= 1.
 - `LogLevel` — Loop log level. Built-in default: `LogLevelInfo`. Valid values: `debug`, `info`, `warn`, `error`.
+- `LogTimestampFormat` — Log timestamp format. Built-in default: `TimestampTime`. Valid values: `time`, `time-ms`, `relative`, `iso`, `none`.
 - `ShowAIOutput` — Stream AI CLI output to terminal. Built-in default: false.
 - `AICmd` — Direct AI command string. If set, takes precedence over `AICmdAlias`. Empty means not set.
 - `AICmdAlias` — Name of an alias from `AICmdAliases` to use as the default AI command. Empty means not set. If both `AICmd` and `AICmdAlias` are set, `AICmd` wins.
@@ -181,6 +194,7 @@ loop:
   max_output_buffer: 10485760     # Max AI CLI output buffer in bytes (built-in default: 10485760 = 10MB)
   failure_threshold: 3            # Consecutive failures before abort
   log_level: info                 # "debug", "info", "warn", "error" (built-in default: info)
+  log_timestamp_format: time      # "time", "time-ms", "relative", "iso", "none" (built-in default: time)
   show_ai_output: false           # Stream AI CLI output to terminal (built-in default: false)
   ai_cmd_alias: claude            # Default AI command alias for all procedures
   # ai_cmd: "custom-cli --flags"  # Or set a direct command (overrides ai_cmd_alias)
@@ -256,6 +270,7 @@ var BuiltInDefaults = Config{
 | `ROODA_LOOP_ITERATION_TIMEOUT` | `loop.iteration_timeout` (seconds, must be >= 1) | int |
 | `ROODA_LOOP_FAILURE_THRESHOLD` | `loop.failure_threshold` | int |
 | `ROODA_LOG_LEVEL` | `loop.log_level` (debug, info, warn, error) | string |
+| `ROODA_LOG_TIMESTAMP_FORMAT` | `loop.log_timestamp_format` (time, time-ms, relative, iso, none) | string |
 | `ROODA_SHOW_AI_OUTPUT` | `loop.show_ai_output` (true, false) | bool |
 
 Environment variables use the `ROODA_` prefix. They override config file values but are overridden by CLI flags.
@@ -309,6 +324,9 @@ function LoadConfig(cliFlags CLIFlags) -> (Config, error):
     if env("ROODA_LOG_LEVEL") != "":
         config.Loop.LogLevel = LogLevel(env("ROODA_LOG_LEVEL"))
         provenance["loop.log_level"] = ConfigSource{TierEnvVar, "", config.Loop.LogLevel}
+    if env("ROODA_LOG_TIMESTAMP_FORMAT") != "":
+        config.Loop.LogTimestampFormat = TimestampFormat(env("ROODA_LOG_TIMESTAMP_FORMAT"))
+        provenance["loop.log_timestamp_format"] = ConfigSource{TierEnvVar, "", config.Loop.LogTimestampFormat}
     if env("ROODA_SHOW_AI_OUTPUT") != "":
         config.Loop.ShowAIOutput = parseBool(env("ROODA_SHOW_AI_OUTPUT"))
         provenance["loop.show_ai_output"] = ConfigSource{TierEnvVar, "", config.Loop.ShowAIOutput}
@@ -478,6 +496,8 @@ function validateConfig(config Config) -> error:
         return error("loop.max_output_buffer must be >= 1024, got %d", config.Loop.MaxOutputBuffer)
     if config.Loop.LogLevel != LogLevelDebug && config.Loop.LogLevel != LogLevelInfo && config.Loop.LogLevel != LogLevelWarn && config.Loop.LogLevel != LogLevelError:
         return error("loop.log_level must be 'debug', 'info', 'warn', or 'error', got '%s'", config.Loop.LogLevel)
+    if config.Loop.LogTimestampFormat != TimestampTime && config.Loop.LogTimestampFormat != TimestampTimeMs && config.Loop.LogTimestampFormat != TimestampRelative && config.Loop.LogTimestampFormat != TimestampISO && config.Loop.LogTimestampFormat != TimestampNone:
+        return error("loop.log_timestamp_format must be 'time', 'time-ms', 'relative', 'iso', or 'none', got '%s'", config.Loop.LogTimestampFormat)
 
     // Validate procedures
     for name, proc in config.Procedures:
@@ -623,6 +643,7 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
 | Environment variable `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` set to non-integer | Error: "ROODA_LOOP_DEFAULT_MAX_ITERATIONS must be an integer, got 'abc'" |
 | Environment variable `ROODA_LOOP_DEFAULT_MAX_ITERATIONS=0` | Error: "ROODA_LOOP_DEFAULT_MAX_ITERATIONS must be >= 1, got 0" |
 | `ROODA_LOOP_ITERATION_MODE=invalid-value` | Error at config validation: "loop.iteration_mode must be 'max-iterations' or 'unlimited'" |
+| `ROODA_LOG_TIMESTAMP_FORMAT=invalid-value` | Error at config validation: "loop.log_timestamp_format must be 'time', 'time-ms', 'relative', 'iso', or 'none'" |
 | Config file has invalid YAML | Error with file path and parse error details |
 | Config file has unknown top-level key | Warning logged, key ignored (forward compatibility) |
 | Config file has unknown key inside `procedures` | Warning logged, key ignored |
@@ -857,7 +878,33 @@ ai_cmd: aider --yes          (loop.ai_cmd)
 - Procedure-level `ai_cmd`/`ai_cmd_alias` or `default_max_iterations` would still override these env vars
 - Built-in procedure still used
 
-### Example 5: CLI Flag Takes Precedence Over Everything
+### Example 5: Log Timestamp Format Configuration
+
+**Input:**
+```bash
+export ROODA_LOG_TIMESTAMP_FORMAT=relative
+rooda build --ai-cmd "kiro-cli chat"
+```
+
+**Config resolution:**
+```
+loop.log_timestamp_format: relative   (env: ROODA_LOG_TIMESTAMP_FORMAT)
+loop.ai_cmd: kiro-cli chat           (cli: --ai-cmd)
+```
+
+**Expected log output:**
+```
+[+0.000s] INFO Starting loop procedure=build max_iterations=5
+[+0.100s] INFO Starting iteration 1/5 procedure=build
+[+15.200s] INFO Completed iteration 1/5 elapsed=15.1s status=success
+```
+
+**Verification:**
+- `ROODA_LOG_TIMESTAMP_FORMAT` sets `loop.log_timestamp_format`
+- Timestamps show relative time since loop start
+- Valid formats: `time`, `time-ms`, `relative`, `iso`, `none`
+
+### Example 6: CLI Flag Takes Precedence Over Everything
 
 **Input:**
 ```bash
@@ -876,7 +923,7 @@ ai_cmd: claude-cli --no-interactive (cli: --ai-cmd)
 - CLI `--ai-cmd` overrides everything (env var, procedure, loop config)
 - CLI flags have highest precedence
 
-### Example 6: Provenance Display (Verbose)
+### Example 7: Provenance Display (Verbose)
 
 **Input:**
 ```bash
@@ -898,7 +945,7 @@ rooda build --ai-cmd-alias claude --verbose
 - Only shown with `--verbose` flag
 - Helps diagnose "where did this value come from?" questions
 
-### Example 7: Invalid Config File
+### Example 8: Invalid Config File
 
 **Workspace config (`./rooda-config.yml`):**
 ```yaml
