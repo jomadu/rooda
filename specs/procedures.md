@@ -31,6 +31,8 @@ The developer wants to invoke procedures by name without understanding their int
 - [ ] Invalid procedure definitions produce clear error messages
 - [ ] `rooda --list-procedures` displays all procedures with descriptions
 - [ ] Procedures are grouped by category (direct-action, audit, planning)
+- [ ] Procedure prerequisites documented (AGENTS.md, TASK.md, PLAN.md requirements)
+- [ ] Framework validates prerequisites before procedure execution
 
 ## Data Structures
 
@@ -110,6 +112,17 @@ When user runs `rooda <procedure-name>`:
 ```
 
 ## Built-in Procedures
+
+### Procedure Prerequisites
+
+All procedures require AGENTS.md to exist and be valid. The framework validates AGENTS.md sections before execution:
+
+- **All procedures** require AGENTS.md with all 10 required sections
+- **Planning procedures** (`draft-plan-*`) require AGENTS.md Task Input section to specify TASK.md location
+- **publish-plan** requires AGENTS.md Planning System section to specify PLAN.md location
+- **Audit procedures** require AGENTS.md Audit Output section to specify report location pattern
+
+If AGENTS.md doesn't exist, run `rooda agents-sync` first to bootstrap it.
 
 ### Direct-Action Procedures
 
@@ -693,3 +706,38 @@ This reuse reduces the total number of prompt files from 64 (16 procedures × 4 
 - chore procedures: 3 iterations (simpler planning, less refinement needed)
 
 These are defaults — users can override with `--max-iterations` or `--unlimited`.
+
+## Iteration Limit Tuning
+
+Default limits are conservative starting points. Adjust based on observed behavior:
+
+**Signs limit is too low:**
+- Procedure frequently hits max iterations without `<promise>SUCCESS</promise>` signal
+- Work is incomplete when loop terminates
+- **Action:** Increase by 2-3 iterations, or use `--unlimited` to find natural convergence point
+
+**Signs limit is too high:**
+- Procedure consistently succeeds in fewer iterations than the limit
+- Wasted API calls on unnecessary iterations
+- **Action:** Reduce to observed average + 1 buffer iteration
+
+**Signs of context degradation:**
+- AI output quality degrades in later iterations
+- Agent makes mistakes it didn't make earlier
+- **Action:** Reduce limit to keep AI in "smart zone" (40-60% context utilization)
+
+**How to tune:**
+1. Run procedure with `--verbose` to observe iteration behavior
+2. Note which iteration produces `<promise>SUCCESS</promise>`
+3. Set limit to that number + 1-2 buffer iterations
+4. Override per-procedure in `rooda-config.yml` or per-invocation with `--max-iterations`
+
+**Example tuning:**
+```yaml
+# rooda-config.yml
+procedures:
+  build:
+    default_max_iterations: 8  # Increased from 5 after observing consistent 6-7 iteration completions
+  draft-plan-impl-feat:
+    default_max_iterations: 3  # Reduced from 5 after observing consistent 2-iteration completions
+```

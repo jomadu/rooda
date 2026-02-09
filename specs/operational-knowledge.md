@@ -55,6 +55,9 @@ type AgentsMD struct {
     ImplPaths         []string            // Glob patterns for implementation files
     ImplExcludes      []string            // Glob patterns to exclude from impl
     WorkTracking      WorkTrackingConfig  // Work tracking system configuration
+    TaskInput         TaskInputConfig     // Task input location and format
+    PlanningSystem    PlanningConfig      // Planning system configuration
+    AuditOutput       AuditOutputConfig   // Audit report output configuration
     QualityCriteria   []QualityCriterion  // Quality checks (PASS/FAIL)
     RawContent        string              // Full AGENTS.md content for updates
     FilePath          string              // Path to AGENTS.md (usually ./AGENTS.md)
@@ -70,6 +73,33 @@ type WorkTrackingConfig struct {
     UpdateCommand string   // Command template to update status (e.g., "bd update <id> --status <status>")
     CloseCommand  string   // Command template to close issue (e.g., "bd close <id> --reason <reason>")
     CreateCommand string   // Command template to create issue (e.g., "bd create --title <title> --description <desc>")
+}
+```
+
+### TaskInputConfig
+
+```go
+type TaskInputConfig struct {
+    Location string   // Where task descriptions are documented (e.g., "TASK.md at project root")
+    Format   string   // Format description (e.g., "Markdown file with task description, requirements, and acceptance criteria")
+}
+```
+
+### PlanningConfig
+
+```go
+type PlanningConfig struct {
+    DraftPlanLocation string   // Where draft plans are stored (e.g., "PLAN.md at project root")
+    PublishingMethod  string   // How plans are published (e.g., "Agent runs work tracking commands to create issues from PLAN.md")
+}
+```
+
+### AuditOutputConfig
+
+```go
+type AuditOutputConfig struct {
+    LocationPattern string   // File path pattern for audit reports (e.g., "AUDIT-{procedure}.md at project root")
+    Format          string   // Report format (e.g., "Markdown")
 }
 ```
 

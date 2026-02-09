@@ -66,6 +66,10 @@ Specify the AGENTS.md format — required sections, field definitions, and struc
 **Exclude:** [paths to exclude from implementation]
 **Note:** [any important context about implementation structure]
 
+## Audit Output
+**Location:** [file path pattern for audit reports]
+**Format:** [report format - markdown, JSON, etc.]
+
 ## Quality Criteria
 **For specifications:** [list of PASS/FAIL criteria]
 **For implementation:** [list of PASS/FAIL criteria]
@@ -130,10 +134,8 @@ go test ./...         # Run tests
 \```
 ```
 
-#### Task Input (Optional)
+#### Task Input (Required)
 **Purpose:** Document where task descriptions are documented and prerequisites for planning procedures.
-
-**Note:** Required for planning procedures (`draft-plan-*`). When missing, planning procedures cannot run.
 
 **Fields:**
 - Location of task documentation
@@ -150,10 +152,8 @@ go test ./...         # Run tests
 **Format:** Markdown file with task description, requirements, and acceptance criteria.
 ```
 
-#### Planning System (Optional)
+#### Planning System (Required)
 **Purpose:** Document where draft plans are stored and how they're published.
-
-**Note:** Required for planning procedures (`draft-plan-*`). When missing, planning procedures cannot run.
 
 **Fields:**
 - Draft plan location
@@ -293,6 +293,22 @@ shellcheck rooda.sh
 **Refactoring triggers:**
 - Any quality criterion fails
 - Documentation contradicts actual behavior
+```
+
+#### Audit Output (Required)
+**Purpose:** Document where audit reports are written and in what format.
+
+**Fields:**
+- Location pattern (file path template with {procedure} placeholder)
+- Format (markdown, JSON, etc.)
+
+**Format:** Bold labels with descriptions.
+
+**Example:**
+```markdown
+## Audit Output
+**Location:** `AUDIT-{procedure}.md` at project root
+**Format:** Markdown
 ```
 
 #### Operational Learnings (Required)
@@ -450,6 +466,14 @@ cat TASK.md
 cat TASK.md  # View current tasks
 \```
 
+## Task Input
+**Location:** `TASK.md` at project root
+**Format:** Markdown file with task description, requirements, and acceptance criteria.
+
+## Planning System
+**Draft plan location:** `PLAN.md` at project root
+**Publishing:** Agent runs work tracking commands to create issues from PLAN.md
+
 ## Build/Test/Lint Commands
 **Test:** Manual verification
 **Build:** Not required
@@ -467,6 +491,10 @@ cat TASK.md  # View current tasks
 - `*.sh` — Shell scripts
 **Exclude:** None
 
+## Audit Output
+**Location:** `AUDIT-{procedure}.md` at project root
+**Format:** Markdown
+
 ## Quality Criteria
 **For specifications:** Not applicable (no specs)
 **For implementation:**
@@ -482,13 +510,13 @@ cat TASK.md  # View current tasks
 **Why These Definitions:** Minimal project, no formal specs
 ```
 
-**Verification:** PASS (all 7 required sections present, valid format)
+**Verification:** PASS (all 10 required sections present, valid format)
 
 ### Example 2: Full-Featured AGENTS.md (Current Project)
 
 **Input:** See `/Users/maxdunn/Dev/ralph-wiggum-ooda/AGENTS.md`
 
-**Verification:** PASS (all required sections present, valid format, comprehensive content)
+**Verification:** PASS (all 10 required sections present, valid format, comprehensive content)
 
 ### Example 3: Invalid AGENTS.md (Missing Required Section)
 
@@ -560,6 +588,14 @@ bd show <id>          # View issue details
 go test ./...         # Run tests
 \```
 
+## Task Input
+**Location:** `TASK.md` at project root
+**Format:** Markdown file with task description, requirements, and acceptance criteria.
+
+## Planning System
+**Draft plan location:** `PLAN.md` at project root
+**Publishing:** Agent runs work tracking commands to create issues from PLAN.md
+
 ## Build/Test/Lint Commands
 **Dependencies:**
 - Go >= 1.21 (required)
@@ -593,6 +629,10 @@ golangci-lint run
 - `internal/` — Internal packages
 **Exclude:** `vendor/`, `*_test.go`
 
+## Audit Output
+**Location:** `AUDIT-{procedure}.md` at project root
+**Format:** Markdown
+
 ## Quality Criteria
 **For specifications:**
 - All specs have "Job to be Done" section (PASS/FAIL)
@@ -611,7 +651,7 @@ golangci-lint run
 **Why These Definitions:** Auto-detected from repository structure
 ```
 
-**Verification:** PASS (all 7 required sections present, 2 optional sections included)
+**Verification:** PASS (all 10 required sections present)
 
 ## Notes
 
@@ -633,11 +673,11 @@ golangci-lint run
 - Provides rationale for decisions (the "why")
 - Prevents agents from repeating failed approaches
 
-**Why 7 required sections?**
+**Why 10 required sections?**
 - Covers minimum information needed for any repository
 - Work Tracking System merged with onboarding (was separate Issue Tracking section)
 - Quick Reference provides cross-section summary for quick access
-- Optional sections (Task Input, Planning System) required only for planning procedures
+- Task Input, Planning System, and Audit Output required for all procedures to function correctly
 
 **Why in-place updates instead of append-only?**
 - Keeps AGENTS.md concise and current
