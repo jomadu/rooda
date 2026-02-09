@@ -55,7 +55,11 @@ Note: Quality gates (tests, lints) and git operations (commit, push) are the AI 
 - [ ] Promise signal scanning happens after AI CLI exits (not during streaming)
 - [ ] AI CLI output streamed to the terminal in real-time when `--verbose` flag is set
 - [ ] Without `--verbose`, only loop-level progress (iteration start/complete, timing, outcome) is displayed
-- [ ] Loop displays iteration statistics (count, min, max, mean, stddev) at completion
+- [ ] Loop displays iteration statistics at completion when iterations completed (info level)
+- [ ] Statistics always displayed (omit only stddev when count < 2)
+- [ ] Statistics format: "Iteration timing: count=N min=Xs max=Xs mean=Xs stddev=Xs"
+- [ ] When count=1: display count, min, max, mean (all equal), omit stddev
+- [ ] When count≥2: display all statistics including stddev
 - [ ] Iteration statistics use constant memory (O(1)) regardless of iteration count
 - [ ] Partial output from crashed AI CLI processes scanned for `<promise>` signals
 - [ ] Loop terminates with status `success` when AI signals `<promise>SUCCESS</promise>`
@@ -415,15 +419,15 @@ rooda build --max-iterations 3
 
 **Expected Output:**
 ```
-[10:00:00] Starting procedure: build (max 3 iterations)
-[10:00:00] Iteration 1/3 starting...
-[10:00:45] Iteration 1/3 completed in 45.2s (success)
-[10:00:45] Iteration 2/3 starting...
-[10:01:24] Iteration 2/3 completed in 38.7s (success)
-[10:01:24] Iteration 3/3 starting...
-[10:02:16] Iteration 3/3 completed in 52.1s (success)
-[10:02:16] Reached max iterations: 3 (total: 2m16s)
-  Iteration timing: min=38.7s, max=52.1s, mean=45.3s, stddev=5.5s
+[10:00:00.000] INFO Starting loop procedure=build max_iterations=3
+[10:00:00.100] INFO Starting iteration 1/3 procedure=build
+[10:00:45.300] INFO Completed iteration 1/3 elapsed=45.2s status=success
+[10:00:45.400] INFO Starting iteration 2/3 procedure=build
+[10:01:24.100] INFO Completed iteration 2/3 elapsed=38.7s status=success
+[10:01:24.200] INFO Starting iteration 3/3 procedure=build
+[10:02:16.300] INFO Completed iteration 3/3 elapsed=52.1s status=success
+[10:02:16.400] INFO Loop completed status=max-iters iterations=3 total_elapsed=2m16.4s
+[10:02:16.400] INFO Iteration timing: count=3 min=38.7s max=52.1s mean=45.3s stddev=5.5s
 ```
 
 **Verification:**
@@ -431,6 +435,29 @@ rooda build --max-iterations 3
 - Only loop-level progress shown (no AI CLI output without `--verbose`)
 - Loop terminates after iteration 3 with status `max-iters` and exit code 2
 - Each iteration shows timing and outcome
+- Statistics include all fields (count≥2)
+
+### Example 1a: Statistics Display (count=2)
+
+**Input:**
+```bash
+rooda build --max-iterations 2
+```
+
+**Expected Output:**
+```
+[10:00:00.000] INFO Starting loop procedure=build max_iterations=2
+[10:00:00.100] INFO Starting iteration 1/2 procedure=build
+[10:00:42.100] INFO Completed iteration 1/2 elapsed=42.0s status=success
+[10:00:42.200] INFO Starting iteration 2/2 procedure=build
+[10:01:18.200] INFO Completed iteration 2/2 elapsed=36.0s status=success
+[10:01:18.300] INFO Loop completed status=max-iters iterations=2 total_elapsed=1m18.3s
+[10:01:18.300] INFO Iteration timing: count=2 min=36.0s max=42.0s mean=39.0s stddev=3.0s
+```
+
+**Verification:**
+- Statistics include stddev when count=2 (minimum for stddev calculation)
+- All timing fields displayed: count, min, max, mean, stddev
 
 ### Example 2: Consecutive Failure Abort
 
@@ -442,27 +469,28 @@ rooda build --max-iterations 10
 
 **Expected Output:**
 ```
-[10:00:00] Starting procedure: build (max 10 iterations)
-[10:00:00] Iteration 1/10 starting...
-[10:00:42] Iteration 1/10 completed in 42.0s (success)
-[10:00:42] Iteration 2/10 starting...
-[10:01:18] Iteration 2/10 completed in 36.0s (success)
-[10:01:18] Iteration 3/10 starting...
-[10:01:55] Iteration 3/10 completed in 37.0s (success)
-[10:01:55] Iteration 4/10 starting...
-[10:02:10] Iteration 4/10 completed in 15.0s (failure, consecutive: 1/3)
-[10:02:10] Iteration 5/10 starting...
-[10:02:22] Iteration 5/10 completed in 12.0s (failure, consecutive: 2/3)
-[10:02:22] Iteration 6/10 starting...
-[10:02:35] Iteration 6/10 completed in 13.0s (failure, consecutive: 3/3)
-[10:02:35] ERROR: Aborting after 3 consecutive failures (6 iterations completed, total: 2m35s)
-  Iteration timing: min=12.0s, max=42.0s, mean=25.8s, stddev=12.3s
+[10:00:00.000] INFO Starting loop procedure=build max_iterations=10
+[10:00:00.100] INFO Starting iteration 1/10 procedure=build
+[10:00:42.100] INFO Completed iteration 1/10 elapsed=42.0s status=success
+[10:00:42.200] INFO Starting iteration 2/10 procedure=build
+[10:01:18.200] INFO Completed iteration 2/10 elapsed=36.0s status=success
+[10:01:18.300] INFO Starting iteration 3/10 procedure=build
+[10:01:55.300] INFO Completed iteration 3/10 elapsed=37.0s status=success
+[10:01:55.400] INFO Starting iteration 4/10 procedure=build
+[10:02:10.400] WARN Completed iteration 4/10 elapsed=15.0s status=failure consecutive_failures=1
+[10:02:10.500] INFO Starting iteration 5/10 procedure=build
+[10:02:22.500] WARN Completed iteration 5/10 elapsed=12.0s status=failure consecutive_failures=2
+[10:02:22.600] INFO Starting iteration 6/10 procedure=build
+[10:02:35.600] WARN Completed iteration 6/10 elapsed=13.0s status=failure consecutive_failures=3
+[10:02:35.700] ERROR Loop aborted consecutive_failures=3 threshold=3 iterations=6 total_elapsed=2m35.7s
+[10:02:35.700] INFO Iteration timing: count=6 min=12.0s max=42.0s mean=25.8s stddev=12.3s
 ```
 
 **Verification:**
 - Loop aborts after configured threshold of consecutive failures
 - Status is `aborted`
 - Failure count progression visible in iteration summaries
+- Statistics include all fields (count≥2)
 
 ### Example 3: Verbose Mode
 
@@ -473,25 +501,34 @@ rooda build --max-iterations 2 --verbose
 
 **Expected Output:**
 ```
-[10:00:00] Starting procedure: build (max 2 iterations)
-[10:00:00] Iteration 1/2 starting...
+[10:00:00.000] INFO Starting loop procedure=build max_iterations=2
+[10:00:00.100] DEBUG Assembling prompt phase_count=4
+[10:00:00.200] DEBUG Prompt assembled size=12450
+[10:00:00.300] INFO Starting iteration 1/2 procedure=build
+[10:00:00.400] DEBUG Executing AI CLI command="kiro-cli chat --prompt-file /tmp/rooda-prompt-12345.md"
+--- AI CLI Output Start ---
+I'll execute the OODA loop iteration systematically.
+
+## OBSERVE
+...
   ... created internal/loop/loop.go
   ... running go test ./...
   ok  	rooda/internal/loop	0.342s
   ✓ All tests passing
-[10:00:45] Iteration 1/2 completed in 45.2s (success)
-[10:00:45] Iteration 2/2 starting...
-  ... updated internal/loop/signals.go
-  ... running go test ./...
-  ok  	rooda/internal/loop	0.298s
-  ✓ All tests passing
-[10:01:24] Iteration 2/2 completed in 38.7s (success)
-[10:01:24] Reached max iterations: 2 (total: 1m24s)
+<promise>SUCCESS</promise>
+--- AI CLI Output End ---
+[10:00:45.300] DEBUG AI CLI exited exit_code=0
+[10:00:45.400] DEBUG Found promise signal signal=SUCCESS
+[10:00:45.500] INFO Completed iteration 1/2 elapsed=45.2s status=success
+[10:00:45.600] INFO Loop completed status=success iterations=1 total_elapsed=45.6s
+[10:00:45.600] INFO Iteration timing: count=1 min=45.2s max=45.2s mean=45.2s
 ```
 
 **Verification:**
 - AI CLI output streamed live between iteration markers
 - Full visibility into what the agent is doing each iteration
+- Verbose mode sets both `show_ai_output=true` AND `log_level=debug`
+- Statistics omit stddev when count=1
 
 ### Example 4: Dry-Run Mode
 
@@ -502,9 +539,24 @@ rooda build --dry-run
 
 **Expected Output:**
 ```
-[DRY RUN] Procedure: build
-[DRY RUN] Would execute with: claude-cli --no-interactive
-
+[10:00:00.000] INFO Dry-run mode enabled dry_run=true
+[10:00:00.100] INFO Validating configuration...
+[10:00:00.200] INFO Resolved configuration:
+  procedure: build (from: CLI argument)
+  max_iterations: 10 (from: workspace config)
+  iteration_timeout: nil (from: built-in default)
+  ai_command: kiro-cli chat (from: global config)
+  log_level: info (from: built-in default)
+  show_ai_output: false (from: built-in default)
+[10:00:00.300] INFO Validating prompt files...
+  observe: prompts/observe_plan_specs_impl.md (exists, readable)
+  orient: prompts/orient_build.md (exists, readable)
+  decide: prompts/decide_build.md (exists, readable)
+  act: prompts/act_build.md (exists, readable)
+[10:00:00.400] INFO Validating AI command...
+  command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
+[10:00:00.500] INFO Assembled prompt size=12450
+--- Prompt Start ---
 # OODA Loop Iteration
 
 ## OBSERVE
@@ -518,12 +570,14 @@ rooda build --dry-run
 
 ## ACT
 [contents of act prompt file]
+--- Prompt End ---
+[10:00:00.600] INFO Dry-run validation passed
 ```
 
 **Verification:**
 - Full assembled prompt displayed
 - AI CLI not invoked
-- Exit with status `max-iters` (dry-run doesn't execute, so no success signal)
+- Exit code 0 (validation passed)
 
 ### Example 5: Dry-Run Mode with User Context
 
@@ -534,9 +588,24 @@ rooda build --dry-run --context "focus on the auth module, the JWT validation is
 
 **Expected Output:**
 ```
-[DRY RUN] Procedure: build
-[DRY RUN] Would execute with: claude-cli --no-interactive
-
+[10:00:00.000] INFO Dry-run mode enabled dry_run=true
+[10:00:00.100] INFO Validating configuration...
+[10:00:00.200] INFO Resolved configuration:
+  procedure: build (from: CLI argument)
+  max_iterations: 10 (from: workspace config)
+  iteration_timeout: nil (from: built-in default)
+  ai_command: kiro-cli chat (from: global config)
+  log_level: info (from: built-in default)
+  show_ai_output: false (from: built-in default)
+[10:00:00.300] INFO Validating prompt files...
+  observe: prompts/observe_plan_specs_impl.md (exists, readable)
+  orient: prompts/orient_build.md (exists, readable)
+  decide: prompts/decide_build.md (exists, readable)
+  act: prompts/act_build.md (exists, readable)
+[10:00:00.400] INFO Validating AI command...
+  command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
+[10:00:00.500] INFO Assembled prompt size=12520
+--- Prompt Start ---
 # OODA Loop Iteration
 
 ## CONTEXT
@@ -553,13 +622,15 @@ focus on the auth module, the JWT validation is broken
 
 ## ACT
 [contents of act prompt file]
+--- Prompt End ---
+[10:00:00.600] INFO Dry-run validation passed
 ```
 
 **Verification:**
 - User context appears as a dedicated section before the OODA phases
 - Context is passed through verbatim, not interpreted by the loop
 - AI CLI not invoked
-- Exit with status `max-iters` (dry-run doesn't execute, so no success signal)
+- Exit code 0 (validation passed)
 
 ### Example 6: Unlimited Iterations with Recovery
 
@@ -571,12 +642,12 @@ rooda build --unlimited
 
 **Expected Output:**
 ```
-[10:00:00] Starting procedure: build (unlimited)
+[10:00:00.000] INFO Starting loop procedure=build max_iterations=unlimited
 ...
-[10:01:55] Iteration 3 starting...
-[10:02:10] Iteration 3 completed in 15.0s (failure, consecutive: 1/3)
-[10:02:10] Iteration 4 starting...
-[10:02:52] Iteration 4 completed in 42.0s (success)
+[10:01:55.300] INFO Starting iteration 3 procedure=build
+[10:02:10.400] WARN Completed iteration 3 elapsed=15.0s status=failure consecutive_failures=1
+[10:02:10.500] INFO Starting iteration 4 procedure=build
+[10:02:52.500] INFO Completed iteration 4 elapsed=42.0s status=success
 ...
 ```
 
@@ -593,24 +664,26 @@ rooda build --dry-run --ai-cmd-alias claude
 
 **Expected Output:**
 ```
-=== Dry-Run: build ===
-
-Configuration:
-  AI Command: claude-cli --no-interactive (cli: --ai-cmd-alias "claude" → built-in alias)
-  Max Iterations: 10 (workspace: ./rooda-config.yml)
-  Iteration Timeout: none (built-in)
-  Max Output Buffer: 10MB (built-in)
-  Failure Threshold: 3 (built-in)
-
-Validation:
-  ✓ AI command binary exists: /usr/local/bin/claude-cli
-  ✓ Prompt file exists: builtin:prompts/observe_plan_specs_impl.md
-  ✓ Prompt file exists: builtin:prompts/orient_build.md
-  ✓ Prompt file exists: builtin:prompts/decide_build.md
-  ✓ Prompt file exists: builtin:prompts/act_build.md
-
-Assembled Prompt (12,450 bytes):
-────────────────────────────────────────
+[10:00:00.000] INFO Dry-run mode enabled dry_run=true
+[10:00:00.100] INFO Validating configuration...
+[10:00:00.200] INFO Resolved configuration:
+  procedure: build (from: CLI argument)
+  max_iterations: 10 (from: workspace config)
+  iteration_timeout: nil (from: built-in default)
+  max_output_buffer: 10485760 (from: built-in default)
+  failure_threshold: 3 (from: built-in default)
+  ai_command: claude-cli --no-interactive (from: CLI flag --ai-cmd-alias "claude" → built-in alias)
+  log_level: info (from: built-in default)
+  show_ai_output: false (from: built-in default)
+[10:00:00.300] INFO Validating prompt files...
+  observe: prompts/observe_plan_specs_impl.md (exists, readable)
+  orient: prompts/orient_build.md (exists, readable)
+  decide: prompts/decide_build.md (exists, readable)
+  act: prompts/act_build.md (exists, readable)
+[10:00:00.400] INFO Validating AI command...
+  command: claude-cli (found at /usr/local/bin/claude-cli, executable)
+[10:00:00.500] INFO Assembled prompt size=12450
+--- Prompt Start ---
 # OBSERVE
 [observe phase content...]
 
@@ -622,9 +695,8 @@ Assembled Prompt (12,450 bytes):
 
 # ACT
 [act phase content...]
-────────────────────────────────────────
-
-Dry-run complete. Ready to execute: rooda build --ai-cmd-alias claude
+--- Prompt End ---
+[10:00:00.600] INFO Dry-run validation passed
 ```
 
 **Verification:**
@@ -642,24 +714,26 @@ rooda build --dry-run --ai-cmd nonexistent-cli
 
 **Expected Output:**
 ```
-=== Dry-Run: build ===
-
-Configuration:
-  AI Command: nonexistent-cli (cli: --ai-cmd)
-  Max Iterations: 10 (workspace: ./rooda-config.yml)
-  Iteration Timeout: none (built-in)
-  Max Output Buffer: 10MB (built-in)
-  Failure Threshold: 3 (built-in)
-
-Validation:
-  ✗ AI command binary not found: nonexistent-cli
-    Searched PATH: /usr/local/bin:/usr/bin:/bin
-  ✓ Prompt file exists: builtin:prompts/observe_plan_specs_impl.md
-  ✓ Prompt file exists: builtin:prompts/orient_build.md
-  ✓ Prompt file exists: builtin:prompts/decide_build.md
-  ✓ Prompt file exists: builtin:prompts/act_build.md
-
-Error: Dry-run validation failed
+[10:00:00.000] INFO Dry-run mode enabled dry_run=true
+[10:00:00.100] INFO Validating configuration...
+[10:00:00.200] INFO Resolved configuration:
+  procedure: build (from: CLI argument)
+  max_iterations: 10 (from: workspace config)
+  iteration_timeout: nil (from: built-in default)
+  max_output_buffer: 10485760 (from: built-in default)
+  failure_threshold: 3 (from: built-in default)
+  ai_command: nonexistent-cli (from: CLI flag --ai-cmd)
+  log_level: info (from: built-in default)
+  show_ai_output: false (from: built-in default)
+[10:00:00.300] INFO Validating prompt files...
+  observe: prompts/observe_plan_specs_impl.md (exists, readable)
+  orient: prompts/orient_build.md (exists, readable)
+  decide: prompts/decide_build.md (exists, readable)
+  act: prompts/act_build.md (exists, readable)
+[10:00:00.400] ERROR Validating AI command...
+  command: nonexistent-cli (not found in PATH)
+  searched: /usr/local/bin:/usr/bin:/bin
+[10:00:00.500] ERROR Dry-run validation failed
 ```
 
 **Verification:**
@@ -716,7 +790,7 @@ Log levels:
 - **warn**: Failures, timeouts, buffer truncation, signal handling
 - **error**: Abort conditions, pre-execution failures
 
-The `--verbose` flag is shorthand for setting `show_ai_output=true`. The `--quiet` flag is shorthand for setting `log_level=warn`. Both override all lower-precedence sources.
+The `--verbose` flag is shorthand for setting both `show_ai_output=true` AND `log_level=debug`. The `--quiet` flag is shorthand for setting `log_level=warn`. Both override all lower-precedence sources.
 
 **Observability:**
 
