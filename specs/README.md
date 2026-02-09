@@ -172,12 +172,10 @@ Written specs with extracted JTBDs:
 | [distribution](distribution.md) | Enable users to install rooda as a single binary with no external dependencies, supporting macOS, Linux, and CI/CD environments. |
 | [error-handling](error-handling.md) | Detect, report, and recover from failures — AI CLI crashes, network issues, test failures, invalid configs — with configurable retry logic, timeouts, and graceful degradation. The loop must distinguish transient failures (retry) from permanent failures (abort), provide clear diagnostics, and prevent silent corruption. |
 | [iteration-loop](iteration-loop.md) | Execute AI coding agents through controlled OODA iteration cycles that clear AI context between runs, preventing LLM degradation while maintaining file-based state continuity. Each iteration invokes the AI CLI as a fresh process — the agent starts clean, processes the assembled prompt, executes tools, then exits. The loop orchestrator persists across iterations, managing termination and state. |
+| [observability](observability.md) | Provide visibility into what the loop is doing (timing, iteration progress, outcome) and controls to stop, dry-run, and override behavior. The developer wants to understand loop execution state, diagnose failures, and control output verbosity without modifying configuration files. |
 | [operational-knowledge](operational-knowledge.md) | Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. |
 | [procedures](procedures.md) | Define the 16 built-in procedures that ship as defaults — their OODA phase compositions, iteration limits, and use cases. |
 | [prompt-composition](prompt-composition.md) | Assemble four OODA phase files (observe, orient, decide, act) and optional user-provided context into a single prompt that can be piped to an AI CLI tool, supporting both embedded defaults and user-provided custom prompts with clear path resolution. |
-
-Pending specs (not yet written):
-`observability.md`
 
 ## How to Write Specs
 
