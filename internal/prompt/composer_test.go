@@ -108,7 +108,7 @@ func TestAssemblePrompt_AllPhases(t *testing.T) {
 		},
 	}
 
-	result, err := AssemblePrompt(procedure, "", "")
+	result, err := AssemblePrompt(procedure, "", "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -160,7 +160,7 @@ func TestAssemblePrompt_WithUserContext(t *testing.T) {
 	}
 
 	userContext := "Focus on authentication module"
-	result, err := AssemblePrompt(procedure, userContext, "")
+	result, err := AssemblePrompt(procedure, userContext, "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -200,7 +200,7 @@ func TestAssemblePrompt_EmptyPhases(t *testing.T) {
 		Act:     []config.FragmentAction{},
 	}
 
-	result, err := AssemblePrompt(procedure, "", "")
+	result, err := AssemblePrompt(procedure, "", "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -236,7 +236,7 @@ func TestAssemblePrompt_WithContextFile(t *testing.T) {
 		Act:     []config.FragmentAction{{Content: "Act content"}},
 	}
 	
-	result, err := AssemblePrompt(procedure, tmpFile.Name(), "")
+	result, err := AssemblePrompt(procedure, tmpFile.Name(), "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -268,7 +268,7 @@ func TestAssemblePrompt_WithInlineContext(t *testing.T) {
 	}
 	
 	inlineContext := "focus on auth module"
-	result, err := AssemblePrompt(procedure, inlineContext, "")
+	result, err := AssemblePrompt(procedure, inlineContext, "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -349,7 +349,7 @@ func TestAssemblePrompt_Integration_SeparatorFormat(t *testing.T) {
 		},
 	}
 
-	result, err := AssemblePrompt(procedure, "", "")
+	result, err := AssemblePrompt(procedure, "", "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -405,7 +405,7 @@ func TestAssemblePrompt_Integration_ContextFileWithSource(t *testing.T) {
 		Act:     []config.FragmentAction{{Content: "Act phase"}},
 	}
 
-	result, err := AssemblePrompt(procedure, tmpFile.Name(), "")
+	result, err := AssemblePrompt(procedure, tmpFile.Name(), "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -450,7 +450,7 @@ func TestAssemblePrompt_Integration_InlineContextNoSource(t *testing.T) {
 	}
 
 	inlineContext := "Focus on performance optimization and reduce memory usage"
-	result, err := AssemblePrompt(procedure, inlineContext, "")
+	result, err := AssemblePrompt(procedure, inlineContext, "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -512,7 +512,7 @@ func TestAssemblePrompt_Integration_MixedFileAndInlineContexts(t *testing.T) {
 
 	// Simulate multiple --context flags: file, inline, file
 	mixedContext := tmpFile1.Name() + "\n\n" + "Inline: ensure backward compatibility" + "\n\n" + tmpFile2.Name()
-	result, err := AssemblePrompt(procedure, mixedContext, "")
+	result, err := AssemblePrompt(procedure, mixedContext, "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -568,7 +568,7 @@ func TestAssemblePrompt_PreambleStructure(t *testing.T) {
 		Act:     []config.FragmentAction{{Content: "Act"}},
 	}
 
-	result, err := AssemblePrompt(procedure, "", "")
+	result, err := AssemblePrompt(procedure, "", "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -614,7 +614,7 @@ func TestAssemblePrompt_PreambleOrder(t *testing.T) {
 	}
 
 	userContext := "Focus on testing"
-	result, err := AssemblePrompt(procedure, userContext, "")
+	result, err := AssemblePrompt(procedure, userContext, "", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -629,5 +629,88 @@ func TestAssemblePrompt_PreambleOrder(t *testing.T) {
 	}
 	if contextIdx >= observeIdx {
 		t.Errorf("expected context before OBSERVE")
+	}
+}
+
+func TestAssemblePrompt_WithIterationState_MaxIterations(t *testing.T) {
+	procedure := config.Procedure{
+		Display: "Build",
+		Observe: []config.FragmentAction{{Content: "Observe"}},
+		Orient:  []config.FragmentAction{{Content: "Orient"}},
+		Decide:  []config.FragmentAction{{Content: "Decide"}},
+		Act:     []config.FragmentAction{{Content: "Act"}},
+	}
+
+	maxIters := 5
+	iterCtx := &IterationContext{
+		CurrentIteration: 2, // 0-indexed, so this is iteration 3
+		MaxIterations:    &maxIters,
+	}
+
+	result, err := AssemblePrompt(procedure, "", "", iterCtx)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	// Check iteration context appears in preamble
+	if !strings.Contains(result, "Iteration: 3 of 5") {
+		t.Errorf("expected iteration context '3 of 5', got:\n%s", result)
+	}
+
+	// Verify it's in the preamble section (before PHASE 1)
+	iterIdx := strings.Index(result, "Iteration:")
+	phaseIdx := strings.Index(result, "PHASE 1:")
+	if iterIdx == -1 || phaseIdx == -1 || iterIdx >= phaseIdx {
+		t.Errorf("expected iteration context in preamble before phases")
+	}
+}
+
+func TestAssemblePrompt_WithIterationState_Unlimited(t *testing.T) {
+	procedure := config.Procedure{
+		Display: "Build",
+		Observe: []config.FragmentAction{{Content: "Observe"}},
+		Orient:  []config.FragmentAction{{Content: "Orient"}},
+		Decide:  []config.FragmentAction{{Content: "Decide"}},
+		Act:     []config.FragmentAction{{Content: "Act"}},
+	}
+
+	iterCtx := &IterationContext{
+		CurrentIteration: 7, // 0-indexed, so this is iteration 8
+		MaxIterations:    nil,
+	}
+
+	result, err := AssemblePrompt(procedure, "", "", iterCtx)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	// Check iteration context shows unlimited
+	if !strings.Contains(result, "Iteration: 8 (unlimited)") {
+		t.Errorf("expected iteration context '8 (unlimited)', got:\n%s", result)
+	}
+}
+
+func TestAssemblePrompt_WithoutIterationState(t *testing.T) {
+	procedure := config.Procedure{
+		Display: "Build",
+		Observe: []config.FragmentAction{{Content: "Observe"}},
+		Orient:  []config.FragmentAction{{Content: "Orient"}},
+		Decide:  []config.FragmentAction{{Content: "Decide"}},
+		Act:     []config.FragmentAction{{Content: "Act"}},
+	}
+
+	result, err := AssemblePrompt(procedure, "", "", nil)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+
+	// When nil, no iteration context should appear
+	if strings.Contains(result, "Iteration:") {
+		t.Errorf("expected no iteration context when state is nil")
+	}
+
+	// But preamble should still be present
+	if !strings.Contains(result, "ROODA PROCEDURE EXECUTION") {
+		t.Errorf("expected preamble even without iteration state")
 	}
 }

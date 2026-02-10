@@ -61,8 +61,12 @@ func RunLoop(state *IterationState, cfg config.Config, aiCmd config.AICommand, u
 			"procedure": state.ProcedureName,
 		})
 
-		// Assemble prompt
-		assembledPrompt, err := prompt.AssemblePrompt(procedure, userContext, "")
+		// Assemble prompt with iteration context
+		iterCtx := &prompt.IterationContext{
+			CurrentIteration: state.Iteration,
+			MaxIterations:    state.MaxIterations,
+		}
+		assembledPrompt, err := prompt.AssemblePrompt(procedure, userContext, "", iterCtx)
 		if err != nil {
 			logger.Error("Prompt assembly failed", map[string]interface{}{
 				"error": err.Error(),

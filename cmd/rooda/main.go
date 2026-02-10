@@ -377,7 +377,8 @@ func runDryRun(flags config.CLIFlags) int {
 		configDir = dir
 	}
 	
-	assembledPrompt, err := prompt.AssemblePrompt(proc, userContext, configDir)
+	// For dry-run, we don't have iteration state, so pass nil
+	assembledPrompt, err := prompt.AssemblePrompt(proc, userContext, configDir, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Prompt assembly failed: %v\n", err)
 		return ExitUserError

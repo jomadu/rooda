@@ -7,17 +7,25 @@ import (
 	"github.com/jomadu/rooda/internal/config"
 )
 
+// IterationContext contains iteration state information for prompt assembly.
+// This is a minimal struct to avoid circular dependencies with the loop package.
+type IterationContext struct {
+	CurrentIteration int  // 0-indexed current iteration number
+	MaxIterations    *int // nil for unlimited mode
+}
+
 // AssemblePrompt assembles a complete prompt from a procedure definition.
 // It concatenates fragments from each OODA phase with section markers and
 // optionally injects user context at the top. Context string may contain
 // multiple values separated by \n\n. Each value is checked for file existence -
 // if a file exists, its content is read and prefixed with "Source: <path>".
 // Otherwise, the value is treated as inline content.
-func AssemblePrompt(procedure config.Procedure, userContext string, configDir string) (string, error) {
+// If iterCtx is provided, iteration context is included in the preamble.
+func AssemblePrompt(procedure config.Procedure, userContext string, configDir string, iterCtx *IterationContext) (string, error) {
 	var prompt strings.Builder
 
 	// Inject preamble first
-	preamble := generatePreamble(procedure)
+	preamble := generatePreamble(procedure, iterCtx)
 	prompt.WriteString(preamble)
 	prompt.WriteString("\n\n")
 
@@ -93,7 +101,8 @@ func AssemblePrompt(procedure config.Procedure, userContext string, configDir st
 }
 
 // generatePreamble creates the procedure execution preamble with agent role and success signaling instructions.
-func generatePreamble(procedure config.Procedure) string {
+// If iterCtx is provided, includes iteration context (current iteration and max iterations or unlimited).
+func generatePreamble(procedure config.Procedure, iterCtx *IterationContext) string {
 	var preamble strings.Builder
 
 	preamble.WriteString("═══════════════════════════════════════════════════════════════\n")
@@ -103,6 +112,18 @@ func generatePreamble(procedure config.Procedure) string {
 	if procedure.Display != "" {
 		preamble.WriteString("Procedure: ")
 		preamble.WriteString(procedure.Display)
+		preamble.WriteString("\n\n")
+	}
+
+	// Add iteration context if provided
+	if iterCtx != nil {
+		preamble.WriteString("Iteration: ")
+		preamble.WriteString(fmt.Sprintf("%d", iterCtx.CurrentIteration+1)) // Convert 0-indexed to 1-indexed
+		if iterCtx.MaxIterations != nil {
+			preamble.WriteString(fmt.Sprintf(" of %d", *iterCtx.MaxIterations))
+		} else {
+			preamble.WriteString(" (unlimited)")
+		}
 		preamble.WriteString("\n\n")
 	}
 
