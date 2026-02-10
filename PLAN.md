@@ -1,280 +1,431 @@
-# Implementation Plan: v2 Go Rewrite
+# Gap Analysis: Specifications vs Implementation
 
-**Status:** Draft  
-**Created:** 2026-02-09  
-**Source:** Gap analysis (specs → implementation)
+**Generated:** 2026-02-09
+**Status:** Draft
 
-## Summary
+## Executive Summary
 
-Implement the v2 Go rewrite per the 11 complete specifications. The v0.1.0 bash implementation validates the core OODA loop concept but lacks the fragment-based composition, three-tier configuration, structured logging, and distribution features specified in v2.
+**Current State:** v2 specifications complete (11 specs with JTBD structure, acceptance criteria, examples). v0.1.0 bash implementation exists but is v1 architecture. No Go implementation exists yet.
 
-**Key Gap:** No Go implementation exists (no go.mod, no *.go files). All v2 specs are complete but unimplemented.
+**Gap:** All v2 specifications are unimplemented. The project has complete architectural documentation but zero implementation of the v2 Go rewrite.
 
-## Priority Breakdown
+**Priority:** Start with foundational infrastructure (configuration, CLI parsing) before building the iteration loop and procedures system.
 
-- **P0 (Critical):** 15 tasks — Core framework, iteration loop, configuration, prompt composition
-- **P1 (High):** 5 tasks — CLI interface, distribution, installation
-- **P2 (Medium):** 3 tasks — Procedures, fragments, validation
-- **P3 (Low):** 5 tasks — Observability, error handling, AGENTS.md automation
+---
 
-**Total:** 28 tasks
+## Specified But Not Implemented
 
-## Tasks
+### Critical Path (P0) - Foundation
+
+1. **Configuration System** (`specs/configuration.md`)
+   - Three-tier config loading (built-in > global > workspace)
+   - YAML parsing with go-yaml
+   - Environment variable resolution
+   - CLI flag precedence
+   - Provenance tracking
+   - AI command resolution
+   - Max iterations resolution
+   - **Dependencies:** None
+   - **Blocks:** Everything else
+
+2. **CLI Interface** (`specs/cli-interface.md`)
+   - Argument parsing (procedure name, flags)
+   - Help text generation
+   - Version display
+   - List procedures
+   - Flag validation (mutually exclusive, constraints)
+   - Exit codes (0=success, 1=user error, 2=config error, 3=execution error)
+   - **Dependencies:** Configuration system
+   - **Blocks:** All user-facing functionality
+
+3. **Procedures System** (`specs/procedures.md`)
+   - Fragment-based composition (55 fragments across 4 phases)
+   - Fragment loading (builtin: prefix, filesystem paths, inline content)
+   - Template processing (Go text/template)
+   - Fragment validation at config load time
+   - 16 built-in procedure definitions
+   - **Dependencies:** Configuration system
+   - **Blocks:** Prompt composition, iteration loop
+
+### High Priority (P1) - Core Loop
+
+4. **Prompt Composition** (`specs/prompt-composition.md`)
+   - Assemble prompts from fragment arrays
+   - Resolve fragment paths (builtin: vs filesystem)
+   - Process templates with parameters
+   - Concatenate fragments with double newlines
+   - Inject user context (--context flag)
+   - Format with section markers (# OBSERVE, # ORIENT, etc.)
+   - **Dependencies:** Procedures system, configuration system
+   - **Blocks:** Iteration loop
+
+5. **AI CLI Integration** (`specs/ai-cli-integration.md`)
+   - Resolve AI command from precedence chain
+   - Spawn AI CLI process with prompt as stdin
+   - Capture stdout/stderr to buffer
+   - Stream output to terminal (--verbose)
+   - Handle process timeout
+   - Scan output for `<promise>` signals
+   - Built-in aliases (kiro-cli, claude, copilot, cursor-agent)
+   - **Dependencies:** Configuration system
+   - **Blocks:** Iteration loop
+
+6. **Error Handling** (`specs/error-handling.md`)
+   - Config validation at load time (fail fast)
+   - AI CLI failure detection (exit code, signals, timeout)
+   - Consecutive failure tracking
+   - Timeout handling (SIGTERM → SIGKILL)
+   - Signal handling (SIGINT/SIGTERM)
+   - Output buffer overflow handling
+   - **Dependencies:** AI CLI integration
+   - **Blocks:** Iteration loop
+
+7. **Iteration Loop** (`specs/iteration-loop.md`)
+   - Execute OODA cycles with fresh AI context per iteration
+   - Check termination conditions (max iterations, failure threshold, SUCCESS signal)
+   - Assemble prompt from OODA phases
+   - Pipe prompt to AI CLI
+   - Scan output for `<promise>` signals
+   - Track consecutive failures
+   - Calculate iteration statistics (Welford's algorithm)
+   - Display progress
+   - **Dependencies:** Prompt composition, AI CLI integration, error handling
+   - **Blocks:** All procedures
+
+### Medium Priority (P2) - Observability & Distribution
+
+8. **Observability** (`specs/observability.md`)
+   - Structured logging (debug, info, warn, error)
+   - Log level configuration (config, env, flags)
+   - Timestamp format configuration (time, relative, iso, none)
+   - Progress display (iteration start/complete, timing, outcome)
+   - Iteration statistics display (count, min, max, mean, stddev)
+   - Dry-run mode (validate without executing)
+   - Verbose mode (stream AI output, show provenance)
+   - **Dependencies:** Iteration loop, configuration system
+   - **Blocks:** User visibility into loop execution
+
+9. **AGENTS.md Format** (`specs/agents-md-format.md`)
+   - Schema definition (10 required sections)
+   - Parsing logic (markdown sections, bold labels, code blocks)
+   - Validation rules (PASS/FAIL criteria, required fields)
+   - **Dependencies:** None (pure schema definition)
+   - **Blocks:** Operational knowledge system
+
+10. **Operational Knowledge** (`specs/operational-knowledge.md`)
+    - Read AGENTS.md at iteration start
+    - Parse into structured data (build commands, spec paths, work tracking)
+    - Execute commands from AGENTS.md
+    - Detect drift (expected vs actual)
+    - Update AGENTS.md in-place with rationale
+    - Bootstrap workflow (create AGENTS.md if missing)
+    - **Dependencies:** AGENTS.md format, iteration loop
+    - **Blocks:** Adaptive behavior, drift detection
+
+11. **Distribution** (`specs/distribution.md`)
+    - Single binary build with embedded prompts (go:embed)
+    - Cross-compilation (macOS arm64/amd64, Linux amd64/arm64, Windows amd64)
+    - Version embedding (-ldflags)
+    - SHA256 checksums
+    - Install script (curl | sh)
+    - Homebrew formula
+    - go install support
+    - **Dependencies:** All implementation complete
+    - **Blocks:** User installation
+
+---
+
+## Implementation Not Covered by Specifications
+
+### v0.1.0 Bash Implementation (Archived)
+
+The current `rooda.sh` (v0.1.0) is a bash implementation that:
+- Implements v1 architecture (single monolithic prompts per phase)
+- Uses yq for YAML parsing
+- Has 9 procedures (not 16)
+- Uses 25 prompt files (not 55 fragments)
+- Lacks fragment-based composition
+- Lacks template system
+- Lacks three-tier configuration
+- Lacks provenance tracking
+
+**Status:** Archived in `archive/` directory. Not part of v2 implementation. Preserved for reference but excluded from active development per AGENTS.md.
+
+### Prompt Files (v1 Architecture)
+
+The `prompts/` directory contains 25 v1 prompt files:
+- Single-file prompts per OODA phase (not fragment arrays)
+- No template support
+- No builtin: prefix system
+- Organized by procedure, not by reusable fragments
+
+**Status:** v1 architecture. v2 specs define 55 fragments organized by OODA phase for reusability. Current prompts will need restructuring into fragment-based system.
+
+### Configuration File (v1 Schema)
+
+The `rooda-config.yml` exists but uses v1 schema:
+- Single-file prompts per phase (not fragment arrays)
+- No fragment-based composition
+- No template parameters
+- No three-tier system (only workspace config)
+
+**Status:** v1 schema. v2 specs define new schema with fragment arrays, template support, and three-tier merging.
+
+---
+
+## Structural Issues
+
+### No Go Implementation
+
+**Issue:** No `go.mod`, no `*.go` files, no `cmd/` or `internal/` directories exist.
+
+**Impact:** Cannot build, test, or run v2 implementation. All 11 specs are unimplemented.
+
+**Root Cause:** The `goify` branch restructured the project (moved files from `src/` to root, archived v1 in `archive/`) but did not create the Go implementation. Specifications were written but implementation was not started.
+
+**Fix Required:** Bootstrap Go project structure:
+- Create `go.mod` with module path
+- Create `cmd/rooda/main.go` entry point
+- Create `internal/` package structure
+- Create `fragments/` directory with 55 embedded fragments
+- Implement specs in priority order (P0 → P1 → P2)
+
+### Prompt Organization Mismatch
+
+**Issue:** Current `prompts/` directory has 25 v1 single-file prompts. v2 specs define 55 reusable fragments organized by OODA phase.
+
+**Impact:** Cannot use existing prompts with v2 fragment-based composition system.
+
+**Gap:**
+- v1: `prompts/observe_plan_specs_impl.md` (single file for build procedure observe phase)
+- v2: `fragments/observe/read_agents_md.md` + `fragments/observe/read_specs.md` + `fragments/observe/read_impl.md` (reusable fragments)
+
+**Fix Required:**
+1. Create `fragments/` directory structure (observe/, orient/, decide/, act/)
+2. Decompose v1 prompts into reusable v2 fragments
+3. Map v1 procedures to v2 fragment arrays
+4. Embed fragments in Go binary via go:embed
+
+### Configuration Schema Incompatibility
+
+**Issue:** `rooda-config.yml` uses v1 schema (single-file prompts). v2 specs define new schema (fragment arrays with template support).
+
+**Impact:** Existing config file will not parse with v2 implementation.
+
+**Gap:**
+- v1: `observe: prompts/observe_plan_specs_impl.md` (single string)
+- v2: `observe: [{path: "builtin:fragments/observe/read_agents_md.md"}, {path: "builtin:fragments/observe/read_specs.md"}]` (array of fragment actions)
+
+**Fix Required:**
+1. Implement v2 config parser (supports fragment arrays)
+2. Migrate `rooda-config.yml` to v2 schema
+3. Document migration path for users
+
+---
+
+## Dependencies and Blockers
+
+### Critical Path
+
+```
+Configuration System (P0)
+  ↓
+CLI Interface (P0) + Procedures System (P0)
+  ↓
+Prompt Composition (P1) + AI CLI Integration (P1)
+  ↓
+Error Handling (P1)
+  ↓
+Iteration Loop (P1)
+  ↓
+Observability (P2) + Operational Knowledge (P2)
+  ↓
+Distribution (P2)
+```
+
+### Parallel Work Opportunities
+
+After Configuration System is complete:
+- CLI Interface and Procedures System can be developed in parallel
+- After Procedures System: Prompt Composition can start
+- After CLI Interface: AI CLI Integration can start
+- After both Prompt Composition and AI CLI Integration: Error Handling can start
+
+### No External Blockers
+
+All dependencies are internal to the project. No external libraries or services are blocking implementation.
+
+---
+
+## Recommended Implementation Order
 
 ### Phase 1: Foundation (P0)
 
-**P0-01: Initialize Go project structure**
-- Create go.mod with module name `github.com/jomadu/rooda`
-- Create directory structure: cmd/rooda/, internal/config/, internal/loop/, internal/prompt/, internal/ai/, internal/procedures/, internal/agents/
-- Create cmd/rooda/main.go with basic CLI entry point
-- Verify: `go build ./cmd/rooda` produces binary
+1. **Bootstrap Go Project**
+   - Create `go.mod` with module path `github.com/jomadu/rooda`
+   - Create `cmd/rooda/main.go` entry point
+   - Create `internal/` package structure
+   - Verify `go build` produces binary
 
-**P0-02: Implement configuration loading (built-in defaults)**
-- Define Config, LoopConfig, Procedure, FragmentAction structs per configuration.md
-- Implement built-in default configuration (embedded in code)
-- Implement config validation (required fields, type constraints)
-- Verify: Config struct can be instantiated with built-in defaults
+2. **Configuration System**
+   - Implement `internal/config/` package
+   - YAML parsing with go-yaml
+   - Three-tier loading (built-in > global > workspace)
+   - Environment variable resolution
+   - Provenance tracking
+   - Validation
 
-**P0-03: Implement configuration loading (workspace config)**
-- Implement YAML parsing for ./rooda-config.yml
-- Implement config merging (workspace overrides built-in)
-- Implement field-level merging for procedures
-- Verify: Workspace config overrides built-in defaults correctly
+3. **CLI Interface**
+   - Implement `cmd/rooda/main.go` argument parsing
+   - Help text generation
+   - Version display
+   - List procedures
+   - Flag validation
+   - Exit codes
 
-**P0-04: Implement configuration loading (global config)**
-- Implement global config directory resolution (ROODA_CONFIG_HOME > XDG_CONFIG_HOME/rooda > ~/.config/rooda)
-- Implement YAML parsing for <config_dir>/rooda-config.yml
-- Implement three-tier merging (workspace > global > built-in)
-- Verify: Global config loads and merges correctly
+4. **Procedures System**
+   - Implement `internal/procedures/` package
+   - Fragment loading (builtin: prefix, filesystem, inline)
+   - Template processing (Go text/template)
+   - Fragment validation
+   - Define 16 built-in procedures
 
-**P0-05: Implement configuration loading (environment variables)**
-- Implement ROODA_* environment variable parsing
-- Implement env var overrides for loop settings
-- Implement precedence: CLI flags > env vars > workspace > global > built-in
-- Verify: Environment variables override config file values
+### Phase 2: Core Loop (P1)
 
-**P0-06: Implement fragment-based prompt composition**
-- Implement fragment loading (builtin: prefix vs filesystem paths)
-- Implement fragment concatenation with double newlines
-- Implement phase assembly (observe, orient, decide, act)
-- Verify: Assembled prompt matches expected structure
+5. **Create Fragment Files**
+   - Create `fragments/` directory structure
+   - Decompose v1 prompts into 55 v2 fragments
+   - Organize by OODA phase (observe/, orient/, decide/, act/)
+   - Embed via go:embed
 
-**P0-07: Implement template processing for fragments**
-- Integrate Go text/template for parameterized fragments
-- Implement template execution with provided parameters
-- Implement template validation at config load time
-- Verify: Templates render correctly with parameters
+6. **Prompt Composition**
+   - Implement `internal/prompt/` package
+   - Assemble prompts from fragment arrays
+   - Resolve fragment paths
+   - Process templates
+   - Inject user context
 
-**P0-08: Implement AI command resolution**
-- Implement ResolveAICommand with precedence chain
-- Implement built-in aliases (kiro-cli, claude, copilot, cursor-agent)
-- Implement alias resolution from merged config
-- Verify: AI command resolves correctly from all sources
+7. **AI CLI Integration**
+   - Implement `internal/ai/` package
+   - Resolve AI command
+   - Spawn process with prompt as stdin
+   - Capture output
+   - Stream to terminal (--verbose)
+   - Scan for `<promise>` signals
 
-**P0-09: Implement AI CLI execution**
-- Implement ExecuteAICLI with stdin piping
-- Implement output capture with configurable buffer size
-- Implement exit code capture
-- Verify: AI CLI executes and output is captured
+8. **Error Handling**
+   - Implement `internal/loop/errors.go`
+   - Config validation at load time
+   - AI CLI failure detection
+   - Consecutive failure tracking
+   - Timeout handling
+   - Signal handling
 
-**P0-10: Implement promise signal scanning**
-- Implement ScanOutputForSignals (case-sensitive exact match)
-- Implement signal precedence (FAILURE > SUCCESS)
-- Implement outcome determination per iteration-loop.md matrix
-- Verify: Signals detected correctly in output
+9. **Iteration Loop**
+   - Implement `internal/loop/loop.go`
+   - Execute OODA cycles
+   - Check termination conditions
+   - Track consecutive failures
+   - Calculate statistics
+   - Display progress
 
-**P0-11: Implement basic iteration loop**
-- Implement RunLoop with iteration counter
-- Implement max iterations termination check
-- Implement iteration timing and progress display
-- Verify: Loop executes N iterations and terminates
+### Phase 3: Observability & Distribution (P2)
 
-**P0-12: Implement consecutive failure tracking**
-- Implement ConsecutiveFailures counter
-- Implement failure threshold abort logic
-- Implement counter reset on success
-- Verify: Loop aborts after threshold consecutive failures
+10. **Observability**
+    - Implement `internal/observability/` package
+    - Structured logging
+    - Log level configuration
+    - Timestamp format configuration
+    - Progress display
+    - Statistics display
+    - Dry-run mode
+    - Verbose mode
 
-**P0-13: Implement iteration statistics**
-- Implement IterationStats with Welford's online algorithm
-- Implement statistics display at loop completion
-- Implement constant memory calculation (O(1))
-- Verify: Statistics (count, min, max, mean, stddev) calculated correctly
+11. **Operational Knowledge**
+    - Implement `internal/agents/` package
+    - Parse AGENTS.md
+    - Execute commands from AGENTS.md
+    - Detect drift
+    - Update AGENTS.md in-place
+    - Bootstrap workflow
 
-**P0-14: Implement structured logging**
-- Implement log levels (debug, info, warn, error)
-- Implement log format with timestamp, level, message, fields
-- Implement log level configuration (config, env, flags)
-- Verify: Logs display at correct levels with structured fields
+12. **Distribution**
+    - Cross-compilation script
+    - Version embedding
+    - SHA256 checksums
+    - Install script
+    - Homebrew formula
+    - Documentation
 
-**P0-15: Implement dry-run mode**
-- Implement --dry-run flag
-- Implement config validation (prompt files, AI command binary)
-- Implement assembled prompt display
-- Verify: Dry-run validates and displays prompt without executing
+---
 
-### Phase 2: Core Features (P0-P1)
+## Quality Criteria Gaps
 
-**P1-01: Implement CLI interface (basic flags)**
-- Implement flag parsing for --max-iterations, --unlimited, --dry-run, --verbose, --quiet
-- Implement flag precedence over config
-- Implement --help and --version flags
-- Verify: Flags override config correctly
+### Specifications
 
-**P1-02: Implement CLI interface (OODA phase overrides)**
-- Implement --observe, --orient, --decide, --act flags (repeatable)
-- Implement file existence heuristic (file vs inline content)
-- Implement phase array replacement (not merge)
-- Verify: OODA phase overrides work correctly
+**All specs have required sections:** ✅ PASS
+- All 11 specs have "Job to be Done" section
+- All 11 specs have "Acceptance Criteria" section
+- All 11 specs have "Examples" section
+- No broken cross-references between specs
 
-**P1-03: Implement CLI interface (context injection)**
-- Implement --context flag (repeatable)
-- Implement file existence heuristic
-- Implement context injection at top of prompt
-- Verify: Context appears in assembled prompt
+### Implementation
 
-**P1-04: Implement iteration timeout**
-- Implement timeout configuration (loop.iteration_timeout, procedure.iteration_timeout)
-- Implement process killing on timeout (SIGTERM, then SIGKILL)
-- Implement timeout as failure (increments ConsecutiveFailures)
-- Verify: Process killed after timeout, iteration counts as failure
+**All quality criteria fail:** ❌ FAIL (no Go implementation exists)
+- No `go.mod` file
+- No `*.go` files
+- No `cmd/` or `internal/` directories
+- Cannot run `go build`
+- Cannot run `go test`
+- No linter configuration
 
-**P1-05: Implement output buffer management**
-- Implement configurable max buffer size (loop.max_output_buffer, procedure.max_output_buffer)
-- Implement truncation from beginning when exceeded
-- Implement truncation warning logging
-- Verify: Output truncated correctly, signals at end preserved
+**Refactoring trigger:** All quality criteria fail → requires full implementation from scratch.
 
-**P1-06: Implement verbose mode**
-- Implement --verbose flag (sets show_ai_output=true and log_level=debug)
-- Implement AI CLI output streaming to terminal
-- Implement output capture alongside streaming
-- Verify: Output streams to terminal and is captured
+---
 
-**P1-07: Implement cross-platform builds**
-- Create build script for macOS arm64/amd64, Linux amd64/arm64, Windows amd64
-- Implement version embedding via -ldflags
-- Generate SHA256 checksums
-- Verify: Binaries build for all platforms
+## Acceptance Criteria
 
-**P1-08: Create installation methods**
-- Create Homebrew formula
-- Create install.sh script with checksum verification
-- Document go install method
-- Verify: Installation works via all three methods
+This gap analysis is complete when:
+- ✅ All specified features identified (11 specs analyzed)
+- ✅ All unspecified implementation identified (v1 bash, v1 prompts, v1 config)
+- ✅ All structural issues identified (no Go implementation, prompt mismatch, config incompatibility)
+- ✅ Dependencies and blockers documented
+- ✅ Implementation order recommended (P0 → P1 → P2)
+- ✅ Quality criteria gaps documented
 
-### Phase 3: Procedures & Fragments (P2)
-
-**P2-01: Create fragment files (observe phase)**
-- Create 13 observe phase fragments per procedures.md
-- Organize in fragments/observe/ directory
-- Embed via go:embed
-- Verify: All observe fragments loadable
-
-**P2-02: Create fragment files (orient, decide, act phases)**
-- Create 20 orient, 10 decide, 12 act phase fragments per procedures.md
-- Organize in fragments/orient/, fragments/decide/, fragments/act/ directories
-- Embed via go:embed
-- Verify: All fragments loadable
-
-**P2-03: Define 16 built-in procedures**
-- Define all 16 procedures per procedures.md (agents-sync, build, publish-plan, 4 audit, 8 draft-plan)
-- Implement procedure loading from config
-- Implement procedure validation
-- Verify: All 16 procedures loadable and valid
-
-### Phase 4: Distribution & Polish (P1-P3)
-
-**P3-01: Implement timestamp format configuration**
-- Implement TimestampFormat enum (time, time-ms, relative, iso, none)
-- Implement timestamp formatting in logs
-- Implement configuration via loop.log_timestamp_format
-- Verify: All timestamp formats work correctly
-
-**P3-02: Implement signal handling**
-- Implement SIGINT/SIGTERM handlers
-- Implement AI CLI process killing on interrupt
-- Implement graceful termination with timeout
-- Verify: Ctrl+C kills AI CLI and exits cleanly
-
-**P3-03: Implement crash recovery**
-- Implement partial output capture from crashed processes
-- Implement signal scanning on partial output
-- Implement crash logging with signal name
-- Verify: Crashes handled gracefully, partial output captured
-
-**P3-04: Implement detailed error messages**
-- Implement ValidationError struct with file path, line number, message, suggestion
-- Implement FailureContext struct with iteration, command, exit code, duration, output preview
-- Implement error messages with provenance
-- Verify: Errors display clear, actionable messages
-
-**P3-05: Implement AGENTS.md bootstrap workflow**
-- Implement repository structure detection (build system, test system, spec paths, impl paths, work tracking)
-- Implement AGENTS.md generation from template
-- Implement bootstrap procedure
-- Verify: Bootstrap creates valid AGENTS.md
-
-### Phase 5: Testing & Documentation
-
-**P3-06: Manual verification of all procedures**
-- Test all 16 built-in procedures
-- Verify quality criteria pass
-- Document any issues found
-
-**P3-07: Update README with installation and usage**
-- Document installation methods (Homebrew, curl|sh, go install)
-- Document basic usage examples
-- Document configuration options
-
-**P3-08: Update AGENTS.md for Go implementation**
-- Update Build/Test/Lint Commands section
-- Update Implementation Definition section
-- Update Quality Criteria section
-- Update Operational Learnings section
-
-## Dependencies
-
-- Go 1.21+ (for go:embed and modern stdlib)
-- yq >= 4.0.0 (for YAML parsing in bash during transition)
-- git (for version metadata)
-- shellcheck (optional, for linting bash during transition)
-
-## Success Criteria
-
-- [ ] All 28 tasks completed
-- [ ] All quality criteria from AGENTS.md pass
-- [ ] All 16 built-in procedures work correctly
-- [ ] Installation works via all three methods (Homebrew, curl|sh, go install)
-- [ ] Binary runs on all target platforms (macOS arm64/amd64, Linux amd64/arm64, Windows amd64)
-- [ ] Documentation updated (README, AGENTS.md)
+---
 
 ## Notes
 
-**Transition Strategy:**
-- v0.1.0 bash implementation remains functional during Go development
-- Go implementation developed in parallel on main branch
-- Once Go implementation passes all quality criteria, bash archived to archive/
-- No breaking changes to config file format (v0.1.0 configs work with v2)
+### Why Start with Configuration System?
 
-**Config Compatibility:**
-- v2 uses fragment arrays instead of single files per phase
-- v0.1.0 configs can be migrated by wrapping single file paths in arrays
-- Example: `observe: prompts/observe_bootstrap.md` → `observe: [{path: "prompts/observe_bootstrap.md"}]`
+Configuration is the foundation. CLI parsing, procedures, prompt composition, and AI CLI integration all depend on resolved configuration. Building it first unblocks parallel work on CLI and procedures.
 
-**Fragment Migration:**
-- Existing 25 prompt files in prompts/ can be reused as fragments
-- Some prompts may need to be split into multiple fragments for reusability
-- New fragments created for procedures not in v0.1.0
+### Why Decompose v1 Prompts into v2 Fragments?
 
-**Bash Features to Preserve:**
-- `--list-procedures` flag
-- Fuzzy matching for unknown procedure names
-- Dependency version checking
-- Git push error parsing with guidance
-- Platform detection for install instructions
+v2 fragment-based composition enables reusability. Instead of duplicating "read AGENTS.md" instructions across 16 procedures, it's a single fragment used by all. This reduces maintenance burden and ensures consistency.
 
-**Bash Features to Drop:**
-- AI tool presets (replaced by ai_cmd_aliases in config)
-- Single file per phase (replaced by fragment arrays)
-- Unlimited iterations via 0 (replaced by --unlimited flag)
+### Why Three-Tier Configuration?
+
+Enables zero-config startup (built-in defaults), personal preferences (global config), and project-specific customization (workspace config) without conflict. Mirrors established tooling conventions (Git, npm, EditorConfig).
+
+### Why Go Instead of Bash?
+
+Bash implementation (v0.1.0) validated the core concept but has limitations:
+- No error handling
+- No structured logging
+- Platform-specific behavior
+- No testability
+- No cross-compilation
+
+Go provides: testable code, cross-platform binary, structured error handling, signal handling, and ability to embed default prompts.
+
+### Why 55 Fragments Instead of 25 Prompts?
+
+v1 used 25 single-file prompts (one per procedure per phase). v2 uses 55 reusable fragments that compose into 16 procedures. This increases the fragment count but dramatically reduces duplication and improves maintainability.
+
+**Example:**
+- v1: 9 procedures × 4 phases = 36 prompt files (some shared, some duplicated)
+- v2: 55 fragments → 16 procedures (fragments reused across procedures)
+
+The fragment count is higher, but each fragment is smaller, more focused, and reusable.
