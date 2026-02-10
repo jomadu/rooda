@@ -69,6 +69,9 @@ func LoadConfig(cliFlags CLIFlags) (*Config, error) {
 		provenance["loop.ai_cmd_alias"] = ConfigSource{TierCLIFlag, "", cliFlags.AICmdAlias}
 	}
 
+	// Assign provenance to config
+	config.Provenance = provenance
+
 	return config, nil
 }
 
