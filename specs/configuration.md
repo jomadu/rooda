@@ -128,31 +128,42 @@ const (
 ### Procedure
 
 ```go
+type FragmentAction struct {
+    Content    string                 // Inline prompt content (optional)
+    Path       string                 // Path to fragment file (optional)
+    Parameters map[string]interface{} // Template parameters (optional)
+}
+
 type Procedure struct {
-    Display              string        // Human-readable name (optional)
-    Summary              string        // One-line description (optional)
-    Description          string        // Detailed description (optional)
-    Observe              string        // Path to observe phase prompt file, or embedded resource name
-    Orient               string        // Path to orient phase prompt file, or embedded resource name
-    Decide               string        // Path to decide phase prompt file, or embedded resource name
-    Act                  string        // Path to act phase prompt file, or embedded resource name
-    IterationMode        IterationMode // Override loop iteration mode ("" = inherit from loop)
-    DefaultMaxIterations *int          // Override loop.default_max_iterations (nil = inherit from loop). Must be >= 1 when set.
-    IterationTimeout     *int          // Override loop.iteration_timeout (nil = inherit from loop). Must be >= 1 when set. Seconds.
-    MaxOutputBuffer      *int          // Override loop.max_output_buffer (nil = inherit from loop). Must be >= 1024 when set. Bytes.
-    AICmd                string        // Override AI command for this procedure (optional)
-    AICmdAlias           string        // Override AI command alias for this procedure (optional)
+    Display              string            // Human-readable name (optional)
+    Summary              string            // One-line description (optional)
+    Description          string            // Detailed description (optional)
+    Observe              []FragmentAction  // Array of observe phase fragments
+    Orient               []FragmentAction  // Array of orient phase fragments
+    Decide               []FragmentAction  // Array of decide phase fragments
+    Act                  []FragmentAction  // Array of act phase fragments
+    IterationMode        IterationMode     // Override loop iteration mode ("" = inherit from loop)
+    DefaultMaxIterations *int              // Override loop.default_max_iterations (nil = inherit from loop). Must be >= 1 when set.
+    IterationTimeout     *int              // Override loop.iteration_timeout (nil = inherit from loop). Must be >= 1 when set. Seconds.
+    MaxOutputBuffer      *int              // Override loop.max_output_buffer (nil = inherit from loop). Must be >= 1024 when set. Bytes.
+    AICmd                string            // Override AI command for this procedure (optional)
+    AICmdAlias           string            // Override AI command alias for this procedure (optional)
 }
 ```
 
 **Fields:**
-- `Observe`, `Orient`, `Decide`, `Act` — Paths to prompt markdown files. For built-in procedures, these reference embedded resources. For user-defined procedures, these are filesystem paths resolved relative to the config file location.
+- `Observe`, `Orient`, `Decide`, `Act` — Arrays of fragment actions that compose each OODA phase. Each fragment can specify inline content or a path to a fragment file. For built-in procedures, paths use `builtin:` prefix for embedded resources. For user-defined procedures, paths are resolved relative to the config file location. Fragments are concatenated with double newlines to form the complete phase prompt.
 - `IterationMode` — Optional per-procedure override. Empty string means inherit from loop settings. When set to `ModeUnlimited`, `DefaultMaxIterations` is ignored.
 - `DefaultMaxIterations` — Optional per-procedure override. nil means inherit from `loop.default_max_iterations`. When not nil, must be >= 1.
 - `IterationTimeout` — Optional per-procedure timeout override in seconds. nil means inherit from `loop.iteration_timeout`. When not nil, must be >= 1.
 - `MaxOutputBuffer` — Optional per-procedure output buffer size override in bytes. nil means inherit from `loop.max_output_buffer`. When not nil, must be >= 1024.
 - `AICmd` — Optional per-procedure AI command override. If set, takes precedence over `AICmdAlias`. Empty means inherit from loop settings.
 - `AICmdAlias` — Optional per-procedure AI command alias. Empty means inherit from loop settings. If both `AICmd` and `AICmdAlias` are set, `AICmd` wins.
+
+**FragmentAction Fields:**
+- `Content` — Inline prompt text. Mutually exclusive with `Path`. Use for short, procedure-specific prompts.
+- `Path` — Path to a fragment file. Mutually exclusive with `Content`. Use `builtin:` prefix for embedded fragments (e.g., `builtin:fragments/observe/read_agents_md.md`) or relative paths for custom fragments (e.g., `fragments/observe/custom.md`).
+- `Parameters` — Template parameters for Go text/template processing. Only used when `Path` is specified. Allows parameterized fragments.
 
 ### ConfigSource
 
@@ -210,26 +221,40 @@ procedures:
     display: "Build from Plan"
     summary: "Implements tasks from plan"
     description: "Reads from work tracking, picks task, implements, tests, commits"
-    observe: prompts/observe_plan_specs_impl.md
-    orient: prompts/orient_build.md
-    decide: prompts/decide_build.md
-    act: prompts/act_build.md
+    observe:
+      - path: prompts/observe_plan.md
+      - path: prompts/observe_specs.md
+    orient:
+      - path: prompts/orient_build.md
+    decide:
+      - path: prompts/decide_build.md
+    act:
+      - path: prompts/act_build.md
     default_max_iterations: 10
     ai_cmd_alias: thorough     # This procedure uses a beefier model
 
   my-custom-procedure:
-    observe: my-prompts/observe.md
-    orient: my-prompts/orient.md
-    decide: my-prompts/decide.md
-    act: my-prompts/act.md
+    observe:
+      - content: "Read the current repository state."
+      - path: my-prompts/observe_details.md
+    orient:
+      - path: my-prompts/orient.md
+    decide:
+      - path: my-prompts/decide.md
+    act:
+      - path: my-prompts/act.md
     default_max_iterations: 3
     # ai_cmd_alias inherits from loop.ai_cmd_alias if not set
 
   my-long-running:
-    observe: my-prompts/observe.md
-    orient: my-prompts/orient.md
-    decide: my-prompts/decide.md
-    act: my-prompts/act.md
+    observe:
+      - path: my-prompts/observe.md
+    orient:
+      - path: my-prompts/orient.md
+    decide:
+      - path: my-prompts/decide.md
+    act:
+      - path: my-prompts/act.md
     iteration_mode: unlimited    # This procedure runs until SUCCESS or failure threshold
     # default_max_iterations ignored when mode is unlimited
 ```
@@ -419,14 +444,14 @@ function mergeConfig(base Config, overlay ConfigFile, provenance map, tier Confi
             baseProcedure.Summary = proc.Summary
         if proc.Description != "":
             baseProcedure.Description = proc.Description
-        if proc.Observe != "":
-            baseProcedure.Observe = resolvePath(dirname(filePath), proc.Observe)
-        if proc.Orient != "":
-            baseProcedure.Orient = resolvePath(dirname(filePath), proc.Orient)
-        if proc.Decide != "":
-            baseProcedure.Decide = resolvePath(dirname(filePath), proc.Decide)
-        if proc.Act != "":
-            baseProcedure.Act = resolvePath(dirname(filePath), proc.Act)
+        if len(proc.Observe) > 0:
+            baseProcedure.Observe = resolveFragmentPaths(dirname(filePath), proc.Observe)
+        if len(proc.Orient) > 0:
+            baseProcedure.Orient = resolveFragmentPaths(dirname(filePath), proc.Orient)
+        if len(proc.Decide) > 0:
+            baseProcedure.Decide = resolveFragmentPaths(dirname(filePath), proc.Decide)
+        if len(proc.Act) > 0:
+            baseProcedure.Act = resolveFragmentPaths(dirname(filePath), proc.Act)
         if proc.IterationMode != "":
             baseProcedure.IterationMode = proc.IterationMode
         if proc.DefaultMaxIterations != nil:
@@ -444,38 +469,40 @@ function mergeConfig(base Config, overlay ConfigFile, provenance map, tier Confi
         provenance["procedures." + name] = ConfigSource{tier, filePath, baseProcedure}
 
     return base
+
+function resolveFragmentPaths(configDir string, fragments []FragmentAction) -> []FragmentAction:
+    resolved = make([]FragmentAction, len(fragments))
+    for i, fragment in fragments:
+        resolved[i] = fragment
+        // Only resolve path if it's not a builtin: reference and path is specified
+        if fragment.Path != "" && !strings.HasPrefix(fragment.Path, "builtin:"):
+            resolved[i].Path = filepath.Join(configDir, fragment.Path)
+    return resolved
 ```
 
 ### Prompt File Loading
 
-Prompt file paths are resolved based on an internal prefix:
+Fragment loading is handled by the procedures system (see procedures.md). The configuration system resolves fragment paths during config merging:
 
 ```
-function LoadPrompt(path string, configDir string, embeddedFS embed.FS) -> ([]byte, error):
-    // Check for internal builtin: prefix
-    if strings.HasPrefix(path, "builtin:"):
-        // Strip prefix and load from embedded resources
-        embeddedPath = strings.TrimPrefix(path, "builtin:")
-        content, err = embeddedFS.ReadFile(embeddedPath)
-        if err:
-            return error("embedded prompt not found: %s", path)
-        return content, nil
-    
-    // No prefix = filesystem path, resolved relative to config directory
-    fsPath = filepath.Join(configDir, path)
-    content, err = os.ReadFile(fsPath)
-    if err:
-        return error("prompt file not found: %s (resolved to %s)", path, fsPath)
-    return content, nil
+function resolveFragmentPaths(configDir string, fragments []FragmentAction) -> []FragmentAction:
+    resolved = make([]FragmentAction, len(fragments))
+    for i, fragment in fragments:
+        resolved[i] = fragment
+        // Only resolve path if it's not a builtin: reference and path is specified
+        if fragment.Path != "" && !strings.HasPrefix(fragment.Path, "builtin:"):
+            resolved[i].Path = filepath.Join(configDir, fragment.Path)
+    return resolved
 ```
 
 **Implementation notes:**
-- Built-in procedures use internal `builtin:` prefix (e.g., `builtin:prompts/observe_build.md`) in code
+- Built-in procedures use internal `builtin:` prefix (e.g., `builtin:fragments/observe/read_agents_md.md`) in code
 - The prefix is never exposed in config files or to users
-- Custom procedures use filesystem paths (e.g., `my-prompts/observe.md`) resolved relative to config directory
-- To override a built-in prompt, specify the filesystem path in config (e.g., `observe: prompts/observe_build.md`)
+- Custom procedures use filesystem paths (e.g., `fragments/observe/custom.md`) resolved relative to config directory
+- To override a built-in fragment, specify the filesystem path in config (e.g., `path: fragments/observe/read_agents_md.md`)
 - Field-level merge preserves `builtin:` prefixed paths when not overridden
 - No naming conflicts possible — built-in paths always have prefix, user paths never do
+- Fragment arrays replace entire phase when specified (not merged element-by-element)
 
 ### Config Validation
 
@@ -501,14 +528,24 @@ function validateConfig(config Config) -> error:
 
     // Validate procedures
     for name, proc in config.Procedures:
-        if proc.Observe == "":
-            return error("procedure %s: observe is required", name)
-        if proc.Orient == "":
-            return error("procedure %s: orient is required", name)
-        if proc.Decide == "":
-            return error("procedure %s: decide is required", name)
-        if proc.Act == "":
-            return error("procedure %s: act is required", name)
+        if len(proc.Observe) == 0:
+            return error("procedure %s: observe is required (must have at least one fragment)", name)
+        if len(proc.Orient) == 0:
+            return error("procedure %s: orient is required (must have at least one fragment)", name)
+        if len(proc.Decide) == 0:
+            return error("procedure %s: decide is required (must have at least one fragment)", name)
+        if len(proc.Act) == 0:
+            return error("procedure %s: act is required (must have at least one fragment)", name)
+        
+        // Validate each fragment in all phases
+        for _, fragment in append(append(append(proc.Observe, proc.Orient...), proc.Decide...), proc.Act...):
+            hasContent = fragment.Content != ""
+            hasPath = fragment.Path != ""
+            if hasContent && hasPath:
+                return error("procedure %s: fragment cannot specify both content and path", name)
+            if !hasContent && !hasPath:
+                return error("procedure %s: fragment must specify either content or path", name)
+        
         if proc.IterationMode != "" && proc.IterationMode != ModeMaxIterations && proc.IterationMode != ModeUnlimited:
             return error("procedure %s: iteration_mode must be '', 'max-iterations', or 'unlimited', got '%s'", name, proc.IterationMode)
         if proc.DefaultMaxIterations != nil && *proc.DefaultMaxIterations < 1:
@@ -647,13 +684,19 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
 | Config file has invalid YAML | Error with file path and parse error details |
 | Config file has unknown top-level key | Warning logged, key ignored (forward compatibility) |
 | Config file has unknown key inside `procedures` | Warning logged, key ignored |
-| Procedure references prompt file that doesn't exist | Error at validation time: "procedure 'X': observe file not found: path/to/file.md" |
+| Procedure references prompt file that doesn't exist | Error at validation time: "procedure 'X': fragment file not found: path/to/file.md" |
 | Built-in procedure prompt file (embedded) | Loaded from Go binary via `go:embed` using internal `builtin:` prefix |
 | Workspace procedure prompt file path | Resolved relative to workspace config file directory |
 | Global procedure prompt file path | Resolved relative to global config file directory |
-| User creates `./prompts/observe_build.md` file | No conflict — built-in uses `builtin:prompts/observe_build.md`, user file ignored unless explicitly referenced in config |
-| Workspace config overrides built-in prompt path | User specifies `observe: prompts/observe_build.md` → loads from filesystem, overriding built-in |
-| Workspace config at `./rooda-config.yml`, invoked from subdirectory | Prompt paths resolved relative to `./` (workspace config directory), not current working directory |
+| User creates `./fragments/observe/read_agents_md.md` file | No conflict — built-in uses `builtin:fragments/observe/read_agents_md.md`, user file ignored unless explicitly referenced in config |
+| Workspace config overrides built-in prompt path | User specifies `observe: [{path: fragments/observe/read_agents_md.md}]` → loads from filesystem, overriding built-in |
+| Workspace config at `./rooda-config.yml`, invoked from subdirectory | Fragment paths resolved relative to `./` (workspace config directory), not current working directory |
+| Fragment has both content and path | Error at config load: "fragment cannot specify both content and path" |
+| Fragment has neither content nor path | Error at config load: "fragment must specify either content or path" |
+| Empty fragment array for OODA phase | Error at validation: "procedure X: observe is required (must have at least one fragment)" |
+| Fragment with inline content | Content used directly, no file loading |
+| Fragment with parameters but no template syntax | Parameters ignored, content returned as-is |
+| Workspace overrides procedure with different fragment count | Entire fragment array replaced (not merged element-by-element) |
 | Global config directory doesn't exist | Silently skipped (no global config) |
 | `ROODA_CONFIG_HOME` set to non-existent directory | Silently skipped (same as missing directory) |
 | `XDG_CONFIG_HOME` set, `ROODA_CONFIG_HOME` not set | Global config at `$XDG_CONFIG_HOME/rooda/rooda-config.yml` |
@@ -761,7 +804,7 @@ Available aliases: claude, copilot, cursor-agent, kiro-cli
 
 ### Example 2: Workspace Config Override
 
-**Scenario:** Team wants to use claude by default and increase build iterations.
+**Scenario:** Team wants to use claude by default and customize build procedure with additional fragments.
 
 **Workspace config (`./rooda-config.yml`):**
 ```yaml
@@ -770,6 +813,10 @@ loop:
 
 procedures:
   build:
+    observe:
+      - path: "builtin:fragments/observe/read_agents_md.md"
+      - path: "builtin:fragments/observe/query_work_tracking.md"
+      - content: "Also check for any blocking dependencies."
     default_max_iterations: 10
 ```
 
@@ -784,13 +831,15 @@ loop.default_max_iterations: 5        (built-in)
 loop.failure_threshold: 3             (built-in)
 loop.ai_cmd_alias: claude             (workspace: ./rooda-config.yml)
 procedure: build
-  observe/orient/decide/act:          (built-in, embedded — not overridden)
+  observe: [read_agents_md, query_work_tracking, inline content]  (workspace: ./rooda-config.yml)
+  orient/decide/act:                  (built-in, embedded — not overridden)
   default_max_iterations: 10          (workspace: ./rooda-config.yml)
 ai_cmd: claude-cli --no-interactive (loop.ai_cmd_alias → built-in alias)
 ```
 
 **Verification:**
-- Build procedure prompt files still use built-in embedded defaults (workspace only overrode `default_max_iterations`)
+- Build procedure observe phase uses custom fragment array (replaces built-in observe fragments entirely)
+- Other phases (orient, decide, act) still use built-in embedded defaults
 - Iteration limit increased to 10
 - Claude CLI used via `loop.ai_cmd_alias` — no flag needed
 - Provenance shows `default_max_iterations` came from workspace config
@@ -816,10 +865,14 @@ loop:
 
 procedures:
   my-lint:
-    observe: prompts/observe_lint.md
-    orient: prompts/orient_lint.md
-    decide: prompts/decide_lint.md
-    act: prompts/act_lint.md
+    observe:
+      - path: prompts/observe_lint.md
+    orient:
+      - path: prompts/orient_lint.md
+    decide:
+      - path: prompts/decide_lint.md
+    act:
+      - path: prompts/act_lint.md
     default_max_iterations: 1
     ai_cmd_alias: fast               # Lint is cheap — use a faster model
 ```
@@ -975,10 +1028,15 @@ procedures:
   security-audit:
     display: "Security Audit"
     summary: "Audit codebase for security vulnerabilities"
-    observe: .rooda/prompts/observe_security.md
-    orient: .rooda/prompts/orient_security.md
-    decide: .rooda/prompts/decide_security.md
-    act: .rooda/prompts/act_security.md
+    observe:
+      - path: .rooda/fragments/observe_security.md
+      - path: .rooda/fragments/observe_dependencies.md
+    orient:
+      - path: .rooda/fragments/orient_security.md
+    decide:
+      - path: .rooda/fragments/decide_security.md
+    act:
+      - path: .rooda/fragments/act_security.md
     default_max_iterations: 1
 ```
 
@@ -989,9 +1047,10 @@ rooda security-audit
 
 **Verification:**
 - Custom procedure loads from workspace config
-- Prompt files resolved relative to `./` (workspace config directory)
+- Fragment files resolved relative to `./` (workspace config directory)
+- Multiple fragments in observe phase concatenated with double newlines
 - Runs alongside all 16 built-in procedures
-- If prompt files don't exist, clear error at startup
+- If fragment files don't exist, clear error at startup
 
 ### Example 9: `--config` Flag Override
 
@@ -1079,7 +1138,7 @@ Procedure-specific settings (e.g., `iteration_mode`, `ai_cmd_alias`) cannot be s
 
 **Path Resolution:**
 
-Prompt file paths in config files are resolved relative to the config file's directory, not the current working directory. This ensures a workspace config committed to a repo works regardless of where `rooda` is invoked from within the project. Built-in procedure prompt files are embedded in the binary via `go:embed` and don't need filesystem resolution.
+Prompt file paths in config files are resolved relative to the config file's directory, not the current working directory. This ensures a workspace config committed to a repo works regardless of where `rooda` is invoked from within the project. Built-in procedure fragment files are embedded in the binary via `go:embed` and don't need filesystem resolution. Fragment arrays replace entire OODA phase arrays when specified (not merged element-by-element).
 
 **Forward Compatibility:**
 

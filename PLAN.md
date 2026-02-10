@@ -48,7 +48,7 @@ The `./procedures.md` file defines a fragment-based composition system that repl
 
 ### 3. Update Configuration Spec
 **File**: `specs/configuration.md`
-**Status**: Schema updates required
+**Status**: ✅ COMPLETE
 **Authority**: `./procedures.md` "Procedures Configuration Schema"
 
 **Current Issue**: Procedure data structure doesn't match `./procedures.md` schema
@@ -179,3 +179,29 @@ All spec changes must be validated against `./procedures.md` to ensure:
 - Validation at config load time (fail fast) catches all fragment and template errors before execution
 - Empty fragment arrays are valid (not all procedures need all phases)
 - Fragment system is backward compatible - can still use single fragment per phase if desired
+
+### Task 3 Completion: Update Configuration Spec
+**Completed**: specs/configuration.md updated to support fragment-based procedure schema
+
+**What was done**:
+- Updated Procedure struct to use []FragmentAction arrays instead of single string paths for Observe/Orient/Decide/Act
+- Added FragmentAction struct definition with Content, Path, and Parameters fields
+- Updated YAML schema examples to show fragment arrays with inline content and path options
+- Modified config merging algorithm to handle fragment arrays and resolve fragment paths
+- Updated resolveFragmentPaths function to handle builtin: prefix and relative path resolution
+- Updated validation to check fragment arrays (at least one fragment per phase required)
+- Added fragment-level validation for content vs path exclusivity (exactly one required)
+- Updated edge cases to cover fragment validation scenarios
+- Updated all examples to show fragment arrays (Example 2, 3, 9 modified)
+- Updated prompt file loading section to reference procedures.md for fragment loading
+- Updated path resolution notes to explain fragment array replacement behavior (not element-by-element merge)
+
+**Key learnings**:
+- Fragment arrays replace entire OODA phase when specified in config overlay (not merged element-by-element)
+- This is critical for predictability - users specify complete phase composition, not partial modifications
+- resolveFragmentPaths only resolves non-builtin paths (builtin: prefix preserved for embedded resources)
+- Validation happens at two levels: config load (structure) and fragment load (file existence)
+- Content vs path exclusivity enforced at config validation time (fail fast)
+- Field-level merge still applies to procedure metadata (display, summary, iteration settings)
+- Fragment path resolution happens during config merging, not during fragment loading
+- This allows provenance tracking and early validation before procedure execution
