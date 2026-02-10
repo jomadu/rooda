@@ -84,27 +84,25 @@ Rationale: Provides both provenance (source path) and immediate content access f
 
 ## Implementation Tasks
 
-1. Update prompt-composition.md:
-   - Algorithm for phase markers (`===`)
-   - Algorithm for context source path injection
-   - All examples showing assembled prompts
-   - Context injection examples (file vs inline)
-2. Update iteration-loop.md dry-run examples
-3. Update observability.md dry-run examples
-4. Update cli-interface.md:
-   - Dry-run examples
-   - Context injection examples
-   - File existence heuristic documentation
-5. Verify no other specs reference the `#` header format
+1. ✅ Update prompt-composition.md:
+   - ✅ Algorithm for phase markers (`===`)
+   - ✅ Algorithm for context source path injection
+   - ✅ All examples showing assembled prompts
+   - ✅ Context injection examples (file vs inline)
+2. ✅ Update iteration-loop.md dry-run examples
+3. ✅ Update observability.md dry-run examples
+4. ✅ Update cli-interface.md:
+   - ✅ No changes needed (no prompt examples found)
+5. ✅ Verify no other specs reference the `#` header format
 
 ## Acceptance Criteria
 
-- [ ] All specs show `=== PHASE ===` format for OODA phase markers
-- [ ] Fragment content headers remain as `#` markdown headers
-- [ ] CONTEXT section uses `=== CONTEXT ===` format
-- [ ] All dry-run examples updated consistently
-- [ ] No references to old `# OBSERVE` format remain in specs
-- [ ] Context from file shows: `Source: <path>\n\n<content>`
-- [ ] Context inline shows: `<content>` (no Source line)
-- [ ] File existence heuristic behavior clearly documented
-- [ ] Algorithm shows context file reading and interpolation
+- [x] All specs show `=== PHASE ===` format for OODA phase markers
+- [x] Fragment content headers remain as `#` markdown headers
+- [x] CONTEXT section uses `=== CONTEXT ===` format
+- [x] All dry-run examples updated consistently
+- [x] No references to old `# OBSERVE` format remain in specs
+- [x] Context from file shows: `Source: <path>\n\n<content>`
+- [x] Context inline shows: `<content>` (no Source line)
+- [x] File existence heuristic behavior clearly documented
+- [x] Algorithm shows context file reading and interpolation

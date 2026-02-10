@@ -256,9 +256,7 @@ $ rooda build --dry-run
   command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
 [21:00:00.500] INFO Assembled prompt size=1234
 --- Prompt Start ---
-# OODA Loop Iteration
-
-## OBSERVE
+=== OBSERVE ===
 ...
 --- Prompt End ---
 [21:00:00.600] INFO Dry-run validation passed

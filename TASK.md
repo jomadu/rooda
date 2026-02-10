@@ -1,1 +1,0 @@
-this repository should use `make` as to specify and run commands such as build, test, and lint.

@@ -24,8 +24,10 @@ Assemble prompts from fragment arrays for each OODA phase (observe, orient, deci
 - [ ] Processes Go text/template syntax when parameters are provided
 - [ ] Concatenates fragments within each phase with double newlines (\n\n)
 - [ ] Injects user-provided context when --context flag is supplied
-- [ ] Wraps user context with "# CONTEXT" section marker
-- [ ] Wraps each phase with section markers (e.g., "# OBSERVE", "# ORIENT")
+- [ ] Wraps user context with "=== CONTEXT ===" section marker
+- [ ] Wraps each phase with section markers (e.g., "=== OBSERVE ===", "=== ORIENT ===")
+- [ ] When context is from file, shows "Source: <path>" followed by file content
+- [ ] When context is inline, shows content only (no Source line)
 - [ ] Validates all fragment paths at config load time (fail fast)
 - [ ] Validates template syntax at config load time
 - [ ] Returns error if fragment has both content and path specified
@@ -77,32 +79,50 @@ Specifying both or neither is an error.
 ### Assembled Prompt Structure
 
 ```
-# CONTEXT
-[User Context - if provided via --context]
+=== CONTEXT ===
+Source: ./path/to/file.md
 
-# OBSERVE
-[Content from observe phase file]
+[File content - if context from file]
 
-# ORIENT
-[Content from orient phase file]
+=== OBSERVE ===
+[Content from observe phase fragments]
 
-# DECIDE
-[Content from decide phase file]
+=== ORIENT ===
+[Content from orient phase fragments]
 
-# ACT
-[Content from act phase file]
+=== DECIDE ===
+[Content from decide phase fragments]
+
+=== ACT ===
+[Content from act phase fragments]
 ```
+
+Note: When context is inline (not from file), the "Source:" line is omitted.
 
 ## Algorithm
 
 ```
-function AssemblePrompt(procedure, userContext, configDir):
+function AssemblePrompt(procedure, contextValues []string, configDir):
     prompt = ""
     
     // Inject user context first if provided
-    if userContext != "":
-        prompt += "# CONTEXT\n"
-        prompt += userContext + "\n\n"
+    if len(contextValues) > 0:
+        prompt += "=== CONTEXT ===\n"
+        
+        for _, contextValue in contextValues:
+            // Check if context is a file path (file existence heuristic)
+            if fileExists(contextValue):
+                // Read file content
+                content, err = os.ReadFile(contextValue)
+                if err:
+                    return error("failed to read context file %s: %v", contextValue, err)
+                
+                // Add source path and content
+                prompt += "Source: " + contextValue + "\n\n"
+                prompt += string(content) + "\n\n"
+            else:
+                // Inline content - no source line
+                prompt += contextValue + "\n\n"
     
     // Process each OODA phase in order
     for phase in [observe, orient, decide, act]:
@@ -115,7 +135,7 @@ function AssemblePrompt(procedure, userContext, configDir):
         
         // Add section marker and content (normalize trailing newlines)
         if strings.TrimSpace(phaseContent) != "":
-            prompt += "# " + phase.toUpperCase() + "\n"
+            prompt += "=== " + phase.toUpperCase() + " ===\n"
             prompt += strings.TrimRight(phaseContent, "\n") + "\n\n"
     
     return prompt
@@ -478,18 +498,18 @@ rooda build
 
 **Output (assembled prompt):**
 ```markdown
-# OBSERVE
+=== OBSERVE ===
 [Content from read_agents_md.md]
 
 [Content from read_specs.md]
 
-# ORIENT
+=== ORIENT ===
 [Content from understand_task_requirements.md]
 
-# DECIDE
+=== DECIDE ===
 [Content from plan_implementation_approach.md]
 
-# ACT
+=== ACT ===
 [Content from modify_files.md]
 
 [Content from run_tests.md]
@@ -524,18 +544,18 @@ rooda custom-build
 
 **Output:**
 ```markdown
-# OBSERVE
+=== OBSERVE ===
 [Content from fragments/observe/custom_observe.md]
 
 Also check for any TODO comments in the code.
 
-# ORIENT
+=== ORIENT ===
 [Content from fragments/orient/custom_orient.md]
 
-# DECIDE
+=== DECIDE ===
 [Content from plan_implementation_approach.md]
 
-# ACT
+=== ACT ===
 [Content from modify_files.md]
 ```
 
@@ -568,21 +588,21 @@ rooda build --context "Focus on the authentication module. The new feature shoul
 
 **Output:**
 ```markdown
-# CONTEXT
+=== CONTEXT ===
 Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow.
 
-# OBSERVE
+=== OBSERVE ===
 [Content from read_agents_md.md]
 
 [Content from read_specs.md]
 
-# ORIENT
+=== ORIENT ===
 [Content from understand_task_requirements.md]
 
-# DECIDE
+=== DECIDE ===
 [Content from plan_implementation_approach.md]
 
-# ACT
+=== ACT ===
 [Content from modify_files.md]
 ```
 
@@ -633,7 +653,7 @@ rooda custom-audit
 
 **Output (observe phase):**
 ```markdown
-# OBSERVE
+=== OBSERVE ===
 Read the following specification files from the repository:
 
 - specs/api.md
@@ -641,13 +661,13 @@ Read the following specification files from the repository:
 
 Also include any associated test files.
 
-# ORIENT
+=== ORIENT ===
 [Content from evaluate_against_quality_criteria.md]
 
-# DECIDE
+=== DECIDE ===
 [Content from identify_issues.md]
 
-# ACT
+=== ACT ===
 [Content from write_audit_report.md]
 ```
 

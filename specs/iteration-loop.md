@@ -606,21 +606,19 @@ rooda build --dry-run --context "focus on the auth module, the JWT validation is
   command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
 [10:00:00.500] INFO Assembled prompt size=12520
 --- Prompt Start ---
-# OODA Loop Iteration
-
-## CONTEXT
+=== CONTEXT ===
 focus on the auth module, the JWT validation is broken
 
-## OBSERVE
+=== OBSERVE ===
 [contents of observe prompt file]
 
-## ORIENT
+=== ORIENT ===
 [contents of orient prompt file]
 
-## DECIDE
+=== DECIDE ===
 [contents of decide prompt file]
 
-## ACT
+=== ACT ===
 [contents of act prompt file]
 --- Prompt End ---
 [10:00:00.600] INFO Dry-run validation passed
@@ -684,16 +682,16 @@ rooda build --dry-run --ai-cmd-alias claude
   command: claude-cli (found at /usr/local/bin/claude-cli, executable)
 [10:00:00.500] INFO Assembled prompt size=12450
 --- Prompt Start ---
-# OBSERVE
+=== OBSERVE ===
 [observe phase content...]
 
-# ORIENT
+=== ORIENT ===
 [orient phase content...]
 
-# DECIDE
+=== DECIDE ===
 [decide phase content...]
 
-# ACT
+=== ACT ===
 [act phase content...]
 --- Prompt End ---
 [10:00:00.600] INFO Dry-run validation passed
