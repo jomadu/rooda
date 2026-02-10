@@ -267,6 +267,26 @@
 
 **Acceptance:** Drift detected and AGENTS.md updated correctly
 
+## Priority 11: User Documentation (Part of Implementation)
+
+### P11.1: Write Core Documentation
+- [ ] Write README.md (overview, installation, quick start)
+- [ ] Write docs/installation.md (all install methods, platform-specific)
+- [ ] Write docs/procedures.md (all 16 procedures with examples)
+- [ ] Write docs/configuration.md (three-tier system, all settings)
+- [ ] Write docs/cli-reference.md (all flags, exit codes)
+- [ ] Write docs/troubleshooting.md (common errors, solutions)
+- [ ] Write docs/agents-md.md (format, lifecycle, bootstrap)
+
+**Acceptance:** All 7 documentation files exist with working examples
+
+### P11.2: Update AGENTS.md Implementation Definition
+- [ ] Add docs/ to Implementation Definition patterns
+- [ ] Add quality criterion: "Documentation examples execute successfully (PASS/FAIL)"
+- [ ] Verify audit-impl checks documentation (already built-in)
+
+**Acceptance:** AGENTS.md reflects that docs are implementation
+
 ## Out of Scope for v2.0.0
 
 - Homebrew formula (manual installation sufficient for initial release)
@@ -275,6 +295,12 @@
 - Exponential backoff (simple consecutive failure threshold sufficient)
 - Advanced template validation (basic Go template errors sufficient)
 - Fragment caching (performance not critical for v2.0.0)
+- External link validation in docs (only internal links checked)
+- Interactive examples in docs (asciinema recordings)
+- Versioned docs (docs for each release tag)
+- Search index for docs site
+- API docs with Go package examples
+- Diagram generation from data structures
 
 ## Success Criteria
 
@@ -287,6 +313,8 @@
 6. Cross-platform binaries available (macOS, Linux, Windows)
 7. Installation script works
 8. All acceptance criteria from specs pass
+9. User documentation written (README.md + 6 docs/ files)
+10. `rooda audit-impl` validates documentation (docs are implementation)
 
 ## Task Breakdown Summary
 
@@ -301,18 +329,19 @@
 - **P8:** 2 tasks (remaining procedures)
 - **P9:** 3 tasks (distribution)
 - **P10:** 3 tasks (AGENTS.md integration)
+- **P11:** 2 tasks (user documentation as implementation)
 
-**Total:** 31 tasks across 11 priority levels
+**Total:** 33 tasks across 12 priority levels
 
 ## Implementation Order
 
-Work sequentially through priorities P0 → P10. Within each priority, tasks can be parallelized if independent. P7 (single working procedure) is the first major milestone — everything before it is foundational, everything after is expansion.
+Work sequentially through priorities P0 → P11. Within each priority, tasks can be parallelized if independent. P7 (single working procedure) is the first major milestone — everything before it is foundational, everything after is expansion.
 
 ## Estimated Effort
 
-- **P0-P6:** ~60% of effort (core framework)
+- **P0-P6:** ~55% of effort (core framework)
 - **P7:** ~10% of effort (first working procedure validates architecture)
-- **P8-P10:** ~30% of effort (completeness and polish)
+- **P8-P11:** ~35% of effort (completeness, polish, documentation)
 
 ## Notes
 
