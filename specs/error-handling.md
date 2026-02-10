@@ -118,7 +118,7 @@ Detect, report, and recover from failures — AI CLI crashes, network issues, te
 
 ### Promise Signal Format
 
-**Valid signals** (case-sensitive, exact match):
+**Valid signals** (case-sensitive, exact substring match):
 - `<promise>SUCCESS</promise>`
 - `<promise>FAILURE</promise>`
 
@@ -129,7 +129,19 @@ Detect, report, and recover from failures — AI CLI crashes, network issues, te
 - `<promise>SUCCESS` (unclosed tag)
 - `<Promise>Success</Promise>` (mixed case)
 
-**Rationale:** Strict format forces AI to follow exact specification, prevents ambiguity, and enables fast string matching.
+**Detection method:** Simple substring matching using `strings.Contains()`. Signals can technically appear anywhere in output, even with surrounding text, but should be on their own line for clarity.
+
+**Recommended format:**
+```
+<promise>SUCCESS</promise>
+```
+
+**Works but discouraged:**
+```
+Task complete <promise>SUCCESS</promise> - all tests passing
+```
+
+**Rationale:** Strict signal format (case-sensitive, exact match) forces AI to follow specification and enables fast string matching. Substring matching is intentionally permissive to handle edge cases, but prompts should guide agents to use clean formatting.
 
 ### Timeout with Promise Signals
 

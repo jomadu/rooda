@@ -216,7 +216,7 @@ Each iteration's outcome is determined by two independent signals: the AI CLI pr
 
 **Signal placement:** Agents should emit signals at the END of their output, after all work is complete. This ensures signals are preserved even if output is truncated (truncation keeps the most recent output).
 
-**Signal format:** Signals must appear on their own line with no surrounding text. Explanatory text should come AFTER the signal, not embedded in the tag.
+**Signal format:** Signals are detected using simple substring matching and can appear anywhere in the output. However, for reliability and clarity, signals should appear on their own line. Explanatory text should come AFTER the signal, not embedded in the tag.
 
 **Signal precedence:** If both SUCCESS and FAILURE signals are present in output, FAILURE takes precedence.
 
@@ -884,7 +884,7 @@ When the AI CLI crashes (segfault, OOM kill, kernel termination), Go's `exec.Com
 
 Agents should emit `<promise>` signals at the END of their output, after all work is complete. This placement ensures signals are preserved even if output is truncated (truncation keeps the most recent output, discarding earlier content). The 10MB default buffer is sufficient for most iterations — if truncation occurs frequently, users should increase `max_output_buffer`.
 
-Signals must appear on their own line with no surrounding text. The correct format is:
+Signals are detected using simple substring matching (`strings.Contains()`) and can technically appear anywhere in the output. However, for reliability and clarity, signals should appear on their own line. The correct format is:
 
 ```
 <promise>SUCCESS</promise>
@@ -894,6 +894,11 @@ NOT:
 ```
 Task complete <promise>SUCCESS</promise> - all tests passing
 ```
+
+While the implementation will detect signals with surrounding text, this format is discouraged because:
+1. It's harder to visually scan in logs
+2. It may be ambiguous if the signal is part of quoted text or example code
+3. Future implementations may enforce stricter parsing
 
 Explanatory text should come AFTER the signal, not embedded in the tag. This ensures reliable signal detection via simple string matching.
 
