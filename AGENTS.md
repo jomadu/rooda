@@ -104,18 +104,21 @@ shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 
 **Exclude:** `specs/README.md` (index file, not a spec)
 
-**Current state:** v2 Go rewrite specs complete — all 11 specs written with JTBD structure, acceptance criteria, examples. No Go implementation exists yet.
+**Current state:** v2 Go rewrite specs complete — all 11 specs written with JTBD structure, acceptance criteria, examples. Go implementation started: fragment embedding (P0.3) complete, config/AI/loop not yet implemented.
 
 **v2 Rewrite Status:** The specifications in `specs/` describe a planned v2 Go rewrite with fundamentally different architecture (fragment-based composition, three-tier config, embedded resources, 16 procedures). This is a separate planned initiative, not missing features in v0.1.0. The v0.1.0 bash implementation (`rooda.sh`) is the current working version. When gap analysis identifies v2 features as "not implemented," this is expected—specs were written first per spec-driven development, and v2 implementation has not started.
 
 ## Implementation Definition
 
-**Location:** `rooda.sh`, `rooda-config.yml`, `prompts/*.md`
+**Location:** `rooda.sh`, `rooda-config.yml`, `prompts/*.md` (v0.1.0 bash), `cmd/`, `internal/` (v2 Go - in progress)
 
 **Patterns:**
 - `rooda.sh` — Main OODA loop script (bash, v0.1.0)
 - `rooda-config.yml` — Procedure definitions and AI tool presets
 - `prompts/*.md` — 25 OODA prompt component files (observe_*, orient_*, decide_*, act_*)
+- `cmd/rooda/main.go` — Go binary entry point (v2, stub only)
+- `internal/prompt/` — Prompt composition and fragment loading (v2, partial)
+- `internal/prompt/fragments/` — 25 embedded fragment files organized by OODA phase
 
 **Exclude:**
 - `archive/` — archived v1 implementation (preserved for reference)
@@ -123,9 +126,7 @@ shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 - `specs/` — specifications
 - `AGENTS.md`, `PLAN.md`, `TASK.md` — operational files
 
-**v2 Rewrite Status:** The specifications in `specs/` describe a planned v2 Go rewrite with fundamentally different architecture (fragment-based composition, three-tier config, embedded resources, 16 procedures). This is a separate planned initiative, not missing features in v0.1.0. The v0.1.0 bash implementation is the current working version. When gap analysis identifies v2 features as "not implemented," this is expected—specs were written first per spec-driven development, and v2 implementation has not started.
-
-**Note:** The `goify` branch restructured the project — files moved from `src/` to root level, and v1 artifacts archived in `archive/`. There is no Go implementation yet (no go.mod, no *.go files); v2 specifications are complete but implementation not started.
+**v2 Rewrite Status:** Go skeleton exists (go.mod, cmd/rooda/main.go stub, internal/ directories). Fragment embedding complete (P0.3). Config types, YAML parsing, AI execution, and loop logic not yet implemented. The v0.1.0 bash implementation (`rooda.sh`) remains the current working version.
 
 ## Quality Criteria
 
@@ -162,7 +163,7 @@ shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 - shellcheck not installed on this machine — `shellcheck rooda.sh` cannot run
 - No automated test suite exists
 - No CI/CD pipeline configured
-- No Go implementation exists (no go.mod, no *.go files, no cmd/ or internal/ directories)
+- v2 Go implementation partial — fragment embedding complete (P0.3), config/AI/loop not implemented
 
 **Why These Definitions:**
 - Implementation is at root level (not `src/`) because `goify` branch restructured the project
