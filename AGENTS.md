@@ -166,4 +166,3 @@ shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
 - Archive preserved for reference but excluded from active implementation — prevents agents from modifying deprecated code
 - Quality criteria are boolean PASS/FAIL for clear automated verification
 - No build step because current implementation is bash (v2 Go will need `go build`, `go test`, `golangci-lint`)
-- Gap analysis shows 20 tasks required for complete v2 implementation, organized in 4 phases (foundation, core loop, enhanced features, advanced features)
