@@ -97,7 +97,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════
@@ -162,7 +163,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 ```
 
@@ -287,7 +289,8 @@ function AssemblePreamble(procedureName string) -> string:
     // Success signaling instructions
     preamble += "Success Signaling:\n"
     preamble += "- When you complete all tasks successfully, output: <promise>SUCCESS</promise>\n"
-    preamble += "- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>\n"
+    preamble += "- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>\n"
+    preamble += "- Explanations should come AFTER the signal, not embedded in the tag\n"
     preamble += "- The loop orchestrator uses these signals to determine iteration outcome.\n"
     
     return preamble
@@ -664,7 +667,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════
@@ -795,7 +799,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════
@@ -872,7 +877,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════

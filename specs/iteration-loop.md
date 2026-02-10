@@ -577,7 +577,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════
@@ -652,7 +653,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 === CONTEXT ===
@@ -758,7 +760,8 @@ You must complete all phases and produce concrete outputs.
 
 Success Signaling:
 - When you complete all tasks successfully, output: <promise>SUCCESS</promise>
-- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
 - The loop orchestrator uses these signals to determine iteration outcome.
 
 ═══════════════════════════════════════════════════════════════
