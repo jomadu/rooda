@@ -75,10 +75,110 @@ The `./procedures.md` file defines a fragment-based composition system that repl
 **Status**: Minor updates for fragment system
 **Authority**: `./procedures.md` for OODA phase structure
 
+**Current Issue**: 
+1. OODA phase override flags assume single file per phase, but `./procedures.md` defines fragment arrays
+2. Inconsistent flag design: `--context` vs `--context-file` creates unnecessary complexity
+
 **Required Changes**:
-- Update OODA phase override flags to work with fragment arrays from copied schema
-- Clarify that overrides replace entire phase arrays per copied structure
-- Include procedure definitions copied from `./procedures.md`
+
+1. **Unify Context Flags**:
+   - Remove `--context-file` flag entirely
+   - Change `--context` to accept both file paths and inline content
+   - Use file existence heuristic: if value exists as file, read it; otherwise treat as inline content
+   - Multiple `--context` flags accumulate in order
+   - Update acceptance criteria to remove all `--context-file` references
+   - Update examples to show `--context file.txt` instead of `--context-file file.txt`
+
+2. **Update OODA Phase Flags for Fragment Arrays**:
+   - Change `--observe`, `--orient`, `--decide`, `--act` to accept multiple values (repeatable flags)
+   - Each flag invocation adds one fragment to the phase array
+   - Use same file existence heuristic: if value exists as file, treat as path; otherwise treat as inline content
+   - Examples:
+     - File: `--observe prompts/custom.md`
+     - Inline: `--observe "Focus on auth module"`
+     - Multiple files: `--observe file1.md --observe file2.md`
+     - Mixed: `--observe file.md --observe "Additional context"`
+   - Providing any phase flag replaces the entire phase array (not appended to config)
+   - Order preserved: fragments processed left-to-right as specified on CLI
+
+3. **Update CLIArgs Data Structure**:
+   - Change `Contexts []string` to remain as-is (already array)
+   - Remove `ContextFiles []string` field entirely
+   - Change `ObserveFile string` to `ObserveFragments []string` (array)
+   - Change `OrientFile string` to `OrientFragments []string` (array)
+   - Change `DecideFile string` to `DecideFragments []string` (array)
+   - Change `ActFile string` to `ActFragments []string` (array)
+
+4. **Update Flag Precedence Resolution Algorithm**:
+   - For each context value in `Contexts` array:
+     - Check if file exists at that path
+     - If exists: read file content and use as context
+     - If not exists: use value directly as inline content
+   - For each OODA phase fragment value:
+     - Check if file exists at that path
+     - If exists: create FragmentAction with `{path: <file>, content: "", parameters: nil}`
+     - If not exists: create FragmentAction with `{path: "", content: <value>, parameters: nil}`
+   - Preserve order from CLI arguments (left to right)
+   - CLI-provided fragment arrays completely replace config-defined arrays (no merge)
+
+5. **Update Acceptance Criteria**:
+   - Remove: `--context-file <path>` reads context from file
+   - Remove: Multiple `--context-file` flags accumulate
+   - Remove: `--context` and `--context-file` can be mixed
+   - Change: `--context <value>` accepts file path or inline text (file existence check)
+   - Add: Multiple `--observe` flags accumulate into fragment array
+   - Add: Multiple `--orient` flags accumulate into fragment array
+   - Add: Multiple `--decide` flags accumulate into fragment array
+   - Add: Multiple `--act` flags accumulate into fragment array
+   - Add: OODA phase flags use file existence heuristic (file path vs inline content)
+   - Update: "Prompt file paths in CLI overrides" to "Fragment values in CLI overrides"
+   - Update: "OODA phase override files validated" to "OODA phase override fragments validated"
+
+6. **Update Validation Section**:
+   - File existence check happens during flag resolution (determines file vs inline)
+   - No separate validation needed for "file not found" - non-existent paths become inline content
+   - Validate inline content is non-empty (error if empty string provided)
+   - Add note: to force inline content that looks like a filename, ensure file doesn't exist or use absolute path that doesn't exist
+
+7. **Update Examples Section**:
+   - Change: `rooda build --context-file task.md` to `rooda build --context task.md`
+   - Add: `rooda build --context "Focus on auth"` (inline content)
+   - Add: `rooda build --context task.md --context "Additional notes"` (mixed)
+   - Add: `rooda build --observe custom.md` (single file fragment)
+   - Add: `rooda build --observe file1.md --observe file2.md` (multiple file fragments)
+   - Add: `rooda build --observe "Focus on auth module"` (inline content fragment)
+   - Add: `rooda build --observe custom.md --observe "Additional instructions"` (mixed)
+   - Update: "Multiple Contexts" example to show unified flag
+
+8. **Update Edge Cases Section**:
+   - Remove: "Context File Not Found" edge case (now handled by heuristic)
+   - Remove: "OODA Phase File Not Found" edge case (now handled by heuristic)
+   - Add: "Empty inline content" - `rooda build --observe ""` produces error
+   - Add: "Ambiguous filename" - if user wants inline content "file.md" but file exists, file wins
+   - Add: "Force inline content" - use non-existent absolute path or ensure file doesn't exist
+
+9. **Update Design Rationale Notes**:
+   - Add note explaining unified flag design (consistency across `--context` and OODA phases)
+   - Add note explaining file existence heuristic (intuitive, no special syntax needed)
+   - Add note explaining why OODA overrides replace entire phase (predictability)
+   - Add note explaining repeatable flag pattern (standard CLI convention, matches `--context`)
+   - Add note explaining order preservation (predictable fragment composition)
+   - Add note explaining why CLI doesn't support template parameters (config-only feature)
+   - Add note about ambiguous filenames (file existence wins, design tradeoff for simplicity)
+
+10. **Update Dependencies Section**:
+   - Add reference to `procedures.md` for fragment array structure
+   - Update reference to `prompt-composition.md` to mention fragment processing
+
+11. **Update Short Flags**:
+   - Keep `-c` for `--context` (already defined)
+   - No short flags for OODA phases (less commonly used, avoid namespace pollution)
+
+**Backward Compatibility**:
+- No breaking changes - nothing implemented yet, this is the initial design
+- Single file usage for OODA phases: `rooda build --observe custom.md`
+- Internally converts to single-element fragment array: `[{path: "custom.md"}]`
+- Unified `--context` flag handles both files and inline content seamlessly
 
 ## Implementation Priority
 
