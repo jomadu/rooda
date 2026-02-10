@@ -59,13 +59,15 @@ func AssemblePrompt(procedure config.Procedure, userContext string, configDir st
 
 	// Process each OODA phase in order
 	phases := []struct {
-		name      string
-		fragments []config.FragmentAction
+		name        string
+		number      int
+		description string
+		fragments   []config.FragmentAction
 	}{
-		{"OBSERVE", procedure.Observe},
-		{"ORIENT", procedure.Orient},
-		{"DECIDE", procedure.Decide},
-		{"ACT", procedure.Act},
+		{"OBSERVE", 1, "Execute these observation tasks to gather information.", procedure.Observe},
+		{"ORIENT", 2, "Analyze the information you gathered and form your understanding.", procedure.Orient},
+		{"DECIDE", 3, "Make decisions about what actions to take.", procedure.Decide},
+		{"ACT", 4, "Execute the actions you decided on. Modify files, run commands, commit changes.", procedure.Act},
 	}
 
 	for _, phase := range phases {
@@ -77,9 +79,11 @@ func AssemblePrompt(procedure config.Procedure, userContext string, configDir st
 		// Add section marker and content if phase has content
 		trimmed := strings.TrimSpace(phaseContent)
 		if trimmed != "" {
-			prompt.WriteString("=== ")
-			prompt.WriteString(phase.name)
-			prompt.WriteString(" ===\n")
+			// Enhanced section marker with double lines and phase description
+			prompt.WriteString("═══════════════════════════════════════════════════════════════\n")
+			prompt.WriteString(fmt.Sprintf("PHASE %d: %s\n", phase.number, phase.name))
+			prompt.WriteString(phase.description)
+			prompt.WriteString("\n═══════════════════════════════════════════════════════════════\n")
 			prompt.WriteString(trimmed)
 			prompt.WriteString("\n\n")
 		}

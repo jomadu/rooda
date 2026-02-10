@@ -113,18 +113,18 @@ func TestAssemblePrompt_AllPhases(t *testing.T) {
 		t.Fatalf("expected no error, got: %v", err)
 	}
 
-	// Check section markers
-	if !strings.Contains(result, "=== OBSERVE ===") {
-		t.Errorf("expected OBSERVE section marker")
+	// Check enhanced section markers with double lines and phase descriptions
+	expectedMarkers := []string{
+		"═══════════════════════════════════════════════════════════════\nPHASE 1: OBSERVE\nExecute these observation tasks to gather information.\n═══════════════════════════════════════════════════════════════",
+		"═══════════════════════════════════════════════════════════════\nPHASE 2: ORIENT\nAnalyze the information you gathered and form your understanding.\n═══════════════════════════════════════════════════════════════",
+		"═══════════════════════════════════════════════════════════════\nPHASE 3: DECIDE\nMake decisions about what actions to take.\n═══════════════════════════════════════════════════════════════",
+		"═══════════════════════════════════════════════════════════════\nPHASE 4: ACT\nExecute the actions you decided on. Modify files, run commands, commit changes.\n═══════════════════════════════════════════════════════════════",
 	}
-	if !strings.Contains(result, "=== ORIENT ===") {
-		t.Errorf("expected ORIENT section marker")
-	}
-	if !strings.Contains(result, "=== DECIDE ===") {
-		t.Errorf("expected DECIDE section marker")
-	}
-	if !strings.Contains(result, "=== ACT ===") {
-		t.Errorf("expected ACT section marker")
+
+	for _, marker := range expectedMarkers {
+		if !strings.Contains(result, marker) {
+			t.Errorf("expected enhanced section marker:\n%s\n\nGot result:\n%s", marker, result)
+		}
 	}
 
 	// Check content
@@ -186,7 +186,7 @@ func TestAssemblePrompt_WithUserContext(t *testing.T) {
 	}
 
 	// Context should appear before OBSERVE
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
 	if contextIdx == -1 || observeIdx == -1 || contextIdx >= observeIdx {
 		t.Errorf("expected CONTEXT before OBSERVE")
 	}
@@ -206,7 +206,7 @@ func TestAssemblePrompt_EmptyPhases(t *testing.T) {
 	}
 
 	// Empty phases should not produce section markers
-	if strings.Contains(result, "=== OBSERVE ===") {
+	if strings.Contains(result, "PHASE 1: OBSERVE") {
 		t.Errorf("expected no OBSERVE marker for empty phase")
 	}
 	// Preamble should still be present
@@ -354,12 +354,12 @@ func TestAssemblePrompt_Integration_SeparatorFormat(t *testing.T) {
 		t.Fatalf("expected no error, got: %v", err)
 	}
 
-	// Verify === separator format for all phases
+	// Verify enhanced separator format for all phases
 	expectedSeparators := []string{
-		"=== OBSERVE ===",
-		"=== ORIENT ===",
-		"=== DECIDE ===",
-		"=== ACT ===",
+		"PHASE 1: OBSERVE",
+		"PHASE 2: ORIENT",
+		"PHASE 3: DECIDE",
+		"PHASE 4: ACT",
 	}
 
 	for _, sep := range expectedSeparators {
@@ -369,10 +369,10 @@ func TestAssemblePrompt_Integration_SeparatorFormat(t *testing.T) {
 	}
 
 	// Verify phase order
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
-	orientIdx := strings.Index(result, "=== ORIENT ===")
-	decideIdx := strings.Index(result, "=== DECIDE ===")
-	actIdx := strings.Index(result, "=== ACT ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
+	orientIdx := strings.Index(result, "PHASE 2: ORIENT")
+	decideIdx := strings.Index(result, "PHASE 3: DECIDE")
+	actIdx := strings.Index(result, "PHASE 4: ACT")
 
 	if observeIdx >= orientIdx || orientIdx >= decideIdx || decideIdx >= actIdx {
 		t.Errorf("phases not in correct order: OBSERVE(%d) ORIENT(%d) DECIDE(%d) ACT(%d)",
@@ -435,7 +435,7 @@ func TestAssemblePrompt_Integration_ContextFileWithSource(t *testing.T) {
 
 	// Verify CONTEXT comes before OBSERVE
 	contextIdx := strings.Index(result, "=== CONTEXT ===")
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
 	if contextIdx >= observeIdx {
 		t.Errorf("expected CONTEXT before OBSERVE")
 	}
@@ -472,7 +472,7 @@ func TestAssemblePrompt_Integration_InlineContextNoSource(t *testing.T) {
 
 	// Verify CONTEXT comes before OBSERVE
 	contextIdx := strings.Index(result, "=== CONTEXT ===")
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
 	if contextIdx >= observeIdx {
 		t.Errorf("expected CONTEXT before OBSERVE")
 	}
@@ -598,7 +598,7 @@ func TestAssemblePrompt_PreambleStructure(t *testing.T) {
 
 	// Verify preamble comes before OODA phases
 	preambleIdx := strings.Index(result, "ROODA PROCEDURE EXECUTION")
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
 	if preambleIdx == -1 || observeIdx == -1 || preambleIdx >= observeIdx {
 		t.Errorf("expected preamble before OBSERVE phase")
 	}
@@ -622,7 +622,7 @@ func TestAssemblePrompt_PreambleOrder(t *testing.T) {
 	// Verify order: preamble -> context -> OODA phases
 	preambleIdx := strings.Index(result, "ROODA PROCEDURE EXECUTION")
 	contextIdx := strings.Index(result, "=== CONTEXT ===")
-	observeIdx := strings.Index(result, "=== OBSERVE ===")
+	observeIdx := strings.Index(result, "PHASE 1: OBSERVE")
 
 	if preambleIdx >= contextIdx {
 		t.Errorf("expected preamble before context")
