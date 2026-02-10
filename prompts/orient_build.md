@@ -35,13 +35,15 @@ Based on task requirements and codebase search:
 - What dependencies need to be added?
 - What can be reused vs built new?
 
-## R8: Determine Test Strategy
+## R8: Determine Test Strategy (Test-Driven Development)
 
-Plan how to verify the implementation:
-- What tests need to be written?
+Plan tests BEFORE implementation:
+- What tests need to be written FIRST to define expected behavior?
 - What existing tests need to be updated?
 - What test data is needed?
 - What edge cases must be covered?
 - What integration tests are required?
 - How will acceptance criteria be verified?
 - What manual verification steps are needed?
+
+**TDD Principle: Write failing tests first, then implement to make them pass.**

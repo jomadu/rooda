@@ -1,13 +1,27 @@
 # Act: Build
 
-## A3: Implement Using Parallel Subagents
+## A3: Implement Using Test-Driven Development
 
-Execute the implementation plan:
+Execute the implementation plan using TDD workflow:
+
+**Step 1: Write Tests First**
+- Write failing tests that define expected behavior
+- Verify tests fail for the right reason (feature not implemented)
+- Run tests to confirm they fail
+
+**Step 2: Implement to Pass Tests**
 - Spawn subagents for parallel work as determined in decide phase
 - **Critical: Only 1 subagent for build/tests** (avoid parallel test conflicts)
-- Each subagent handles its assigned files/tasks
+- Each subagent implements code to make tests pass
 - Coordinate file modifications to avoid conflicts
+- Run tests frequently during implementation
+
+**Step 3: Verify Tests Pass**
+- Run full test suite
+- Verify all tests pass
 - Complete all file modifications before proceeding
+
+**TDD Cycle: Red (failing test) → Green (passing test) → Refactor (if needed)**
 
 ## A3.5: Validate Spec Structure (If Specs Modified)
 

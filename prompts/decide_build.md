@@ -19,12 +19,15 @@ Plan how to implement the selected task:
 - What is each subagent responsible for?
 - What is the execution order?
 
-## D6: Identify Which Files to Modify
+## D6: Identify Which Files to Modify (Tests First)
 
 Based on the implementation approach:
-- What files need to be created?
-- What files need to be modified?
+- **What test files need to be created FIRST?**
+- **What test files need to be modified FIRST?**
+- What implementation files need to be created?
+- What implementation files need to be modified?
 - What functions/classes/methods need to be added?
 - What existing code needs to be refactored?
-- What tests need to be written or updated?
 - What documentation needs to be updated?
+
+**TDD Order: Test files before implementation files.**
