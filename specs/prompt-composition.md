@@ -6,16 +6,21 @@ Assemble prompts from fragment arrays for each OODA phase (observe, orient, deci
 
 ## Activities
 
-1. **Resolve fragment paths** — For each fragment in OODA phase arrays, determine whether to use embedded resources (builtin: prefix), filesystem paths (relative to config directory), or inline content
-2. **Load fragment content** — Load content from embedded resources, filesystem, or use inline content directly
-3. **Process templates** — When parameters are provided, execute Go text/template processing on fragment content
-4. **Concatenate fragments** — Join fragments within each phase with double newlines
-5. **Inject user context** — If --context flag provided, insert user-supplied text at the top of the assembled prompt
-6. **Format with section markers** — Wrap each phase with clear delimiters for readability and debugging
-7. **Validate completeness** — Ensure all fragments are loadable and templates are valid at config load time (fail fast)
+1. **Assemble preamble** — Create procedure execution preamble with agent role, iteration context, and success signaling instructions
+2. **Resolve fragment paths** — For each fragment in OODA phase arrays, determine whether to use embedded resources (builtin: prefix), filesystem paths (relative to config directory), or inline content
+3. **Load fragment content** — Load content from embedded resources, filesystem, or use inline content directly
+4. **Process templates** — When parameters are provided, execute Go text/template processing on fragment content
+5. **Concatenate fragments** — Join fragments within each phase with double newlines
+6. **Inject user context** — If --context flag provided, insert user-supplied text after preamble
+7. **Format with section markers** — Wrap each phase with clear delimiters for readability and debugging
+8. **Validate completeness** — Ensure all fragments are loadable and templates are valid at config load time (fail fast)
 
 ## Acceptance Criteria
 
+- [ ] Assembles preamble with procedure name, iteration context, and success signaling instructions
+- [ ] Preamble includes current iteration number and max iterations (or "unlimited")
+- [ ] Preamble instructs agent to emit `<promise>SUCCESS</promise>` when job complete
+- [ ] Preamble instructs agent to emit `<promise>FAILURE</promise>` when blocked
 - [ ] Assembles prompts from fragment arrays for each OODA phase (observe, orient, decide, act)
 - [ ] Supports embedded fragments via builtin: prefix (e.g., builtin:fragments/observe/read_agents_md.md)
 - [ ] Supports filesystem fragments via relative paths (e.g., fragments/observe/custom.md)
@@ -23,7 +28,7 @@ Assemble prompts from fragment arrays for each OODA phase (observe, orient, deci
 - [ ] Filesystem paths resolved relative to config file directory, not current working directory
 - [ ] Processes Go text/template syntax when parameters are provided
 - [ ] Concatenates fragments within each phase with double newlines (\n\n)
-- [ ] Injects user-provided context when --context flag is supplied
+- [ ] Injects user-provided context when --context flag is supplied (after preamble, before OODA phases)
 - [ ] Wraps user context with "=== CONTEXT ===" section marker
 - [ ] Wraps each phase with section markers (e.g., "=== OBSERVE ===", "=== ORIENT ===")
 - [ ] When context is from file, shows "Source: <path>" followed by file content
@@ -79,6 +84,19 @@ Specifying both or neither is an error.
 ### Assembled Prompt Structure
 
 ```
+# OODA Loop Procedure: <procedure-name>
+
+You are executing an OODA loop iteration. This is iteration <N> of <M> (or "unlimited" if no max).
+
+Your task is to execute the procedure defined below. Work through each phase systematically:
+- OBSERVE: Gather information using the specified tools and commands
+- ORIENT: Analyze what you observed and form your understanding
+- DECIDE: Determine what actions to take based on your analysis
+- ACT: Execute the actions you decided on
+
+When you have completed the job successfully, emit: <promise>SUCCESS</promise>
+If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>
+
 === CONTEXT ===
 Source: ./path/to/file.md
 
@@ -97,15 +115,102 @@ Source: ./path/to/file.md
 [Content from act phase fragments]
 ```
 
-Note: When context is inline (not from file), the "Source:" line is omitted.
+Note: When context is inline (not from file), the "Source:" line is omitted. When no context is provided, the entire CONTEXT section is omitted.
+
+## Procedure Execution Preamble
+
+The preamble wraps the composed prompt with explicit execution context that frames the agent's role and responsibilities. It appears at the very beginning of every assembled prompt, before any user context or OODA phases.
+
+### Purpose
+
+The preamble serves three critical functions:
+
+1. **Agent Role Definition** — Establishes that the agent is executing a structured OODA loop procedure, not having a freeform conversation
+2. **Iteration Context** — Provides awareness of progress (iteration N of M) so the agent can gauge how much work remains
+3. **Success Signaling** — Instructs the agent how to communicate completion or blockage through `<promise>` output markers
+
+### Format
+
+```
+# OODA Loop Procedure: <procedure-name>
+
+You are executing an OODA loop iteration. This is iteration <N> of <M>.
+
+Your task is to execute the procedure defined below. Work through each phase systematically:
+- OBSERVE: Gather information using the specified tools and commands
+- ORIENT: Analyze what you observed and form your understanding
+- DECIDE: Determine what actions to take based on your analysis
+- ACT: Execute the actions you decided on
+
+When you have completed the job successfully, emit: <promise>SUCCESS</promise>
+If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>
+```
+
+### Template Variables
+
+- `<procedure-name>` — The name of the procedure being executed (e.g., "build", "agents-sync")
+- `<N>` — Current iteration number (1-indexed for display)
+- `<M>` — Maximum iterations configured, or the string "unlimited" if no limit
+
+### Iteration Context Variations
+
+**Limited iterations:**
+```
+This is iteration 3 of 10.
+```
+
+**Unlimited iterations:**
+```
+This is iteration 5 (unlimited mode).
+```
+
+**First iteration:**
+```
+This is iteration 1 of 5.
+```
+
+### Success Signal Instructions
+
+The preamble explicitly instructs the agent to emit promise markers:
+
+- `<promise>SUCCESS</promise>` — Job is complete, loop should terminate with success status
+- `<promise>FAILURE</promise>` — Agent is blocked and cannot make further progress, loop should count this as a failure
+
+These markers are scanned by the iteration loop to determine outcome (see iteration-loop.md Iteration Outcome Matrix).
+
+### Design Rationale
+
+**Why a preamble?**
+- Agents often treat prompts as templates or documentation rather than executable procedures
+- Explicit framing as "you are executing" improves agent recognition of the task
+- Iteration context helps agents understand progress and urgency
+
+**Why include phase descriptions?**
+- Reinforces the OODA structure before the agent sees phase content
+- Provides a mental model for how to process the subsequent sections
+- Reduces confusion about what each phase marker means
+
+**Why explicit success signaling instructions?**
+- Agents don't inherently know to emit `<promise>` markers
+- Clear instructions increase signal emission rate
+- Reduces iterations where agent completes work but doesn't signal completion
+
+**Why iteration context?**
+- Helps agents gauge urgency (iteration 9 of 10 vs iteration 1 of 10)
+- Provides awareness of progress for better decision-making
+- Supports debugging (logs show which iteration produced which output)
 
 ## Algorithm
 
 ```
-function AssemblePrompt(procedure, contextValues []string, configDir):
+function AssemblePrompt(procedure, contextValues []string, configDir, iterState *IterationState):
     prompt = ""
     
-    // Inject user context first if provided
+    // 1. Assemble preamble with iteration context
+    prompt += AssemblePreamble(procedure.Name, iterState)
+    prompt += "\n\n"
+    
+    // 2. Inject user context if provided
     if len(contextValues) > 0:
         prompt += "=== CONTEXT ===\n"
         
@@ -124,7 +229,7 @@ function AssemblePrompt(procedure, contextValues []string, configDir):
                 // Inline content - no source line
                 prompt += contextValue + "\n\n"
     
-    // Process each OODA phase in order
+    // 3. Process each OODA phase in order
     for phase in [observe, orient, decide, act]:
         fragmentActions = procedure[phase]  // Array of FragmentAction
         
@@ -139,6 +244,31 @@ function AssemblePrompt(procedure, contextValues []string, configDir):
             prompt += strings.TrimRight(phaseContent, "\n") + "\n\n"
     
     return prompt
+
+function AssemblePreamble(procedureName string, iterState *IterationState) -> string:
+    preamble = "# OODA Loop Procedure: " + procedureName + "\n\n"
+    
+    // Iteration context
+    iterationDisplay = iterState.Iteration + 1  // Convert 0-indexed to 1-indexed
+    if iterState.MaxIterations != nil:
+        preamble += fmt.Sprintf("You are executing an OODA loop iteration. This is iteration %d of %d.\n\n",
+            iterationDisplay, *iterState.MaxIterations)
+    else:
+        preamble += fmt.Sprintf("You are executing an OODA loop iteration. This is iteration %d (unlimited mode).\n\n",
+            iterationDisplay)
+    
+    // Phase descriptions
+    preamble += "Your task is to execute the procedure defined below. Work through each phase systematically:\n"
+    preamble += "- OBSERVE: Gather information using the specified tools and commands\n"
+    preamble += "- ORIENT: Analyze what you observed and form your understanding\n"
+    preamble += "- DECIDE: Determine what actions to take based on your analysis\n"
+    preamble += "- ACT: Execute the actions you decided on\n\n"
+    
+    // Success signaling instructions
+    preamble += "When you have completed the job successfully, emit: <promise>SUCCESS</promise>\n"
+    preamble += "If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>\n"
+    
+    return preamble
 
 function ComposePhasePrompt(fragments []FragmentAction, configDir string) -> (string, error):
     var parts []string
@@ -493,11 +623,25 @@ procedures:
 
 **Command:**
 ```bash
-rooda build
+rooda build --max-iterations 5
+# Assuming this is iteration 1
 ```
 
 **Output (assembled prompt):**
 ```markdown
+# OODA Loop Procedure: build
+
+You are executing an OODA loop iteration. This is iteration 1 of 5.
+
+Your task is to execute the procedure defined below. Work through each phase systematically:
+- OBSERVE: Gather information using the specified tools and commands
+- ORIENT: Analyze what you observed and form your understanding
+- DECIDE: Determine what actions to take based on your analysis
+- ACT: Execute the actions you decided on
+
+When you have completed the job successfully, emit: <promise>SUCCESS</promise>
+If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>
+
 === OBSERVE ===
 [Content from read_agents_md.md]
 
@@ -515,7 +659,7 @@ rooda build
 [Content from run_tests.md]
 ```
 
-**Verification:** All fragments loaded from embedded resources, concatenated with double newlines within each phase
+**Verification:** Preamble appears first with procedure name and iteration context, followed by all fragments loaded from embedded resources, concatenated with double newlines within each phase
 
 ---
 
@@ -583,11 +727,25 @@ procedures:
 
 **Command:**
 ```bash
-rooda build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow."
+rooda build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow." --max-iterations 10
+# Assuming this is iteration 3
 ```
 
 **Output:**
 ```markdown
+# OODA Loop Procedure: build
+
+You are executing an OODA loop iteration. This is iteration 3 of 10.
+
+Your task is to execute the procedure defined below. Work through each phase systematically:
+- OBSERVE: Gather information using the specified tools and commands
+- ORIENT: Analyze what you observed and form your understanding
+- DECIDE: Determine what actions to take based on your analysis
+- ACT: Execute the actions you decided on
+
+When you have completed the job successfully, emit: <promise>SUCCESS</promise>
+If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>
+
 === CONTEXT ===
 Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow.
 
@@ -606,11 +764,66 @@ Focus on the authentication module. The new feature should integrate with the ex
 [Content from modify_files.md]
 ```
 
-**Verification:** User context appears first, followed by all phases with concatenated fragments
+**Verification:** Preamble appears first with iteration context, user context appears after preamble and before OODA phases, followed by all phases with concatenated fragments
 
 ---
 
-### Example 4: Template Processing with Parameters
+### Example 4: Unlimited Iterations Mode
+
+**Input:**
+```yaml
+# rooda-config.yml
+procedures:
+  build:
+    observe:
+      - path: "builtin:fragments/observe/read_agents_md.md"
+    orient:
+      - path: "builtin:fragments/orient/understand_task_requirements.md"
+    decide:
+      - path: "builtin:fragments/decide/plan_implementation_approach.md"
+    act:
+      - path: "builtin:fragments/act/modify_files.md"
+```
+
+**Command:**
+```bash
+rooda build --unlimited
+# Assuming this is iteration 7
+```
+
+**Output:**
+```markdown
+# OODA Loop Procedure: build
+
+You are executing an OODA loop iteration. This is iteration 7 (unlimited mode).
+
+Your task is to execute the procedure defined below. Work through each phase systematically:
+- OBSERVE: Gather information using the specified tools and commands
+- ORIENT: Analyze what you observed and form your understanding
+- DECIDE: Determine what actions to take based on your analysis
+- ACT: Execute the actions you decided on
+
+When you have completed the job successfully, emit: <promise>SUCCESS</promise>
+If you are blocked and cannot make further progress, emit: <promise>FAILURE</promise>
+
+=== OBSERVE ===
+[Content from read_agents_md.md]
+
+=== ORIENT ===
+[Content from understand_task_requirements.md]
+
+=== DECIDE ===
+[Content from plan_implementation_approach.md]
+
+=== ACT ===
+[Content from modify_files.md]
+```
+
+**Verification:** Preamble shows "unlimited mode" instead of max iterations count
+
+---
+
+### Example 5: Template Processing with Parameters
 
 **Input:**
 ```yaml
@@ -675,7 +888,7 @@ Also include any associated test files.
 
 ---
 
-### Example 5: Missing Fragment File Error
+### Example 6: Missing Fragment File Error
 
 **Input:**
 ```yaml
