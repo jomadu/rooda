@@ -1,7 +1,9 @@
 package ai
 
 import (
+	"os"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -13,7 +15,7 @@ func TestExecuteAICLI_Success(t *testing.T) {
 		Command: "echo hello",
 		Source:  "test",
 	}
-	result := ExecuteAICLI(aiCmd, "", false, nil, 1024)
+	result := ExecuteAICLI(aiCmd, "", false, nil, 1024, nil)
 
 	if result.Error != nil {
 		t.Fatalf("expected no error, got: %v", result.Error)
@@ -37,7 +39,7 @@ func TestExecuteAICLI_NonZeroExit(t *testing.T) {
 		Command: "sh -c 'exit 42'",
 		Source:  "test",
 	}
-	result := ExecuteAICLI(aiCmd, "", false, nil, 1024)
+	result := ExecuteAICLI(aiCmd, "", false, nil, 1024, nil)
 
 	if result.Error != nil {
 		t.Fatalf("expected no error for non-zero exit, got: %v", result.Error)
@@ -53,7 +55,7 @@ func TestExecuteAICLI_Timeout(t *testing.T) {
 		Command: "sleep 10",
 		Source:  "test",
 	}
-	result := ExecuteAICLI(aiCmd, "", false, &timeout, 1024)
+	result := ExecuteAICLI(aiCmd, "", false, &timeout, 1024, nil)
 
 	if result.Error == nil {
 		t.Fatal("expected timeout error")
@@ -73,7 +75,7 @@ func TestExecuteAICLI_OutputTruncation(t *testing.T) {
 		Source:  "test",
 	}
 	maxBuffer := 100 // Small buffer to force truncation
-	result := ExecuteAICLI(aiCmd, "", false, nil, maxBuffer)
+	result := ExecuteAICLI(aiCmd, "", false, nil, maxBuffer, nil)
 
 	if result.Error != nil {
 		t.Fatalf("expected no error, got: %v", result.Error)
@@ -95,7 +97,7 @@ func TestExecuteAICLI_InvalidCommand(t *testing.T) {
 		Command: "nonexistent-binary-xyz",
 		Source:  "test",
 	}
-	result := ExecuteAICLI(aiCmd, "", false, nil, 1024)
+	result := ExecuteAICLI(aiCmd, "", false, nil, 1024, nil)
 
 	if result.Error == nil {
 		t.Fatal("expected error for invalid command")
@@ -108,7 +110,7 @@ func TestExecuteAICLI_WithPrompt(t *testing.T) {
 		Source:  "test",
 	}
 	prompt := "test prompt content"
-	result := ExecuteAICLI(aiCmd, prompt, false, nil, 1024)
+	result := ExecuteAICLI(aiCmd, prompt, false, nil, 1024, nil)
 
 	if result.Error != nil {
 		t.Fatalf("expected no error, got: %v", result.Error)
@@ -163,5 +165,28 @@ func TestScanOutputForSignals_None(t *testing.T) {
 	}
 	if hasFailure {
 		t.Error("expected no FAILURE signal")
+	}
+}
+
+func TestExecuteAICLI_SignalInterrupt(t *testing.T) {
+	aiCmd := config.AICommand{
+		Command: "sleep 10",
+		Source:  "test",
+	}
+	sigChan := make(chan os.Signal, 1)
+	
+	// Send signal after a short delay
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		sigChan <- syscall.SIGINT
+	}()
+	
+	result := ExecuteAICLI(aiCmd, "", false, nil, 1024, sigChan)
+
+	if result.Error != ErrInterrupted {
+		t.Errorf("expected ErrInterrupted, got: %v", result.Error)
+	}
+	if result.Duration < 100*time.Millisecond {
+		t.Errorf("expected duration >= 100ms, got: %v", result.Duration)
 	}
 }

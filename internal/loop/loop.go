@@ -13,6 +13,9 @@ import (
 // RunLoop executes the OODA iteration loop until a termination condition is met.
 // Returns the final loop status (success, max-iters, aborted, interrupted).
 func RunLoop(state *IterationState, cfg config.Config, aiCmd config.AICommand, userContext string, verbose bool) LoopStatus {
+	// Setup signal handler
+	sigChan := SetupSignalHandler()
+
 	procedure, ok := cfg.Procedures[state.ProcedureName]
 	if !ok {
 		log.Printf("ERROR: Procedure %s not found", state.ProcedureName)
@@ -47,7 +50,14 @@ func RunLoop(state *IterationState, cfg config.Config, aiCmd config.AICommand, u
 		}
 
 		// Execute AI CLI
-		result := ai.ExecuteAICLI(aiCmd, assembledPrompt, verbose, state.IterationTimeout, state.MaxOutputBuffer)
+		result := ai.ExecuteAICLI(aiCmd, assembledPrompt, verbose, state.IterationTimeout, state.MaxOutputBuffer, sigChan)
+
+		// Handle interrupt
+		if result.Error == ai.ErrInterrupted {
+			log.Printf("INFO: Interrupted by signal")
+			state.Status = StatusInterrupted
+			break
+		}
 
 		// Handle timeout
 		if result.Error == ai.ErrTimeout {

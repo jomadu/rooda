@@ -14,6 +14,7 @@ import (
 )
 
 var ErrTimeout = errors.New("AI CLI execution timeout")
+var ErrInterrupted = errors.New("interrupted by signal")
 
 type AIExecutionResult struct {
 	Output    string
@@ -23,7 +24,7 @@ type AIExecutionResult struct {
 	Error     error
 }
 
-func ExecuteAICLI(aiCmd config.AICommand, prompt string, verbose bool, aiExecutionTimeout *int, maxBuffer int) AIExecutionResult {
+func ExecuteAICLI(aiCmd config.AICommand, prompt string, verbose bool, aiExecutionTimeout *int, maxBuffer int, sigChan <-chan os.Signal) AIExecutionResult {
 	startTime := time.Now()
 
 	parts, err := shellquote.Split(aiCmd.Command)
@@ -76,9 +77,29 @@ func ExecuteAICLI(aiCmd config.AICommand, prompt string, verbose bool, aiExecuti
 				Duration: time.Since(startTime),
 				Error:    ErrTimeout,
 			}
+		case <-sigChan:
+			// Signal received - kill process
+			cmd.Process.Kill()
+			<-done
+			return AIExecutionResult{
+				Output:   outputBuffer.String(),
+				Duration: time.Since(startTime),
+				Error:    ErrInterrupted,
+			}
 		}
 	} else {
-		waitErr = <-done
+		select {
+		case waitErr = <-done:
+		case <-sigChan:
+			// Signal received - kill process
+			cmd.Process.Kill()
+			<-done
+			return AIExecutionResult{
+				Output:   outputBuffer.String(),
+				Duration: time.Since(startTime),
+				Error:    ErrInterrupted,
+			}
+		}
 	}
 
 	duration := time.Since(startTime)
