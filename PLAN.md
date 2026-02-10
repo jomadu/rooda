@@ -61,7 +61,7 @@ The `./procedures.md` file defines a fragment-based composition system that repl
 
 ### 4. Update README Spec
 **File**: `specs/README.md`
-**Status**: Content updates required
+**Status**: ✅ COMPLETE
 **Authority**: `./procedures.md` for procedure count and system description
 
 **Required Changes**:
@@ -205,3 +205,24 @@ All spec changes must be validated against `./procedures.md` to ensure:
 - Field-level merge still applies to procedure metadata (display, summary, iteration settings)
 - Fragment path resolution happens during config merging, not during fragment loading
 - This allows provenance tracking and early validation before procedure execution
+
+### Task 4 Completion: Update README Spec
+**Completed**: specs/README.md updated to reflect fragment-based architecture
+
+**What was done**:
+- Updated Core Functional Job section to mention fragment-based composition
+- Updated "Configure procedures for a team" related job to explain fragment arrays and template parameters
+- Updated success metrics to reference 55 built-in fragments enabling 16 procedures
+- Updated J2 (Compose and Assemble Prompts) to describe fragment array processing instead of single files
+- Updated Execution Engine table entry for prompt-composition to mention fragment arrays and template support
+- Updated Procedure Library table entry to show "55 embedded fragments composing 16 built-in procedures"
+- Updated prompt-composition spec description in Specification Status to mention fragment arrays, inline content, and Go template parameterization
+- All references to "four OODA phase files" replaced with "fragment arrays for each OODA phase"
+
+**Key learnings**:
+- README serves as the entry point - must accurately reflect the fragment-based architecture
+- Fragment count (55) and procedure count (16) are key metrics that demonstrate reusability
+- The phrase "fragment arrays" is more accurate than "phase files" for describing the composition model
+- Template parameterization is a key feature that enables fragment reuse across different contexts
+- Inline content support is important to mention as it allows quick customization without file creation
+- The README now consistently describes the system as fragment-based throughout all sections

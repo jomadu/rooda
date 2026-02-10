@@ -19,6 +19,8 @@ Engineering managers and tech leads deciding whether to adopt rooda for their te
 
 The developer wants to define what should be built (specs), point an AI agent at the work, and have it iterate toward a solution — with fresh context each cycle and file-based state providing continuity. The loop should run unattended, self-correct through empirical feedback, and produce working, tested software. Quality gates (tests, lints) and git operations are driven by the prompts, not the loop orchestrator.
 
+Prompts are composed from reusable fragments — small, focused markdown files organized by OODA phase. Each procedure defines which fragments to use for each phase, enabling high reusability across the 16 built-in procedures.
+
 ## Related Jobs
 
 - **Sync the agent-project interface** — analyze a repository and create or update the operational guide (AGENTS.md) so agents can interact with the project effectively. Works whether AGENTS.md exists or not — creates from scratch on first run, reconciles with actual repo state on subsequent runs. This is a direct-action procedure (not planning) because AGENTS.md must exist before any planning procedure can run (chicken-and-egg: plans need AGENTS.md to know where plans live).
@@ -27,7 +29,7 @@ The developer wants to define what should be built (specs), point an AI agent at
 - **Publish plans to work tracking** — import a converged draft plan into the project's work tracking system (beads, GitHub Issues, file-based, etc.).
 - **Build from plan** — implement tasks from the work tracking system. The only procedure that modifies specs and implementation files based on work tracking tasks (other procedures modify specific files: AGENTS.md, PLAN.md).
 - **Provide context to guide a procedure** — pass runtime hints to any procedure execution (e.g., "focus on the auth module", "the new feature should integrate with the payment service") that steer the agent's focus without changing procedure definitions or prompt files.
-- **Configure procedures for a team** — define custom OODA procedures, AI command aliases, and project-specific settings without modifying framework code.
+- **Configure procedures for a team** — define custom OODA procedures using fragment arrays, AI command aliases, and project-specific settings without modifying framework code. Procedures compose prompts from reusable fragments, with support for inline content and template parameters.
 - **Distribute and install the tool** — get rooda running on a new machine or in a CI/CD pipeline with minimal friction and no external dependencies.
 
 ## Emotional Jobs
@@ -46,7 +48,7 @@ When executing the core functional job, the developer measures success by:
 - Minimize the time to diagnose why an iteration failed
 - Minimize the risk of AI-generated code breaking existing functionality
 - Maximize the percentage of iterations where the AI stays in its "smart zone" (40-60% context utilization)
-- Maximize the reusability of prompt components across different procedures
+- Maximize the reusability of prompt fragments across different procedures
 - Maximize the observability of what the loop is doing at any moment
 
 ## What Changed from v1 (Archive)
@@ -70,7 +72,7 @@ The previous iteration (archived in `archive/`) was a bash script (`rooda.sh`) t
 Run AI coding agents through controlled OODA iteration cycles with fresh context per run and file-based state continuity. This is the core loop — everything else feeds into or out of it.
 
 ### J2: Compose and Assemble Prompts
-Combine four OODA phase prompt files (observe, orient, decide, act) and optional user-provided context into a single executable prompt, supporting both embedded defaults and user-provided custom prompts.
+Combine fragment arrays for each OODA phase (observe, orient, decide, act) and optional user-provided context into a single executable prompt. Each phase uses an array of fragments that are concatenated together, supporting embedded defaults, user-provided custom fragments, inline content, and Go template parameterization.
 
 ### J3: Integrate with AI CLI Tools
 Pipe assembled prompts to a configurable AI CLI tool with support for command aliases, environment variables, and direct command override. Built-in support for kiro-cli, claude, github copilot, and cursor agent, with extensibility for custom tools.
@@ -102,7 +104,7 @@ Every procedure reads AGENTS.md first as the source of truth for project-specifi
 | Topic | Job | Description |
 |---|---|---|
 | [iteration-loop](iteration-loop.md) | J1 | Execute OODA cycles with fresh context, termination control, and state continuity |
-| [prompt-composition](prompt-composition.md) | J2, J5 | Assemble four OODA phase files and optional user-provided context into a single prompt, with embedded defaults |
+| [prompt-composition](prompt-composition.md) | J2, J5 | Assemble fragment arrays for each OODA phase and optional user-provided context into a single prompt, with embedded defaults and template support |
 | [ai-cli-integration](ai-cli-integration.md) | J3 | Pipe prompts to configurable AI CLI tools with alias resolution |
 | [error-handling](error-handling.md) | J8 | Retry logic, timeouts, failure detection, and graceful degradation |
 
@@ -123,41 +125,7 @@ Every procedure reads AGENTS.md first as the source of truth for project-specifi
 ### Procedure Library
 | Topic | Job | Description |
 |---|---|---|
-| [procedures](procedures.md) | J1, J2 | Predefined procedure definitions and the embedded default prompts they compose from |
-
-**Complete procedure list (16):**
-
-Direct-action:
-| Procedure | Description |
-|---|---|
-| `agents-sync` | Create or update AGENTS.md by analyzing the repository (modifies AGENTS.md) |
-| `build` | Implement tasks from work tracking (only procedure that modifies specs and implementation) |
-| `publish-plan` | Publish converged draft plan to work tracking system (modifies PLAN.md status) |
-
-Audits (produce reports, don't modify anything):
-| Procedure | Description |
-|---|---|
-| `audit-spec` | Quality assessment of specs |
-| `audit-impl` | Quality assessment of implementation |
-| `audit-agents` | Accuracy assessment of AGENTS.md against actual repo state |
-| `audit-spec-to-impl` | Gap analysis: what's in specs but not in code (execute SDD) |
-| `audit-impl-to-spec` | Gap analysis: what's in code but not in specs (align brownfield with SDD) |
-
-Planning — spec-targeted (work → specs):
-| Procedure | Description |
-|---|---|
-| `draft-plan-spec-feat` | Plan new capability incorporation into specs (writes PLAN.md) |
-| `draft-plan-spec-fix` | Plan spec adjustment to drive a correction (writes PLAN.md) |
-| `draft-plan-spec-refactor` | Plan spec restructuring from task file (writes PLAN.md) |
-| `draft-plan-spec-chore` | Plan spec maintenance from task file (writes PLAN.md) |
-
-Planning — impl-targeted (work → implementation):
-| Procedure | Description |
-|---|---|
-| `draft-plan-impl-feat` | Plan new capability implementation (writes PLAN.md) |
-| `draft-plan-impl-fix` | Plan implementation correction (writes PLAN.md) |
-| `draft-plan-impl-refactor` | Plan implementation restructuring from task file (writes PLAN.md) |
-| `draft-plan-impl-chore` | Plan implementation maintenance from task file (writes PLAN.md) |
+| [procedures](procedures.md) | J1, J2 | Fragment-based procedure system with embedded fragments composing 16 built-in procedures |
 
 ## Specification Status
 
@@ -175,7 +143,7 @@ Written specs with extracted JTBDs:
 | [observability](observability.md) | Provide visibility into what the loop is doing (timing, iteration progress, outcome) and controls to stop, dry-run, and override behavior. The developer wants to understand loop execution state, diagnose failures, and control output verbosity without modifying configuration files. |
 | [operational-knowledge](operational-knowledge.md) | Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. |
 | [procedures](procedures.md) | Define the 16 built-in procedures that ship as defaults — their OODA phase compositions, iteration limits, and use cases. |
-| [prompt-composition](prompt-composition.md) | Assemble four OODA phase files (observe, orient, decide, act) and optional user-provided context into a single prompt that can be piped to an AI CLI tool, supporting both embedded defaults and user-provided custom prompts with clear path resolution. |
+| [prompt-composition](prompt-composition.md) | Assemble fragment arrays for each OODA phase (observe, orient, decide, act) and optional user-provided context into a single prompt that can be piped to an AI CLI tool. Supports embedded defaults, user-provided custom fragments, inline content, and Go template parameterization with clear path resolution. |
 
 ## How to Write Specs
 
