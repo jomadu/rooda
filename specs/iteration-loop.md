@@ -273,8 +273,15 @@ function RunLoop(state IterationState, config Config) -> LoopStatus:
         iterationStart = time.Now()
         log.Info("Starting iteration %d", state.Iteration+1)
 
-        // Assemble prompt from OODA phase files
-        prompt, err = AssemblePrompt(config.Procedure)
+        // Assemble prompt from preamble, user context, and OODA phase files
+        // Prompt structure:
+        //   1. Preamble (procedure name, agent role, success signaling instructions)
+        //   2. User context (if provided via --context flag)
+        //   3. OBSERVE phase (concatenated fragments)
+        //   4. ORIENT phase (concatenated fragments)
+        //   5. DECIDE phase (concatenated fragments)
+        //   6. ACT phase (concatenated fragments)
+        prompt, err = AssemblePrompt(config.Procedure, config.UserContext, config.ConfigDir)
         if err:
             log.Error("Prompt assembly failed: %v", err)
             state.Status = aborted
@@ -557,18 +564,44 @@ rooda build --dry-run
   command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
 [10:00:00.500] INFO Assembled prompt size=12450
 --- Prompt Start ---
-# OODA Loop Iteration
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
 
-## OBSERVE
+Procedure: Build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- The loop orchestrator uses these signals to determine iteration outcome.
+
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [contents of observe prompt file]
 
-## ORIENT
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [contents of orient prompt file]
 
-## DECIDE
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [contents of decide prompt file]
 
-## ACT
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [contents of act prompt file]
 --- Prompt End ---
 [10:00:00.600] INFO Dry-run validation passed
@@ -606,27 +639,57 @@ rooda build --dry-run --context "focus on the auth module, the JWT validation is
   command: kiro-cli (found at /usr/local/bin/kiro-cli, executable)
 [10:00:00.500] INFO Assembled prompt size=12520
 --- Prompt Start ---
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: Build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- The loop orchestrator uses these signals to determine iteration outcome.
+
 === CONTEXT ===
 focus on the auth module, the JWT validation is broken
 
-=== OBSERVE ===
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [contents of observe prompt file]
 
-=== ORIENT ===
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [contents of orient prompt file]
 
-=== DECIDE ===
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [contents of decide prompt file]
 
-=== ACT ===
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [contents of act prompt file]
 --- Prompt End ---
 [10:00:00.600] INFO Dry-run validation passed
 ```
 
 **Verification:**
-- User context appears as a dedicated section before the OODA phases
+- Preamble appears first with procedure execution context
+- User context appears after preamble, before OODA phases
 - Context is passed through verbatim, not interpreted by the loop
+- Enhanced section markers with phase descriptions
 - AI CLI not invoked
 - Exit code 0 (validation passed)
 
@@ -682,16 +745,44 @@ rooda build --dry-run --ai-cmd-alias claude
   command: claude-cli (found at /usr/local/bin/claude-cli, executable)
 [10:00:00.500] INFO Assembled prompt size=12450
 --- Prompt Start ---
-=== OBSERVE ===
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: Build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>
+- The loop orchestrator uses these signals to determine iteration outcome.
+
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [observe phase content...]
 
-=== ORIENT ===
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [orient phase content...]
 
-=== DECIDE ===
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [decide phase content...]
 
-=== ACT ===
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [act phase content...]
 --- Prompt End ---
 [10:00:00.600] INFO Dry-run validation passed
