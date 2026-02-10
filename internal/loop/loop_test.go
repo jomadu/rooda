@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jomadu/rooda/internal/config"
+	"github.com/jomadu/rooda/internal/observability"
 )
 
 func TestRunLoop_MaxIterationsReached(t *testing.T) {
@@ -30,8 +31,9 @@ func TestRunLoop_MaxIterationsReached(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "echo 'test'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	status := RunLoop(state, cfg, aiCmd, "", false)
+	status := RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if status != StatusMaxIters {
 		t.Errorf("Expected status %s, got %s", StatusMaxIters, status)
@@ -67,8 +69,9 @@ func TestRunLoop_FailureThresholdExceeded(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "sh -c 'exit 1'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	status := RunLoop(state, cfg, aiCmd, "", false)
+	status := RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if status != StatusAborted {
 		t.Errorf("Expected status %s, got %s", StatusAborted, status)
@@ -103,8 +106,9 @@ func TestRunLoop_SuccessSignal(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "echo '<promise>SUCCESS</promise>'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	status := RunLoop(state, cfg, aiCmd, "", false)
+	status := RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if status != StatusSuccess {
 		t.Errorf("Expected status %s, got %s", StatusSuccess, status)
@@ -140,8 +144,9 @@ func TestRunLoop_FailureSignalIncrementsCounter(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "echo '<promise>FAILURE</promise>'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	status := RunLoop(state, cfg, aiCmd, "", false)
+	status := RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if status != StatusMaxIters {
 		t.Errorf("Expected status %s, got %s", StatusMaxIters, status)
@@ -177,8 +182,9 @@ func TestRunLoop_SuccessResetsFailureCounter(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "echo 'success'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	status := RunLoop(state, cfg, aiCmd, "", false)
+	status := RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if status != StatusMaxIters {
 		t.Errorf("Expected status %s, got %s", StatusMaxIters, status)
@@ -213,8 +219,9 @@ func TestRunLoop_StatisticsUpdated(t *testing.T) {
 	}
 
 	aiCmd := config.AICommand{Command: "echo 'test'", Source: "test"}
+	logger := observability.NewLogger(config.LogLevelError, config.TimestampNone, time.Now())
 
-	RunLoop(state, cfg, aiCmd, "", false)
+	RunLoop(state, cfg, aiCmd, "", false, logger)
 
 	if state.Stats.Count != 2 {
 		t.Errorf("Expected 2 iterations in stats, got %d", state.Stats.Count)
