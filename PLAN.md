@@ -1,306 +1,383 @@
-# Gap Analysis Plan: Spec to Implementation
+# Gap Analysis: v2 Go Implementation
 
 **Generated:** 2026-02-09
-**Source:** Gap analysis comparing v2 Go rewrite specifications against current bash implementation
+**Status:** Draft
 
-## Executive Summary
+## Summary
 
-The project is in a **specification-complete, implementation-missing** state. All 11 v2 Go rewrite specifications are complete with JTBD structure, acceptance criteria, and examples. The current implementation is the v0.1.0 bash script (`rooda.sh`) which implements a subset of v2 features. **No Go implementation exists yet** — no `go.mod`, no `*.go` files, no Go project structure.
+All 11 v2 specifications are complete with JTBD structure, acceptance criteria, and examples. The current implementation is bash-based (v0.1.0) with 25 prompt files and 9 procedures. No Go implementation exists yet (no go.mod, no *.go files, no cmd/ or internal/ directories).
 
-The 10 ready issues in beads correctly identify the highest-priority implementation gaps. This plan organizes them by dependency order and adds missing foundational tasks.
+**Gap:** Complete v2 Go implementation required per specifications.
 
-## Critical Gaps (P0) - Foundation Required for Any Implementation
+## Specifications Status
 
-### 1. Initialize Go project structure
-**Priority:** P0 (blocks all other work)
-**Description:** Create Go module, directory structure (cmd/, internal/, pkg/), and main.go entry point. Establish build toolchain.
-**Acceptance:**
-- `go.mod` exists with module path `github.com/jomadu/rooda`
-- `cmd/rooda/main.go` exists with version flag working
-- `go build ./cmd/rooda` produces binary
-- Directory structure: `cmd/rooda/`, `internal/config/`, `internal/loop/`, `internal/prompt/`, `internal/ai/`, `internal/agents/`
-**Dependencies:** None
-**Beads issue:** Not filed yet
+✅ **Complete (11/11):**
+- cli-interface.md
+- iteration-loop.md
+- procedures.md
+- ai-cli-integration.md
+- configuration.md
+- agents-md-format.md
+- observability.md
+- error-handling.md
+- distribution.md
+- operational-knowledge.md
+- prompt-composition.md
 
-### 2. Embed default prompts and procedures (ralph-wiggum-ooda-hrz0)
-**Priority:** P0 (required for zero-config startup)
-**Description:** Use `//go:embed` to embed 25 prompt files from `prompts/` directory. Define 16 built-in procedures in `internal/config/defaults.go`.
-**Acceptance:** Binary contains embedded prompts, `rooda --list-procedures` shows all 16.
-**Dependencies:** Task 1 (Go project structure)
-**Beads issue:** ralph-wiggum-ooda-hrz0
+## Implementation Status
 
-### 3. Implement configuration system (configuration.md)
-**Priority:** P0 (required for all procedures)
-**Description:** Three-tier config system (built-in defaults, global config, workspace config, env vars, CLI flags). YAML parsing, provenance tracking, validation.
-**Acceptance:**
-- Config loads from all tiers with correct precedence
-- `--dry-run` displays resolved config with provenance
-- Invalid config produces clear error messages
-- Zero-config startup works (uses built-in defaults)
-**Dependencies:** Task 2 (embedded defaults)
-**Beads issue:** Not filed yet
+**Current (v0.1.0 bash):**
+- rooda.sh — Main OODA loop script
+- rooda-config.yml — 9 procedure definitions
+- prompts/*.md — 25 OODA prompt component files
+- No automated tests
+- No Go code
 
-### 4. Implement CLI interface (cli-interface.md)
-**Priority:** P0 (required for all procedures)
-**Description:** Argument parsing, procedure invocation, help text, flag handling. Support for `--help`, `--version`, `--list-procedures`, `--dry-run`, `--verbose`, `--context`, OODA phase overrides.
-**Acceptance:**
-- `rooda <procedure>` invokes named procedure
-- `rooda --help` displays usage
-- `rooda --list-procedures` lists all procedures
-- `rooda --version` displays version
-- All flags from cli-interface.md acceptance criteria work
-**Dependencies:** Task 3 (configuration system)
-**Beads issue:** Not filed yet
+**Missing (v2 Go):**
+- No go.mod
+- No cmd/ directory
+- No internal/ directory
+- No *.go files
+- No embedded prompts
+- No built-in procedures
+- No fragment-based composition system
 
-## High Priority (P1) - Core Loop Functionality
+## Ready Work Items (from bd)
 
-### 5. Implement basic iteration loop (ralph-wiggum-ooda-gm29)
-**Priority:** P1
-**Description:** Define IterationState, LoopStatus types. Implement loop termination logic (max iterations, Ctrl+C). Implement iteration counter and timing.
-**Acceptance:** `rooda build --max-iterations 3` runs 3 iterations and exits.
-**Dependencies:** Task 4 (CLI interface)
-**Beads issue:** ralph-wiggum-ooda-gm29
+10 tasks queued, priority 0-2:
 
-### 6. Implement prompt composition (prompt-composition.md)
-**Priority:** P1 (required for loop to assemble prompts)
-**Description:** Load fragments from embedded resources or filesystem. Process Go templates. Concatenate fragments by phase. Inject user context.
-**Acceptance:**
-- Prompts assembled from fragment arrays
-- `builtin:` prefix loads embedded fragments
-- Relative paths load from filesystem
-- Template processing works with parameters
-- `--context` flag injects user context
-**Dependencies:** Task 2 (embedded prompts), Task 3 (configuration)
-**Beads issue:** Not filed yet
+**P0 (Critical):**
+1. ralph-wiggum-ooda-hrz0: Embed default prompts and procedures
 
-### 7. Implement AI CLI integration (ai-cli-integration.md)
-**Priority:** P1 (required for loop to execute AI)
-**Description:** Resolve AI command from precedence chain. Spawn AI CLI process. Pipe prompt to stdin. Capture stdout/stderr. Stream output when `--verbose`.
-**Acceptance:**
-- AI command resolved from config/flags
-- Built-in aliases work (kiro-cli, claude, copilot, cursor-agent)
-- Output captured and returned
-- `--verbose` streams output to terminal
-**Dependencies:** Task 3 (configuration)
-**Beads issue:** Not filed yet
+**P1 (High):**
+2. ralph-wiggum-ooda-gm29: Implement basic iteration loop
+3. ralph-wiggum-ooda-sont: Implement promise signal scanning
+4. ralph-wiggum-ooda-pn2x: Implement failure tracking
+5. ralph-wiggum-ooda-ac1c: Implement iteration timeouts
+6. ralph-wiggum-ooda-07xa: Implement signal handling
 
-### 8. Implement promise signal scanning (ralph-wiggum-ooda-sont)
-**Priority:** P1
-**Description:** Scan AI CLI output for `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>`. Implement outcome matrix (exit code + output signals → iteration outcome). Terminate loop on SUCCESS signal.
-**Acceptance:** Loop terminates when AI outputs `<promise>SUCCESS</promise>`.
-**Dependencies:** Task 5 (basic loop), Task 7 (AI CLI integration)
-**Beads issue:** ralph-wiggum-ooda-sont
+**P2 (Medium):**
+7. ralph-wiggum-ooda-xdf7: Implement dry-run mode
+8. ralph-wiggum-ooda-jobd: Implement iteration statistics
+9. ralph-wiggum-ooda-hur3: Implement context injection
+10. ralph-wiggum-ooda-rayx: Implement provenance display
 
-### 9. Implement failure tracking (ralph-wiggum-ooda-pn2x)
-**Priority:** P1
-**Description:** Track ConsecutiveFailures counter. Reset counter on success. Abort loop when threshold exceeded.
-**Acceptance:** Loop aborts after 3 consecutive failures (default threshold).
-**Dependencies:** Task 8 (promise signal scanning)
-**Beads issue:** ralph-wiggum-ooda-pn2x
+## Gap Analysis: Specified vs Implemented
 
-### 10. Implement iteration timeouts (ralph-wiggum-ooda-ac1c)
-**Priority:** P1
-**Description:** Add `iteration_timeout` config field. Kill AI CLI process if timeout exceeded. Count timeout as failure.
-**Acceptance:** Loop kills AI CLI after configured timeout, increments failure counter.
-**Dependencies:** Task 7 (AI CLI integration), Task 9 (failure tracking)
-**Beads issue:** ralph-wiggum-ooda-ac1c
+### Phase 1: Foundation (P0)
 
-### 11. Implement signal handling (ralph-wiggum-ooda-07xa)
-**Priority:** P1
-**Description:** Register SIGINT/SIGTERM handlers. Kill AI CLI process on interrupt. Wait for cleanup (5s timeout). Exit with code 130.
-**Acceptance:** Ctrl+C kills AI CLI cleanly, exits with code 130.
-**Dependencies:** Task 7 (AI CLI integration)
-**Beads issue:** ralph-wiggum-ooda-07xa
+**Task: ralph-wiggum-ooda-hrz0 (Embed default prompts and procedures)**
+- Spec: procedures.md, prompt-composition.md
+- Status: NOT STARTED
+- Gap: No Go project structure, no go:embed, no built-in procedures
+- Blocks: All other tasks (need foundation first)
+- Acceptance: Binary contains embedded prompts, rooda --list-procedures shows all 16
 
-## Medium Priority (P2) - Enhanced Functionality
+### Phase 2: Core Loop (P1)
 
-### 12. Implement dry-run mode (ralph-wiggum-ooda-xdf7)
-**Priority:** P2
-**Description:** Add `--dry-run` flag. Validate config, prompt files, AI command. Display assembled prompt and resolved config with provenance. Exit with code 0 (success) or 1 (validation failed).
-**Acceptance:** `rooda build --dry-run` validates and displays prompt without executing.
-**Dependencies:** Task 6 (prompt composition), Task 7 (AI CLI integration)
-**Beads issue:** ralph-wiggum-ooda-xdf7
+**Task: ralph-wiggum-ooda-gm29 (Basic iteration loop)**
+- Spec: iteration-loop.md
+- Status: NOT STARTED
+- Gap: No loop implementation, no IterationState, no termination logic
+- Depends: hrz0 (need embedded prompts)
+- Acceptance: rooda build --max-iterations 3 runs 3 iterations and exits
 
-### 13. Implement iteration statistics (ralph-wiggum-ooda-jobd)
-**Priority:** P2
-**Description:** Track min/max/mean/stddev using Welford's online algorithm. Display statistics at loop completion. Use constant memory (O(1)).
-**Acceptance:** Loop displays 'Iteration timing: count=N min=Xs max=Xs mean=Xs stddev=Xs'.
-**Dependencies:** Task 5 (basic loop)
-**Beads issue:** ralph-wiggum-ooda-jobd
+**Task: ralph-wiggum-ooda-sont (Promise signal scanning)**
+- Spec: iteration-loop.md, error-handling.md
+- Status: NOT STARTED
+- Gap: No output scanning, no outcome matrix
+- Depends: gm29 (need loop first)
+- Acceptance: Loop terminates when AI outputs <promise>SUCCESS</promise>
 
-### 14. Implement context injection (ralph-wiggum-ooda-hur3)
-**Priority:** P2
-**Description:** Add `--context <text>` and `--context-file <path>` flags. Accumulate multiple contexts. Inject as dedicated section before OODA phases.
-**Acceptance:** `rooda build --context 'focus on auth'` injects context into prompt.
-**Dependencies:** Task 6 (prompt composition)
-**Beads issue:** ralph-wiggum-ooda-hur3
+**Task: ralph-wiggum-ooda-pn2x (Failure tracking)**
+- Spec: error-handling.md
+- Status: NOT STARTED
+- Gap: No ConsecutiveFailures counter, no abort logic
+- Depends: sont (need outcome detection)
+- Acceptance: Loop aborts after 3 consecutive failures
 
-### 15. Implement provenance display (ralph-wiggum-ooda-rayx)
-**Priority:** P2
-**Description:** Track where each config value came from. Display provenance in dry-run mode. Display provenance with `--verbose`.
-**Acceptance:** Dry-run shows 'max_iterations: 10 (from: workspace config)'.
-**Dependencies:** Task 3 (configuration system), Task 12 (dry-run mode)
-**Beads issue:** ralph-wiggum-ooda-rayx
+**Task: ralph-wiggum-ooda-ac1c (Iteration timeouts)**
+- Spec: iteration-loop.md, error-handling.md
+- Status: NOT STARTED
+- Gap: No timeout handling, no process killing
+- Depends: gm29 (need loop first)
+- Acceptance: Loop kills AI CLI after configured timeout
 
-### 16. Implement structured logging (observability.md)
-**Priority:** P2
-**Description:** Log events at four levels (debug, info, warn, error). Configurable log level and timestamp format. Structured fields (logfmt). Progress display.
-**Acceptance:**
-- Log level configurable via config/env/flags
-- Timestamp format configurable
-- Progress messages at iteration start/complete
-- Loop completion displays status and timing
-**Dependencies:** Task 5 (basic loop)
-**Beads issue:** Not filed yet
+**Task: ralph-wiggum-ooda-07xa (Signal handling)**
+- Spec: iteration-loop.md, error-handling.md
+- Status: NOT STARTED
+- Gap: No SIGINT/SIGTERM handlers
+- Depends: gm29 (need loop first)
+- Acceptance: Ctrl+C kills AI CLI cleanly, exits with code 130
 
-## Lower Priority (P3) - Advanced Features
+### Phase 3: Enhanced Features (P2)
 
-### 17. Implement AGENTS.md parser (operational-knowledge.md, agents-md-format.md)
-**Priority:** P3 (required for procedures to read project conventions)
-**Description:** Parse AGENTS.md into structured data. Extract build commands, test commands, spec paths, impl paths, work tracking config, quality criteria.
-**Acceptance:**
-- AGENTS.md parsed into AgentsMD struct
-- All 10 required sections extracted
-- Validation detects missing sections
-**Dependencies:** Task 3 (configuration system)
-**Beads issue:** Not filed yet
+**Task: ralph-wiggum-ooda-xdf7 (Dry-run mode)**
+- Spec: cli-interface.md, iteration-loop.md
+- Status: NOT STARTED
+- Gap: No validation, no prompt display
+- Depends: hrz0, gm29 (need prompts and loop)
+- Acceptance: rooda build --dry-run validates and displays prompt without executing
 
-### 18. Implement AGENTS.md bootstrap (operational-knowledge.md)
-**Priority:** P3
-**Description:** Detect build system, test system, spec paths, impl paths, work tracking system. Generate AGENTS.md from template with detected values.
-**Acceptance:**
-- Bootstrap detects Go project structure
-- Bootstrap creates AGENTS.md with detected values
-- Bootstrap commits AGENTS.md
-**Dependencies:** Task 17 (AGENTS.md parser)
-**Beads issue:** Not filed yet
+**Task: ralph-wiggum-ooda-jobd (Iteration statistics)**
+- Spec: iteration-loop.md
+- Status: NOT STARTED
+- Gap: No Welford's algorithm, no stats display
+- Depends: gm29 (need loop first)
+- Acceptance: Loop displays 'Iteration timing: count=N min=Xs max=Xs mean=Xs stddev=Xs'
 
-### 19. Implement AGENTS.md empirical verification (operational-knowledge.md)
-**Priority:** P3
-**Description:** Verify build/test commands execute. Verify file paths exist. Detect drift between AGENTS.md and reality. Update AGENTS.md when drift detected.
-**Acceptance:**
-- Commands from AGENTS.md are executed and verified
-- Path patterns validated against filesystem
-- Drift detection updates AGENTS.md with rationale
-**Dependencies:** Task 17 (AGENTS.md parser)
-**Beads issue:** Not filed yet
+**Task: ralph-wiggum-ooda-hur3 (Context injection)**
+- Spec: cli-interface.md, prompt-composition.md
+- Status: NOT STARTED
+- Gap: No --context flag, no context section in prompts
+- Depends: hrz0 (need prompt composition)
+- Acceptance: rooda build --context 'focus on auth' injects context into prompt
 
-### 20. Implement distribution (distribution.md)
-**Priority:** P3 (required for installation)
-**Description:** Cross-compile for macOS/Linux/Windows. Generate checksums. Create Homebrew formula. Create install script with checksum verification.
-**Acceptance:**
-- Binaries built for all platforms
-- SHA256 checksums generated
-- Install script verifies checksums
-- `rooda --version` reports correct version
-**Dependencies:** Task 1 (Go project structure)
-**Beads issue:** Not filed yet
+**Task: ralph-wiggum-ooda-rayx (Provenance display)**
+- Spec: configuration.md, observability.md
+- Status: NOT STARTED
+- Gap: No provenance tracking, no display
+- Depends: hrz0 (need config system)
+- Acceptance: Dry-run shows 'max_iterations: 10 (from: workspace config)'
 
-## Specification Gaps (None Identified)
+## Missing from Work Tracking
 
-All 11 specifications are complete:
-- ✅ cli-interface.md
-- ✅ configuration.md
-- ✅ prompt-composition.md
-- ✅ procedures.md
-- ✅ iteration-loop.md
-- ✅ error-handling.md
-- ✅ ai-cli-integration.md
-- ✅ observability.md
-- ✅ operational-knowledge.md
-- ✅ agents-md-format.md
-- ✅ distribution.md
+The following spec features have no corresponding work items:
 
-All specs have:
-- ✅ Job to be Done section
-- ✅ Acceptance Criteria section
-- ✅ Examples section
-- ✅ Data Structures section
-- ✅ Algorithm section (where applicable)
+### CLI Interface (cli-interface.md)
+- Flag parsing (--help, --version, --list-procedures)
+- OODA phase overrides (--observe, --orient, --decide, --act)
+- AI command resolution (--ai-cmd, --ai-cmd-alias)
+- Exit code handling (0, 1, 2, 3, 130)
+- Short flags (-v, -q, -n, -u, -d, -c)
 
-## Implementation Status Summary
+### Configuration (configuration.md)
+- Three-tier config loading (built-in > global > workspace)
+- Global config directory resolution (ROODA_CONFIG_HOME, XDG_CONFIG_HOME)
+- Config merging with provenance
+- Environment variable mapping (ROODA_*)
+- Config validation
+- AI command alias system
 
-**Current implementation (v0.1.0 bash):**
-- ✅ Basic OODA loop with iteration counting
-- ✅ Prompt composition from 4 phase files
-- ✅ AI CLI integration (pipes to kiro-cli/claude/aider)
-- ✅ YAML config parsing (via yq)
-- ✅ 9 procedures defined in rooda-config.yml
-- ✅ 25 prompt files in prompts/
-- ❌ No promise signal scanning
-- ❌ No failure tracking
-- ❌ No timeouts
-- ❌ No dry-run mode
-- ❌ No verbose mode
-- ❌ No context injection
-- ❌ No provenance tracking
-- ❌ No AGENTS.md lifecycle
-- ❌ No embedded prompts (requires external files)
+### AI CLI Integration (ai-cli-integration.md)
+- AI command execution
+- Output capture and buffering
+- Built-in aliases (kiro-cli, claude, copilot, cursor-agent)
+- Shell-style command parsing
+- Binary validation
 
-**v2 Go implementation:**
-- ❌ No Go project structure
-- ❌ No Go code exists
-- ❌ All features unimplemented
+### Prompt Composition (prompt-composition.md)
+- Fragment loading (builtin: prefix, filesystem paths)
+- Template processing (Go text/template)
+- Fragment concatenation
+- OODA phase assembly
 
-## Recommended Execution Order
+### Observability (observability.md)
+- Structured logging (debug, info, warn, error)
+- Log timestamp formats (time, relative, iso, none)
+- Progress display
+- Verbose mode (AI output streaming)
+- Quiet mode
 
-**Phase 1: Foundation (P0 tasks 1-4)**
-Execute sequentially — each blocks the next:
-1. Initialize Go project structure
-2. Embed default prompts and procedures
-3. Implement configuration system
-4. Implement CLI interface
+### Agents.md Format (agents-md-format.md)
+- Schema definition
+- Section parsing
+- Validation rules
+- Bootstrap algorithm
 
-**Phase 2: Core Loop (P1 tasks 5-11)**
-Execute in dependency order:
-1. Basic iteration loop (task 5)
-2. Prompt composition (task 6) — parallel with AI CLI integration (task 7)
-3. Promise signal scanning (task 8)
-4. Failure tracking (task 9)
-5. Iteration timeouts (task 10) — parallel with signal handling (task 11)
+### Operational Knowledge (operational-knowledge.md)
+- Read-verify-update lifecycle
+- Bootstrap detection
+- Drift detection
+- Empirical verification
 
-**Phase 3: Enhanced Features (P2 tasks 12-16)**
-Can execute in parallel after Phase 2 complete:
-- Dry-run mode (task 12)
-- Iteration statistics (task 13)
-- Context injection (task 14)
-- Provenance display (task 15)
-- Structured logging (task 16)
+### Distribution (distribution.md)
+- Binary packaging
+- Installation methods
+- Version management
+- Platform support
 
-**Phase 4: Advanced Features (P3 tasks 17-20)**
-Execute after Phase 3:
-- AGENTS.md parser (task 17)
-- AGENTS.md bootstrap (task 18) — parallel with verification (task 19)
-- Distribution (task 20) — can execute anytime after task 1
+## Implementation Mapping
+
+Per specifications, the Go implementation should have this structure:
+
+```
+ralph-wiggum-ooda/
+├── cmd/
+│   └── rooda/
+│       └── main.go                    # CLI entry point
+├── internal/
+│   ├── ai/
+│   │   ├── executor.go                # AI CLI execution
+│   │   ├── resolver.go                # AI command resolution
+│   │   └── aliases.go                 # Built-in aliases
+│   ├── cli/
+│   │   ├── parser.go                  # Flag parsing
+│   │   ├── help.go                    # Help text
+│   │   └── validator.go               # Flag validation
+│   ├── config/
+│   │   ├── config.go                  # Config types and loading
+│   │   ├── defaults.go                # Built-in defaults
+│   │   ├── validate.go                # Config validation
+│   │   ├── provenance.go              # Provenance tracking
+│   │   ├── env.go                     # Environment variables
+│   │   └── merge.go                   # Config merging
+│   ├── loop/
+│   │   ├── loop.go                    # Core iteration loop
+│   │   ├── signals.go                 # Signal handling
+│   │   └── errors.go                  # Failure detection
+│   ├── procedures/
+│   │   ├── procedures.go              # Procedure loading
+│   │   ├── fragments.go               # Fragment loading
+│   │   └── builtin.go                 # Built-in procedures
+│   ├── agents/
+│   │   ├── schema.go                  # AGENTS.md schema
+│   │   └── parser.go                  # Markdown parsing
+│   └── observability/
+│       ├── logger.go                  # Structured logging
+│       └── stats.go                   # Statistics calculation
+├── fragments/                         # Built-in fragments (embedded)
+│   ├── observe/                       # 13 observe fragments
+│   ├── orient/                        # 20 orient fragments
+│   ├── decide/                        # 10 decide fragments
+│   └── act/                           # 12 act fragments
+├── go.mod
+├── go.sum
+└── README.md
+```
+
+## Recommended Task Breakdown
+
+### Phase 1: Foundation (1 task, P0)
+1. ✅ ralph-wiggum-ooda-hrz0: Embed default prompts and procedures
+
+### Phase 2: Core Loop (5 tasks, P1)
+2. ✅ ralph-wiggum-ooda-gm29: Implement basic iteration loop
+3. ✅ ralph-wiggum-ooda-sont: Implement promise signal scanning
+4. ✅ ralph-wiggum-ooda-pn2x: Implement failure tracking
+5. ✅ ralph-wiggum-ooda-ac1c: Implement iteration timeouts
+6. ✅ ralph-wiggum-ooda-07xa: Implement signal handling
+
+### Phase 3: Enhanced Features (4 tasks, P2)
+7. ✅ ralph-wiggum-ooda-xdf7: Implement dry-run mode
+8. ✅ ralph-wiggum-ooda-jobd: Implement iteration statistics
+9. ✅ ralph-wiggum-ooda-hur3: Implement context injection
+10. ✅ ralph-wiggum-ooda-rayx: Implement provenance display
+
+### Phase 4: Missing Features (10 new tasks needed)
+
+**CLI Interface:**
+11. NEW: Implement CLI flag parsing and help system
+    - Spec: cli-interface.md
+    - Acceptance: rooda --help displays usage, rooda --version shows version
+    - Priority: P1 (blocks all CLI usage)
+
+12. NEW: Implement OODA phase overrides
+    - Spec: cli-interface.md, prompt-composition.md
+    - Acceptance: rooda build --observe custom.md replaces observe phase
+    - Priority: P2 (enhancement)
+
+**Configuration:**
+13. NEW: Implement three-tier config system
+    - Spec: configuration.md
+    - Acceptance: Global and workspace configs merge correctly
+    - Priority: P0 (foundation)
+
+14. NEW: Implement environment variable support
+    - Spec: configuration.md
+    - Acceptance: ROODA_LOOP_AI_CMD sets AI command
+    - Priority: P1 (common use case)
+
+**AI CLI Integration:**
+15. NEW: Implement AI command execution and output capture
+    - Spec: ai-cli-integration.md
+    - Acceptance: AI CLI output captured and scanned for signals
+    - Priority: P0 (core functionality)
+
+**Prompt Composition:**
+16. NEW: Implement fragment-based prompt composition
+    - Spec: prompt-composition.md, procedures.md
+    - Acceptance: Fragments load and concatenate correctly
+    - Priority: P0 (core functionality)
+
+**Observability:**
+17. NEW: Implement structured logging system
+    - Spec: observability.md
+    - Acceptance: Logs formatted with timestamp, level, fields
+    - Priority: P1 (debugging essential)
+
+**Agents.md:**
+18. NEW: Implement AGENTS.md parser and validator
+    - Spec: agents-md-format.md, operational-knowledge.md
+    - Acceptance: AGENTS.md sections parsed correctly
+    - Priority: P2 (operational feature)
+
+**Distribution:**
+19. NEW: Implement build and packaging
+    - Spec: distribution.md
+    - Acceptance: Binary builds for Linux, macOS, Windows
+    - Priority: P2 (distribution)
+
+**Testing:**
+20. NEW: Implement test suite
+    - Spec: All specs have acceptance criteria
+    - Acceptance: go test ./... passes, coverage >80%
+    - Priority: P1 (quality gate)
+
+## Critical Path
+
+The critical path to a working v2 implementation:
+
+1. **Foundation** (P0): hrz0, task 13 (config), task 15 (AI exec), task 16 (prompts)
+2. **Core Loop** (P1): gm29, sont, pn2x, ac1c, 07xa
+3. **CLI** (P1): task 11 (flag parsing), task 14 (env vars)
+4. **Observability** (P1): task 17 (logging), jobd (stats)
+5. **Testing** (P1): task 20 (test suite)
+6. **Enhanced** (P2): xdf7, hur3, rayx, task 12 (OODA overrides)
+7. **Operational** (P2): task 18 (AGENTS.md)
+8. **Distribution** (P2): task 19 (packaging)
+
+## Estimated Effort
+
+**Phase 1 (Foundation):** 4 tasks, ~8-12 hours
+- Complex: Config system, prompt composition, AI execution
+
+**Phase 2 (Core Loop):** 5 tasks, ~6-8 hours
+- Moderate: Loop logic, signal scanning, failure tracking
+
+**Phase 3 (CLI & Observability):** 4 tasks, ~4-6 hours
+- Straightforward: Flag parsing, logging, env vars
+
+**Phase 4 (Enhanced & Operational):** 7 tasks, ~6-8 hours
+- Mixed: Some simple (stats), some complex (AGENTS.md parser)
+
+**Total:** 20 tasks, ~24-34 hours
+
+## Next Steps
+
+1. File 10 new tasks for Phase 4 (missing features)
+2. Start with Phase 1 foundation tasks (P0)
+3. Implement in dependency order per critical path
+4. Run quality gates after each phase
+5. Update AGENTS.md with Go-specific commands as implementation progresses
 
 ## Notes
 
-**Why no Go code exists:**
-- Project is on `goify` branch which restructured files but didn't implement Go rewrite
-- Bash v0.1.0 implementation moved to root level
-- v1 artifacts archived in `archive/`
-- Specifications written but implementation not started
-
-**Why beads issues are correct:**
-- All 10 ready issues map to P1-P2 tasks in this plan
-- Issues correctly identify iteration loop, promise signals, failure tracking, timeouts, signal handling, dry-run, statistics, context injection, provenance as priorities
-- Missing issues: Go project init (P0), config system (P0), CLI interface (P0), prompt composition (P1), AI CLI integration (P1), logging (P2), AGENTS.md lifecycle (P3), distribution (P3)
-
 **Why this order:**
-- P0 tasks are foundation — nothing works without them
-- P1 tasks are core loop — minimum viable OODA iteration
-- P2 tasks are quality-of-life — observability and control
-- P3 tasks are advanced — AGENTS.md lifecycle and distribution
+- Foundation tasks (config, AI exec, prompts) block everything else
+- Core loop is the heart of the system — must work before enhancements
+- CLI and observability enable debugging and usage
+- Enhanced features add value but aren't blocking
+- Operational features (AGENTS.md) are nice-to-have for v2.0
 
-**Estimated effort:**
-- Phase 1 (P0): 3-5 iterations (foundation is critical, must be solid)
-- Phase 2 (P1): 5-8 iterations (core loop complexity)
-- Phase 3 (P2): 3-5 iterations (enhancements are simpler)
-- Phase 4 (P3): 5-8 iterations (AGENTS.md lifecycle is complex)
-- **Total: 16-26 iterations** for complete v2 implementation
+**Why 20 tasks:**
+- Specs are comprehensive — each major feature needs implementation
+- Current 10 tasks cover ~50% of spec surface area
+- Missing tasks are equally important (config, CLI, AI exec)
+- Breaking into small tasks enables incremental progress
 
-**Risk areas:**
-- Go template processing in prompt composition (task 6)
-- Process management for AI CLI (task 7) — stdin piping, output capture, signal handling
-- Promise signal scanning edge cases (task 8) — partial output, truncation
-- AGENTS.md drift detection (task 19) — distinguishing command failure from drift
+**Why no bash migration:**
+- v2 is a clean rewrite, not a port
+- Bash implementation archived for reference
+- Go provides better error handling, testing, cross-platform support
+- Fragment-based composition is fundamentally different from v1 monolithic prompts
