@@ -110,6 +110,9 @@ Provide visibility into what the loop is doing (timing, iteration progress, outc
 ### J10: Maintain Project Operational Knowledge
 Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. This is the read-verify-update lifecycle that keeps AGENTS.md accurate across iterations.
 
+### J11: Maintain User-Facing Documentation
+Treat documentation as implementation artifacts that AI agents read, verify, and update through existing procedures. Docs must stay synchronized with specs and code through the same read-verify-update lifecycle as AGENTS.md.
+
 ## Topics of Concern
 
 ### Execution Engine
@@ -127,6 +130,7 @@ Every procedure reads AGENTS.md first as the source of truth for project-specifi
 | [configuration](configuration.md) | J4 | YAML config schema, procedure definitions, AI command aliases, defaults |
 | [agents-md-format](agents-md-format.md) | J6 | AGENTS.md structure, required sections, field definitions |
 | [operational-knowledge](operational-knowledge.md) | J10 | Read-verify-update lifecycle for AGENTS.md across all procedures |
+| [documentation-structure](documentation-structure.md) | J11 | Required docs, organization, quality criteria, and how agents verify correctness |
 
 ### Distribution & Operations
 | Topic | Job | Description |
@@ -156,6 +160,7 @@ Written specs with extracted JTBDs:
 | [operational-knowledge](operational-knowledge.md) | Every procedure reads AGENTS.md first as the source of truth for project-specific behavior — build commands, file paths, work tracking, quality criteria. Agents defer to it, verify it empirically (run commands, check paths), and update it in-place when something is wrong or a new learning occurs. |
 | [procedures](procedures.md) | Define the 16 built-in procedures that ship as defaults — their OODA phase compositions, iteration limits, and use cases. |
 | [prompt-composition](prompt-composition.md) | Assemble fragment arrays for each OODA phase (observe, orient, decide, act) and optional user-provided context into a single prompt that can be piped to an AI CLI tool. Supports embedded defaults, user-provided custom fragments, inline content, and Go template parameterization with clear path resolution. |
+| [documentation-structure](documentation-structure.md) | Define what documentation must exist, how it's organized, and how AI agents verify it matches reality. |
 
 ## How to Write Specs
 
