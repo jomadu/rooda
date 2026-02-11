@@ -113,13 +113,13 @@ func runProcedure(cmd *cobra.Command, procedureName string, execFlags *Execution
 	}
 
 	// Determine log level
-	logLevel := cfg.Loop.LogLevel
+	resolvedLogLevel := cfg.Loop.LogLevel
 	if verbose {
-		logLevel = config.LogLevelDebug
+		resolvedLogLevel = config.LogLevelDebug
 	} else if quiet {
-		logLevel = config.LogLevelError
+		resolvedLogLevel = config.LogLevelError
 	} else if logLevel != "" {
-		logLevel = logLevel
+		resolvedLogLevel = config.LogLevel(logLevel)
 	}
 
 	// Determine show AI output
@@ -129,7 +129,7 @@ func runProcedure(cmd *cobra.Command, procedureName string, execFlags *Execution
 	}
 
 	// Create logger
-	logger := observability.NewLogger(logLevel, cfg.Loop.LogTimestampFormat, time.Now())
+	logger := observability.NewLogger(resolvedLogLevel, cfg.Loop.LogTimestampFormat, time.Now())
 
 	// Create iteration state
 	state := &loop.IterationState{

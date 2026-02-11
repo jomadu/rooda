@@ -16,7 +16,7 @@ var (
 
 func newRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "rooda [procedure]",
+		Use:   "rooda",
 		Short: "AI-powered OODA loop orchestrator",
 		Long: `rooda orchestrates AI coding agents through structured OODA (Observe-Orient-Decide-Act) 
 iteration loops to autonomously build, plan, and maintain software from specifications.`,
