@@ -224,4 +224,44 @@ func TestBootstrapAgentsMD(t *testing.T) {
 			t.Errorf("expected 'not-configured', got %q", result.WorkTracking.System)
 		}
 	})
+
+	t.Run("detects docs directory", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		
+		// Create docs directory with files
+		if err := os.MkdirAll(filepath.Join(tmpDir, "docs"), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, "docs", "installation.md"), []byte("# Installation"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, "docs", "cli-reference.md"), []byte("# CLI"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		
+		result, err := BootstrapAgentsMD(tmpDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		
+		if len(result.DocsPaths) == 0 {
+			t.Errorf("expected docs paths to be detected, got empty")
+		}
+		if result.DocsPaths[0] != "docs/*.md" {
+			t.Errorf("expected docs/*.md, got %v", result.DocsPaths)
+		}
+	})
+
+	t.Run("no docs directory", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		
+		result, err := BootstrapAgentsMD(tmpDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		
+		if len(result.DocsPaths) != 0 {
+			t.Errorf("expected no docs paths, got %v", result.DocsPaths)
+		}
+	})
 }

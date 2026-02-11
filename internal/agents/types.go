@@ -9,6 +9,7 @@ type AgentsMD struct {
 	SpecExcludes    []string
 	ImplPaths       []string
 	ImplExcludes    []string
+	DocsPaths       []string
 	WorkTracking    WorkTrackingConfig
 	TaskInput       TaskInputConfig
 	PlanningSystem  PlanningConfig

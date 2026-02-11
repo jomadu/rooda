@@ -25,6 +25,8 @@ func BootstrapAgentsMD(repoPath string) (*AgentsMD, error) {
 	agentsMD.ImplPaths = implPaths
 	agentsMD.ImplExcludes = implExcludes
 
+	agentsMD.DocsPaths = detectDocsPaths(repoPath)
+
 	workTracking, err := detectWorkTracking(repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("detect work tracking: %w", err)
@@ -194,6 +196,13 @@ func detectWorkTracking(repoPath string) (*WorkTrackingConfig, error) {
 		CloseCommand:  "Not configured",
 		CreateCommand: "Not configured",
 	}, nil
+}
+
+func detectDocsPaths(repoPath string) []string {
+	if dirExists(filepath.Join(repoPath, "docs")) {
+		return []string{"docs/*.md"}
+	}
+	return []string{}
 }
 
 // Helper functions

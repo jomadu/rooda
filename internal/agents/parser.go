@@ -30,6 +30,9 @@ func ParseAgentsMD(content string) (*AgentsMD, error) {
 	// Parse Implementation Definition
 	parseImplDefinition(content, agentsMD)
 
+	// Parse Documentation Definition
+	parseDocsDefinition(content, agentsMD)
+
 	// Parse Task Input
 	parseTaskInput(content, agentsMD)
 
@@ -195,6 +198,48 @@ func parseImplDefinition(content string, agentsMD *AgentsMD) {
 		for _, matches := range excludeListRe.FindAllStringSubmatch(excludeSection, -1) {
 			if len(matches) > 1 {
 				agentsMD.ImplExcludes = append(agentsMD.ImplExcludes, strings.TrimSpace(matches[1]))
+			}
+		}
+	}
+}
+
+func parseDocsDefinition(content string, agentsMD *AgentsMD) {
+	section := extractSection(content, "Documentation Definition")
+	if section == "" {
+		return
+	}
+
+	// Parse location
+	locationRe := regexp.MustCompile(`\*\*Location:\*\*\s+` + "`([^`]+)`")
+	if matches := locationRe.FindStringSubmatch(section); len(matches) > 1 {
+		paths := strings.Split(matches[1], ",")
+		for _, p := range paths {
+			agentsMD.DocsPaths = append(agentsMD.DocsPaths, strings.TrimSpace(p))
+		}
+	} else {
+		// Try without backticks
+		locationRe = regexp.MustCompile(`\*\*Location:\*\*\s+(.+)`)
+		if matches := locationRe.FindStringSubmatch(section); len(matches) > 1 {
+			path := strings.TrimSpace(matches[1])
+			agentsMD.DocsPaths = append(agentsMD.DocsPaths, path)
+		}
+	}
+
+	// Parse patterns (list items starting with -)
+	patternRe := regexp.MustCompile(`-\s+` + "`([^`]+)`")
+	for _, matches := range patternRe.FindAllStringSubmatch(section, -1) {
+		if len(matches) > 1 {
+			path := strings.TrimSpace(matches[1])
+			// Only add if not already in DocsPaths
+			found := false
+			for _, existing := range agentsMD.DocsPaths {
+				if existing == path {
+					found = true
+					break
+				}
+			}
+			if !found {
+				agentsMD.DocsPaths = append(agentsMD.DocsPaths, path)
 			}
 		}
 	}

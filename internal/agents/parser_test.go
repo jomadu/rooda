@@ -98,6 +98,51 @@ func TestParseAgentsMD_MinimalValid(t *testing.T) {
 	}
 }
 
+func TestParseAgentsMD_WithDocumentation(t *testing.T) {
+	content := `# Agent Instructions
+
+## Work Tracking System
+
+**System:** beads
+
+**Query ready work:**
+` + "```bash\nbd ready --json\n```" + `
+
+## Build/Test/Lint Commands
+
+**Test:** Manual verification
+
+## Specification Definition
+
+**Location:** ` + "`specs/*.md`" + `
+
+## Implementation Definition
+
+**Location:** ` + "`internal/`" + `
+
+## Documentation Definition
+
+**Location:** ` + "`docs/*.md`" + `
+
+**Patterns:**
+- ` + "`docs/*.md`" + ` — User-facing documentation files
+
+## Quality Criteria
+
+**For specifications:**
+- All specs have JTBD section (PASS/FAIL)
+`
+
+	agentsMD, err := ParseAgentsMD(content)
+	if err != nil {
+		t.Fatalf("ParseAgentsMD failed: %v", err)
+	}
+
+	if len(agentsMD.DocsPaths) != 1 || agentsMD.DocsPaths[0] != "docs/*.md" {
+		t.Errorf("Expected docs paths ['docs/*.md'], got %v", agentsMD.DocsPaths)
+	}
+}
+
 func TestParseAgentsMD_MissingOptionalSections(t *testing.T) {
 	content := `# Agent Instructions
 
