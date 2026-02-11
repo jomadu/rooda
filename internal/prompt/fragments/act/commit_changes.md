@@ -1,5 +1,7 @@
 # Commit Changes
 
+You must commit the changes to git with an appropriate commit message.
+
 Create a git commit with the changes made.
 
 Actions:

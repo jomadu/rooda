@@ -1,5 +1,7 @@
 # Determine Import Strategy
 
+Your task is to decide how to import the draft plan into the work tracking system.
+
 Decide how to import draft plan tasks into work tracking.
 
 Determine:

@@ -1,5 +1,7 @@
 # Identify Drift
 
+Your task is to categorize the discrepancies between documented and actual repository state.
+
 Categorize inconsistencies between documentation and reality.
 
 Classify drift by type:

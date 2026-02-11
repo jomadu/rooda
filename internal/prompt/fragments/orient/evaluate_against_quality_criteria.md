@@ -1,5 +1,7 @@
 # Evaluate Against Quality Criteria
 
+Your task is to check specifications or implementation against quality criteria from AGENTS.md.
+
 Check specifications or implementation against quality criteria from AGENTS.md.
 
 For each criterion:

@@ -1,5 +1,7 @@
 # Identify Specified But Not Implemented
 
+Your task is to find specifications that have not been implemented in code.
+
 Find features in specifications that don't exist in code.
 
 Compare specs to implementation:

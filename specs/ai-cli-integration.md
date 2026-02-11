@@ -41,8 +41,9 @@ The developer wants to use their preferred AI CLI tool without modifying framewo
 - [ ] Process exit code captured and returned
 - [ ] If process exceeds AI execution timeout, process killed and error returned
 - [ ] If process crashes (SIGSEGV, SIGKILL, OOM), partial output captured and returned
-- [ ] Captured output scanned for `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>` signals
+- [ ] Captured output scanned for `<promise>SUCCESS</promise>` and `<promise>FAILURE</promise>` signals using substring matching
 - [ ] Signal scanning happens after process exits (not during streaming)
+- [ ] Signals detected anywhere in output (substring match), but should be on own line for clarity
 - [ ] Prompts should instruct AI to emit `<promise>` signals at end of output (after all work complete)
 - [ ] If output is truncated, signals at end are preserved (signals at beginning may be lost)
 - [ ] Environment variables from parent process inherited by AI CLI process
@@ -587,6 +588,20 @@ The AI CLI process runs in the same working directory where rooda was invoked. T
 **Design Rationale — Signal Placement:**
 
 Prompts should instruct the AI to emit `<promise>` signals at the END of output, after all work is complete. This ensures signals are preserved even if output is truncated (truncation keeps the most recent output). If signals appear early and output exceeds the buffer, they may be lost. The 10MB default buffer is sufficient for most iterations — if truncation occurs frequently, users should increase `max_output_buffer`.
+
+Signals are detected using simple substring matching (`strings.Contains()`), so they can technically appear anywhere in the output, even with surrounding text. However, for clarity and reliability, signals should appear on their own line:
+
+**Recommended:**
+```
+<promise>SUCCESS</promise>
+```
+
+**Works but discouraged:**
+```
+Task complete <promise>SUCCESS</promise> - all tests passing
+```
+
+The substring matching approach is intentionally simple and permissive, but prompts should guide agents to use the cleaner format.
 
 **Design Rationale — Cursor Agent Wrapper:**
 

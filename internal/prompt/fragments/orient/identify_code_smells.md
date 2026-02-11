@@ -1,5 +1,7 @@
 # Identify Code Smells
 
+Your task is to identify code quality issues and anti-patterns in the implementation.
+
 Find code quality issues and anti-patterns.
 
 Look for:

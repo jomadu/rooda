@@ -1,5 +1,7 @@
 # Identify Spec Deficiencies
 
+Your task is to find gaps or issues in the specifications.
+
 Find gaps and issues in specification files.
 
 Look for:

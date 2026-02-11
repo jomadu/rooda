@@ -1,5 +1,7 @@
 # Determine Sections to Update
 
+Your task is to decide which sections of AGENTS.md need to be updated.
+
 Decide which sections of AGENTS.md need to be updated.
 
 For each drift item, determine:

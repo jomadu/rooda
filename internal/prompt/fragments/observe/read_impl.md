@@ -1,8 +1,8 @@
 # Read Implementation
 
-Load implementation files as defined in AGENTS.md.
+You must load implementation files as defined in AGENTS.md. Use the file reading tool to access these files.
 
-Read all files matching the implementation definition patterns:
-- Extract code structure and organization
-- Note dependencies and imports
-- Identify entry points and key functions
+Read all files matching the implementation definition patterns and store:
+- Code structure and organization
+- Dependencies and imports
+- Entry points and key functions

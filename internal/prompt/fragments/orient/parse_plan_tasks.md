@@ -1,5 +1,7 @@
 # Parse Plan Tasks
 
+Your task is to extract individual tasks from the draft plan.
+
 Extract tasks from the draft plan.
 
 For each task, extract:

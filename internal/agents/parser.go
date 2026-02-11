@@ -72,17 +72,49 @@ func parseBuildTestLint(content string, agentsMD *AgentsMD) {
 		return
 	}
 
-	// Parse test command
-	agentsMD.TestCommand = extractCommand(section, "Test")
+	// Try new format first (Unified Interface via Makefile)
+	// Look for the first code block after "Unified Interface"
+	unifiedIdx := strings.Index(section, "**Unified Interface")
+	if unifiedIdx >= 0 {
+		afterUnified := section[unifiedIdx:]
+		commands := extractAllCommands(afterUnified)
+		if len(commands) > 0 {
+			// Find "make test" command
+			for _, cmd := range commands {
+				if strings.Contains(cmd, "make test") {
+					agentsMD.TestCommand = cmd
+					break
+				}
+			}
+			// Find "make build" command
+			for _, cmd := range commands {
+				if strings.Contains(cmd, "make build") {
+					agentsMD.BuildCommand = cmd
+					break
+				}
+			}
+			// Find "make lint" command
+			for _, cmd := range commands {
+				if strings.Contains(cmd, "make lint") {
+					agentsMD.LintCommands = append(agentsMD.LintCommands, cmd)
+				}
+			}
+		}
+	}
 
-	// Parse build command
-	agentsMD.BuildCommand = extractCommand(section, "Build")
-
-	// Parse lint commands
-	lintSection := extractSubsection(section, "Lint")
-	if lintSection != "" {
-		commands := extractAllCommands(lintSection)
-		agentsMD.LintCommands = commands
+	// Try old format if new format didn't work
+	if agentsMD.TestCommand == "" {
+		agentsMD.TestCommand = extractCommand(section, "Test")
+	}
+	if agentsMD.BuildCommand == "" {
+		agentsMD.BuildCommand = extractCommand(section, "Build")
+	}
+	if len(agentsMD.LintCommands) == 0 {
+		lintSection := extractSubsection(section, "Lint")
+		if lintSection != "" {
+			commands := extractAllCommands(lintSection)
+			agentsMD.LintCommands = commands
+		}
 	}
 }
 

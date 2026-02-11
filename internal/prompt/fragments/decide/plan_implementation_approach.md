@@ -1,8 +1,8 @@
 # Plan Implementation Approach
 
-Determine how to implement the selected task.
+Your task is to decide how to implement the selected task.
 
-Decide:
+Determine and plan:
 - Implementation strategy
 - Order of changes (specs first, then code, or vice versa)
 - Testing approach

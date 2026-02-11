@@ -371,8 +371,8 @@ fragments/
     ├── update_draft_plan_status.md              # Update draft plan status
     ├── create_work_items.md                     # Import plan to work tracking
     ├── run_tests.md                             # Execute tests (verification)
-    ├── emit_success.md                          # Output SUCCESS promise
-    └── emit_failure.md                          # Output FAILURE promise
+    ├── emit_success.md                          # Output <promise>SUCCESS</promise> signal
+    └── emit_failure.md                          # Output <promise>FAILURE</promise> signal
 ```
 
 ## Procedures Configuration Schema
@@ -501,6 +501,155 @@ The system includes 16 built-in procedures organized into three categories:
 14. **draft-plan-impl-fix**: Create plan for implementation bug fix
 15. **draft-plan-impl-refactor**: Create plan for code refactoring
 16. **draft-plan-impl-chore**: Create plan for code maintenance tasks
+
+## SUCCESS Criteria by Procedure Type
+
+Each procedure type has specific criteria for when to emit `<promise>SUCCESS</promise>` versus continuing iteration.
+
+### Direct Action Procedures
+
+**agents-sync:**
+- Emit `<promise>SUCCESS</promise>` when: AGENTS.md has been updated to match repository state and changes are committed
+- Continue iterating when: Drift detected but not yet resolved, or verification failed
+- Emit `<promise>FAILURE</promise>` when: Cannot determine repository state or AGENTS.md is corrupted
+
+**build:**
+- Emit `<promise>SUCCESS</promise>` when: No ready work remains in work tracking system (all tasks completed)
+- Continue iterating when: Ready work exists and can be implemented
+- Emit `<promise>FAILURE</promise>` when: Blocked by missing dependencies, broken tests that can't be fixed, or corrupted work tracking state
+
+**publish-plan:**
+- Emit `<promise>SUCCESS</promise>` when: All tasks from draft plan have been created in work tracking system
+- Continue iterating when: Draft plan exists but work items not yet created
+- Emit `<promise>FAILURE</promise>` when: Draft plan is missing, malformed, or work tracking system is unavailable
+
+### Audit Procedures
+
+**audit-spec, audit-impl, audit-agents:**
+- Emit `<promise>SUCCESS</promise>` when: Audit report has been generated and is complete
+- Continue iterating when: Report generation in progress or incomplete
+- Emit `<promise>FAILURE</promise>` when: Cannot read target files or quality criteria are undefined
+
+**audit-spec-to-impl, audit-impl-to-spec:**
+- Emit `<promise>SUCCESS</promise>` when: Gap report has been generated and is complete
+- Continue iterating when: Gap analysis in progress or incomplete
+- Emit `<promise>FAILURE</promise>` when: Cannot read specs or implementation files
+
+### Planning Procedures
+
+**draft-plan-* (all 8 variants):**
+- Emit `<promise>SUCCESS</promise>` when: Draft plan file has been created and is complete
+- Continue iterating when: Plan generation in progress or incomplete
+- Emit `<promise>FAILURE</promise>` when: Task input is missing, malformed, or requirements are unclear
+
+## Example Outputs
+
+### agents-sync Procedure
+
+**Successful completion:**
+```
+[Iteration 1]
+Detected drift in AGENTS.md:
+- Build command documented as "go build" but actual is "go build -o bin/rooda ./cmd/rooda"
+- Test command missing from documentation
+
+Updated AGENTS.md with correct commands.
+Verified all commands execute successfully.
+Committed changes.
+
+<promise>SUCCESS</promise>
+
+AGENTS.md synchronized with repository state:
+- Updated build command
+- Added test command
+- Verified all documented commands work
+```
+
+### build Procedure
+
+**Successful completion (no work remaining):**
+```
+[Iteration 3]
+Implemented task ralph-wiggum-ooda-abc123: Add user authentication
+- Created internal/auth/auth.go
+- Added tests in internal/auth/auth_test.go
+- All tests passing
+- Updated work tracking status to complete
+
+Queried work tracking for ready work: no tasks found.
+
+<promise>SUCCESS</promise>
+
+All ready work completed:
+- Implemented 1 task
+- All tests passing
+- No ready tasks remaining in work tracking
+```
+
+**Blocked (cannot proceed):**
+```
+[Iteration 2]
+Attempted to implement task ralph-wiggum-ooda-xyz789: Add OAuth2 integration
+
+<promise>FAILURE</promise>
+
+Cannot proceed: Missing authentication module specification. The OAuth2 integration requires a detailed spec defining token refresh behavior and error handling patterns.
+
+Next steps:
+1. Create specs/auth-oauth2.md with token lifecycle specification
+2. Define error handling patterns for expired tokens
+3. Document refresh token rotation policy
+```
+
+### audit-spec Procedure
+
+**Successful completion:**
+```
+[Iteration 1]
+Reviewed 12 specification files against quality criteria:
+- All specs have "Job to be Done" section: PASS
+- All specs have "Acceptance Criteria" section: PASS
+- All specs have "Examples" section: PASS
+- No broken cross-references: FAIL (3 broken links found)
+
+Generated audit report at docs/audit-2024-01-15.md
+
+<promise>SUCCESS</promise>
+
+Audit completed:
+- Reviewed 12 specification files
+- Generated audit report at docs/audit-2024-01-15.md
+- Found 3 issues requiring attention
+```
+
+### draft-plan-impl-feat Procedure
+
+**Successful completion:**
+```
+[Iteration 2]
+Analyzed feature requirements for user authentication.
+Identified affected code files:
+- internal/auth/ (new package)
+- cmd/rooda/main.go (integration point)
+- internal/config/config.go (auth config)
+
+Created draft plan at PLAN.md with 8 tasks:
+1. Create auth package structure
+2. Implement JWT token generation
+3. Implement token validation
+4. Add auth middleware
+5. Integrate with main.go
+6. Add configuration options
+7. Write unit tests
+8. Write integration tests
+
+<promise>SUCCESS</promise>
+
+Draft plan completed:
+- Created plan at PLAN.md
+- Broken down into 8 actionable tasks
+- Ready for import to work tracking
+```
 
 ## Built-in Procedures Configuration
 

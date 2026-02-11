@@ -1,5 +1,7 @@
 # Update Draft Plan Status
 
+You must update the draft plan file to reflect that tasks have been imported.
+
 Mark tasks in PLAN.md as completed or in progress.
 
 Actions:

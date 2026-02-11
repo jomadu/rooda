@@ -21,7 +21,7 @@ Enable users to install rooda as a single binary with no external dependencies, 
 - [ ] SHA256 checksums generated for all binaries in checksums.txt
 - [ ] Install script verifies checksums before installation
 - [ ] Install script hosted in GitHub Releases (not main branch)
-- [ ] `rooda --version` reports correct version string embedded at build time
+- [ ] `rooda version` reports correct version string embedded at build time
 - [ ] Default prompts are accessible when no custom prompts provided (embedded via `go:embed`)
 - [ ] Homebrew formula installs binary to standard location and adds to PATH
 - [ ] `curl | sh` installation script downloads correct binary for detected platform
@@ -70,15 +70,22 @@ GOOS=windows GOARCH=amd64 → rooda-windows-amd64.exe
    //go:embed prompts/*.md
    var defaultPrompts embed.FS
 
-3. Cross-compile for each platform:
+3. Build binary:
+   # Using Makefile (recommended)
+   make build
+   
+   # Or directly
+   go build -o bin/rooda ./cmd/rooda
+
+4. Cross-compile for each platform:
    for platform in darwin/arm64 darwin/amd64 linux/amd64 linux/arm64 windows/amd64; do
      GOOS=${platform%/*} GOARCH=${platform#*/} go build -o rooda-$platform
    done
 
-4. Generate checksums:
+5. Generate checksums:
    sha256sum rooda-* > checksums.txt
 
-5. Package for distribution:
+6. Package for distribution:
    - Homebrew: Create formula with download URL and SHA256
    - Direct download: Host binaries with install.sh script (includes checksum verification)
    - Go install: Tag release, push to GitHub
@@ -133,7 +140,7 @@ go install github.com/jomadu/rooda@latest
 
 ### Version Mismatch
 - **Scenario:** Binary reports version but doesn't match git tag
-- **Detection:** CI verifies `rooda --version` output matches `$GITHUB_REF_NAME`
+- **Detection:** CI verifies `rooda version` output matches `$GITHUB_REF_NAME`
 - **Handling:** Release fails if version mismatch detected
 
 ### Homebrew Formula Outdated
@@ -152,6 +159,7 @@ go install github.com/jomadu/rooda@latest
 ### Build-time
 - Go 1.21+ (for `go:embed` and modern stdlib)
 - git (for version metadata)
+- make (optional but recommended for unified build interface)
 - Cross-compilation toolchain (built into Go)
 
 ### Runtime
@@ -186,7 +194,7 @@ v2.0.0
 
 $ go build -ldflags "-X main.Version=v2.0.0 -X main.CommitSHA=$(git rev-parse HEAD)"
 
-$ ./rooda --version
+$ ./rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -213,7 +221,7 @@ $ brew install rooda
 $ which rooda
 /opt/homebrew/bin/rooda
 
-$ rooda --version
+$ rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -227,7 +235,7 @@ Downloading rooda v2.0.0...
 Installing to /usr/local/bin/rooda...
 Installation complete!
 
-$ rooda --version
+$ rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -238,7 +246,7 @@ rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 $ rm -rf ./prompts  # No custom prompts
 $ rm -rf ~/.config/rooda/prompts  # No global prompts
 
-$ rooda build --dry-run
+$ rooda run build --dry-run
 # Observe: Plan, Specs, Implementation
 ...
 # (Prompt assembled from embedded defaults)
@@ -253,10 +261,10 @@ steps:
   - name: Install rooda
     run: |
       curl -fsSL https://github.com/jomadu/rooda/releases/latest/download/install.sh | sh
-      rooda --version
+      rooda version
   
   - name: Run rooda procedure
-    run: rooda build --max-iterations 5
+    run: rooda run build --max-iterations 5
 ```
 
 **Verification:** Installation succeeds in CI environment, binary executes.
@@ -298,7 +306,7 @@ Embedding prompts adds ~50KB (25 files × ~2KB each). Go binaries are statically
 
 ### Version Embedding
 
-Using `-ldflags` to inject version metadata at build time ensures `rooda --version` always reports accurate information. This is critical for debugging ("what version are you running?") and for CI pipelines that verify version consistency.
+Using `-ldflags` to inject version metadata at build time ensures `rooda version` always reports accurate information. This is critical for debugging ("what version are you running?") and for CI pipelines that verify version consistency.
 
 ### Installation Script Security
 

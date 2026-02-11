@@ -32,3 +32,21 @@ func LoadFragment(path string, configDir string) (string, error) {
 	}
 	return string(content), nil
 }
+
+// LoadContextContent loads context content, checking if the value is a file path.
+// Returns (content, isFile, error). If the file exists, reads and returns its content
+// with isFile=true. Otherwise, treats the value as inline content with isFile=false.
+func LoadContextContent(contextValue string) (string, bool, error) {
+	// Check if file exists
+	if _, err := os.Stat(contextValue); err == nil {
+		// File exists - read content
+		content, err := os.ReadFile(contextValue)
+		if err != nil {
+			return "", false, fmt.Errorf("failed to read context file %s: %v", contextValue, err)
+		}
+		return string(content), true, nil
+	}
+	
+	// Not a file - treat as inline content
+	return contextValue, false, nil
+}

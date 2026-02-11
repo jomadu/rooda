@@ -24,9 +24,11 @@ func TestParseAgentsMD_RealAGENTSMD(t *testing.T) {
 		t.Errorf("Expected query command 'bd ready --json', got '%s'", agentsMD.WorkTracking.QueryCommand)
 	}
 
-	// Verify test command
+	// Verify test command (should be "make test" in new format)
 	if agentsMD.TestCommand == "" {
-		t.Error("Expected test command to be parsed")
+		t.Errorf("Expected test command to be parsed, got empty string")
+		t.Logf("Debug: TestCommand='%s', BuildCommand='%s', LintCommands=%v", 
+			agentsMD.TestCommand, agentsMD.BuildCommand, agentsMD.LintCommands)
 	}
 
 	// Verify spec paths

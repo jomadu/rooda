@@ -1,5 +1,7 @@
 # Modify Files
 
+You must modify the necessary files to implement the task. Use file writing tools.
+
 Edit specification or implementation files.
 
 Actions:

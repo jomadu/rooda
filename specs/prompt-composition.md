@@ -6,16 +6,21 @@ Assemble prompts from fragment arrays for each OODA phase (observe, orient, deci
 
 ## Activities
 
-1. **Resolve fragment paths** — For each fragment in OODA phase arrays, determine whether to use embedded resources (builtin: prefix), filesystem paths (relative to config directory), or inline content
-2. **Load fragment content** — Load content from embedded resources, filesystem, or use inline content directly
-3. **Process templates** — When parameters are provided, execute Go text/template processing on fragment content
-4. **Concatenate fragments** — Join fragments within each phase with double newlines
-5. **Inject user context** — If --context flag provided, insert user-supplied text at the top of the assembled prompt
-6. **Format with section markers** — Wrap each phase with clear delimiters for readability and debugging
-7. **Validate completeness** — Ensure all fragments are loadable and templates are valid at config load time (fail fast)
+1. **Assemble preamble** — Create procedure execution preamble with agent role, iteration context, and success signaling instructions
+2. **Resolve fragment paths** — For each fragment in OODA phase arrays, determine whether to use embedded resources (builtin: prefix), filesystem paths (relative to config directory), or inline content
+3. **Load fragment content** — Load content from embedded resources, filesystem, or use inline content directly
+4. **Process templates** — When parameters are provided, execute Go text/template processing on fragment content
+5. **Concatenate fragments** — Join fragments within each phase with double newlines
+6. **Inject user context** — If --context flag provided, insert user-supplied text after preamble
+7. **Format with section markers** — Wrap each phase with clear delimiters for readability and debugging
+8. **Validate completeness** — Ensure all fragments are loadable and templates are valid at config load time (fail fast)
 
 ## Acceptance Criteria
 
+- [ ] Assembles preamble with procedure name, iteration context, and success signaling instructions
+- [ ] Preamble includes current iteration number and max iterations (or "unlimited")
+- [ ] Preamble instructs agent to emit `<promise>SUCCESS</promise>` when job complete
+- [ ] Preamble instructs agent to emit `<promise>FAILURE</promise>` when blocked
 - [ ] Assembles prompts from fragment arrays for each OODA phase (observe, orient, decide, act)
 - [ ] Supports embedded fragments via builtin: prefix (e.g., builtin:fragments/observe/read_agents_md.md)
 - [ ] Supports filesystem fragments via relative paths (e.g., fragments/observe/custom.md)
@@ -23,9 +28,11 @@ Assemble prompts from fragment arrays for each OODA phase (observe, orient, deci
 - [ ] Filesystem paths resolved relative to config file directory, not current working directory
 - [ ] Processes Go text/template syntax when parameters are provided
 - [ ] Concatenates fragments within each phase with double newlines (\n\n)
-- [ ] Injects user-provided context when --context flag is supplied
-- [ ] Wraps user context with "# CONTEXT" section marker
-- [ ] Wraps each phase with section markers (e.g., "# OBSERVE", "# ORIENT")
+- [ ] Injects user-provided context when --context flag is supplied (after preamble, before OODA phases)
+- [ ] Wraps user context with "=== CONTEXT ===" section marker
+- [ ] Wraps each phase with section markers (e.g., "=== OBSERVE ===", "=== ORIENT ===")
+- [ ] When context is from file, shows "Source: <path>" followed by file content
+- [ ] When context is inline, shows content only (no Source line)
 - [ ] Validates all fragment paths at config load time (fail fast)
 - [ ] Validates template syntax at config load time
 - [ ] Returns error if fragment has both content and path specified
@@ -77,34 +84,178 @@ Specifying both or neither is an error.
 ### Assembled Prompt Structure
 
 ```
-# CONTEXT
-[User Context - if provided via --context]
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
 
-# OBSERVE
-[Content from observe phase file]
+Procedure: <procedure-name>
 
-# ORIENT
-[Content from orient phase file]
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
 
-# DECIDE
-[Content from decide phase file]
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
+- The loop orchestrator uses these signals to determine iteration outcome.
 
-# ACT
-[Content from act phase file]
+═══════════════════════════════════════════════════════════════
+CONTEXT
+═══════════════════════════════════════════════════════════════
+Source: ./path/to/file.md
+
+[File content - if context from file]
+
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
+[Content from observe phase fragments]
+
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
+[Content from orient phase fragments]
+
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
+[Content from decide phase fragments]
+
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
+[Content from act phase fragments]
 ```
+
+Note: When context is inline (not from file), the "Source:" line is omitted. When no context is provided, the entire CONTEXT section is omitted.
+
+## Procedure Execution Preamble
+
+The preamble wraps the composed prompt with explicit execution context that frames the agent's role and responsibilities. It appears at the very beginning of every assembled prompt, before any user context or OODA phases.
+
+### Purpose
+
+The preamble serves three critical functions:
+
+1. **Agent Role Definition** — Establishes that the agent is executing a structured OODA loop procedure, not having a freeform conversation
+2. **Iteration Context** — Provides awareness of progress (iteration N of M) so the agent can gauge how much work remains
+3. **Success Signaling** — Instructs the agent how to communicate completion or blockage through `<promise>` output markers
+
+### Format
+
+```
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: <procedure-name>
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
+- The loop orchestrator uses these signals to determine iteration outcome.
+```
+
+### Template Variables
+
+- `<procedure-name>` — The name of the procedure being executed (e.g., "build", "agents-sync")
+
+### Success Signal Instructions
+
+The preamble explicitly instructs the agent to emit promise markers:
+
+- `<promise>SUCCESS</promise>` — Job is complete, loop should terminate with success status
+- `<promise>FAILURE</promise>` — Agent is blocked and cannot make further progress, loop should count this as a failure
+
+These markers are scanned by the iteration loop to determine outcome (see iteration-loop.md Iteration Outcome Matrix).
+
+### Design Rationale
+
+**Why a preamble?**
+- Agents often treat prompts as templates or documentation rather than executable procedures
+- Explicit framing as "EXECUTABLE PROCEDURE" improves agent recognition of the task
+- Clear role definition helps agents understand they must produce concrete outputs
+
+**Why enhanced section markers with double lines?**
+- Visual prominence: Double-line borders make phase transitions unmissable
+- Directive language: Phase descriptions tell agents what to do, not just what the phase is
+- Reduced ambiguity: "Execute these observation tasks" is more directive than "OBSERVE"
+- Better agent recognition: Enhanced markers help agents understand prompts as procedures, not templates
+
+**Why include phase descriptions in markers?**
+- Reinforces the OODA structure at each phase transition
+- Provides a mental model for how to process the subsequent content
+- Reduces confusion about what each phase marker means
+- Makes each phase self-documenting
+
+**Why explicit success signaling instructions?**
+- Agents don't inherently know to emit `<promise>` markers
+- Clear instructions increase signal emission rate
+- Reduces iterations where agent completes work but doesn't signal completion
+
+**Why emphasize "NOT a template"?**
+- Agents frequently misinterpret structured prompts as examples to follow rather than tasks to execute
+- Explicit negation ("This is NOT a template") helps overcome this pattern
+- Improves agent recognition that they must produce actual outputs, not discuss what they would do
 
 ## Algorithm
 
 ```
-function AssemblePrompt(procedure, userContext, configDir):
+function AssemblePrompt(procedure, contextValues []string, configDir):
     prompt = ""
     
-    // Inject user context first if provided
-    if userContext != "":
-        prompt += "# CONTEXT\n"
-        prompt += userContext + "\n\n"
+    // 1. Assemble preamble
+    prompt += AssemblePreamble(procedure.Name)
+    prompt += "\n\n"
     
-    // Process each OODA phase in order
+    // 2. Inject user context if provided
+    if len(contextValues) > 0:
+        prompt += "═══════════════════════════════════════════════════════════════\n"
+        prompt += "CONTEXT\n"
+        prompt += "═══════════════════════════════════════════════════════════════\n"
+        
+        for _, contextValue in contextValues:
+            // Check if context is a file path (file existence heuristic)
+            if fileExists(contextValue):
+                // Read file content
+                content, err = os.ReadFile(contextValue)
+                if err:
+                    return error("failed to read context file %s: %v", contextValue, err)
+                
+                // Add source path and content
+                prompt += "Source: " + contextValue + "\n\n"
+                prompt += string(content) + "\n\n"
+            else:
+                // Inline content - no source line
+                prompt += contextValue + "\n\n"
+    
+    // 3. Process each OODA phase in order
+    phaseDescriptions = map[string]string{
+        "observe": "Execute these observation tasks to gather information.",
+        "orient": "Analyze the information you gathered and form your understanding.",
+        "decide": "Make decisions about what actions to take.",
+        "act": "Execute the actions you decided on. Modify files, run commands, commit changes.",
+    }
+    
+    phaseNumbers = map[string]int{
+        "observe": 1,
+        "orient": 2,
+        "decide": 3,
+        "act": 4,
+    }
+    
     for phase in [observe, orient, decide, act]:
         fragmentActions = procedure[phase]  // Array of FragmentAction
         
@@ -115,10 +266,34 @@ function AssemblePrompt(procedure, userContext, configDir):
         
         // Add section marker and content (normalize trailing newlines)
         if strings.TrimSpace(phaseContent) != "":
-            prompt += "# " + phase.toUpperCase() + "\n"
+            prompt += "═══════════════════════════════════════════════════════════════\n"
+            prompt += fmt.Sprintf("PHASE %d: %s\n", phaseNumbers[phase], strings.ToUpper(phase))
+            prompt += phaseDescriptions[phase] + "\n"
+            prompt += "═══════════════════════════════════════════════════════════════\n"
             prompt += strings.TrimRight(phaseContent, "\n") + "\n\n"
     
     return prompt
+
+function AssemblePreamble(procedureName string) -> string:
+    preamble = "═══════════════════════════════════════════════════════════════\n"
+    preamble += "ROODA PROCEDURE EXECUTION\n"
+    preamble += "═══════════════════════════════════════════════════════════════\n\n"
+    preamble += "Procedure: " + procedureName + "\n\n"
+    
+    // Role definition
+    preamble += "Your Role:\n"
+    preamble += "You are an AI coding agent executing a structured OODA loop procedure.\n"
+    preamble += "This is NOT a template or example - this is an EXECUTABLE PROCEDURE.\n"
+    preamble += "You must complete all phases and produce concrete outputs.\n\n"
+    
+    // Success signaling instructions
+    preamble += "Success Signaling:\n"
+    preamble += "- When you complete all tasks successfully, output: <promise>SUCCESS</promise>\n"
+    preamble += "- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>\n"
+    preamble += "- Explanations should come AFTER the signal, not embedded in the tag\n"
+    preamble += "- The loop orchestrator uses these signals to determine iteration outcome.\n"
+    
+    return preamble
 
 function ComposePhasePrompt(fragments []FragmentAction, configDir string) -> (string, error):
     var parts []string
@@ -337,10 +512,10 @@ Error: failed to compose observe phase: failed to process template: range can't 
 
 # Works regardless of where rooda is invoked from:
 cd /project/root
-rooda build  # Resolves to /project/root/fragments/custom.md
+rooda run build  # Resolves to /project/root/fragments/custom.md
 
 cd /project/root/src
-rooda build  # Still resolves to /project/root/fragments/custom.md
+rooda run build  # Still resolves to /project/root/fragments/custom.md
 ```
 
 **Rationale:** Config-relative paths ensure reproducibility regardless of invocation directory
@@ -353,7 +528,7 @@ rooda build  # Still resolves to /project/root/fragments/custom.md
 
 **Example:**
 ```bash
-rooda build --context "Focus on the auth module:
+rooda run build --context "Focus on the auth module:
 \`\`\`go
 func Authenticate(token string) error
 \`\`\`"
@@ -473,29 +648,59 @@ procedures:
 
 **Command:**
 ```bash
-rooda build
+rooda run build --max-iterations 5
+# Assuming this is iteration 1
 ```
 
 **Output (assembled prompt):**
 ```markdown
-# OBSERVE
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
+- The loop orchestrator uses these signals to determine iteration outcome.
+
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [Content from read_agents_md.md]
 
 [Content from read_specs.md]
 
-# ORIENT
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [Content from understand_task_requirements.md]
 
-# DECIDE
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [Content from plan_implementation_approach.md]
 
-# ACT
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [Content from modify_files.md]
 
 [Content from run_tests.md]
 ```
 
-**Verification:** All fragments loaded from embedded resources, concatenated with double newlines within each phase
+**Verification:** Preamble appears first with procedure name and enhanced markers, followed by all fragments loaded from embedded resources, concatenated with double newlines within each phase
 
 ---
 
@@ -524,18 +729,30 @@ rooda custom-build
 
 **Output:**
 ```markdown
-# OBSERVE
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [Content from fragments/observe/custom_observe.md]
 
 Also check for any TODO comments in the code.
 
-# ORIENT
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [Content from fragments/orient/custom_orient.md]
 
-# DECIDE
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [Content from plan_implementation_approach.md]
 
-# ACT
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [Content from modify_files.md]
 ```
 
@@ -563,34 +780,137 @@ procedures:
 
 **Command:**
 ```bash
-rooda build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow."
+rooda run build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow." --max-iterations 10
+# Assuming this is iteration 3
 ```
 
 **Output:**
 ```markdown
-# CONTEXT
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
+- The loop orchestrator uses these signals to determine iteration outcome.
+
+═══════════════════════════════════════════════════════════════
+CONTEXT
+═══════════════════════════════════════════════════════════════
 Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow.
 
-# OBSERVE
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 [Content from read_agents_md.md]
 
 [Content from read_specs.md]
 
-# ORIENT
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [Content from understand_task_requirements.md]
 
-# DECIDE
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [Content from plan_implementation_approach.md]
 
-# ACT
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [Content from modify_files.md]
 ```
 
-**Verification:** User context appears first, followed by all phases with concatenated fragments
+**Verification:** Preamble appears first with enhanced markers, user context appears after preamble and before OODA phases, followed by all phases with enhanced section markers and phase descriptions
 
 ---
 
-### Example 4: Template Processing with Parameters
+### Example 4: Unlimited Iterations Mode
+
+**Input:**
+```yaml
+# rooda-config.yml
+procedures:
+  build:
+    observe:
+      - path: "builtin:fragments/observe/read_agents_md.md"
+    orient:
+      - path: "builtin:fragments/orient/understand_task_requirements.md"
+    decide:
+      - path: "builtin:fragments/decide/plan_implementation_approach.md"
+    act:
+      - path: "builtin:fragments/act/modify_files.md"
+```
+
+**Command:**
+```bash
+rooda run build --unlimited
+# Assuming this is iteration 7
+```
+
+**Output:**
+```markdown
+═══════════════════════════════════════════════════════════════
+ROODA PROCEDURE EXECUTION
+═══════════════════════════════════════════════════════════════
+
+Procedure: build
+
+Your Role:
+You are an AI coding agent executing a structured OODA loop procedure.
+This is NOT a template or example - this is an EXECUTABLE PROCEDURE.
+You must complete all phases and produce concrete outputs.
+
+Success Signaling:
+- When you complete all tasks successfully, output: <promise>SUCCESS</promise>
+- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>
+- Explanations should come AFTER the signal, not embedded in the tag
+- The loop orchestrator uses these signals to determine iteration outcome.
+
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
+[Content from read_agents_md.md]
+
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
+[Content from understand_task_requirements.md]
+
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
+[Content from plan_implementation_approach.md]
+
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
+[Content from modify_files.md]
+```
+
+**Verification:** Preamble uses enhanced markers with clear role definition and success signaling instructions
+
+---
+
+### Example 5: Template Processing with Parameters
 
 **Input:**
 ```yaml
@@ -633,7 +953,10 @@ rooda custom-audit
 
 **Output (observe phase):**
 ```markdown
-# OBSERVE
+═══════════════════════════════════════════════════════════════
+PHASE 1: OBSERVE
+Execute these observation tasks to gather information.
+═══════════════════════════════════════════════════════════════
 Read the following specification files from the repository:
 
 - specs/api.md
@@ -641,13 +964,22 @@ Read the following specification files from the repository:
 
 Also include any associated test files.
 
-# ORIENT
+═══════════════════════════════════════════════════════════════
+PHASE 2: ORIENT
+Analyze the information you gathered and form your understanding.
+═══════════════════════════════════════════════════════════════
 [Content from evaluate_against_quality_criteria.md]
 
-# DECIDE
+═══════════════════════════════════════════════════════════════
+PHASE 3: DECIDE
+Make decisions about what actions to take.
+═══════════════════════════════════════════════════════════════
 [Content from identify_issues.md]
 
-# ACT
+═══════════════════════════════════════════════════════════════
+PHASE 4: ACT
+Execute the actions you decided on. Modify files, run commands, commit changes.
+═══════════════════════════════════════════════════════════════
 [Content from write_audit_report.md]
 ```
 
@@ -655,7 +987,7 @@ Also include any associated test files.
 
 ---
 
-### Example 5: Missing Fragment File Error
+### Example 6: Missing Fragment File Error
 
 **Input:**
 ```yaml

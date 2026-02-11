@@ -1,5 +1,7 @@
 # Identify Affected Files
 
+Your task is to determine which files need to be modified to complete the task.
+
 Determine which files need to be modified.
 
 Identify:

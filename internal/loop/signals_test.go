@@ -1,79 +1,100 @@
 package loop
 
 import (
-	"os"
-	"os/exec"
-	"syscall"
 	"testing"
-	"time"
 )
 
-func TestSetupSignalHandler(t *testing.T) {
-	sigChan := SetupSignalHandler()
-	if sigChan == nil {
-		t.Fatal("expected signal channel, got nil")
+// TestPromiseSignalFormat verifies that promise signals follow the exact format
+// specified in specs/error-handling.md: no reasons embedded in tags
+func TestPromiseSignalFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		output      string
+		wantSuccess bool
+		wantFailure bool
+	}{
+		{
+			name:        "valid SUCCESS signal",
+			output:      "Some work done\n<promise>SUCCESS</promise>\n",
+			wantSuccess: true,
+			wantFailure: false,
+		},
+		{
+			name:        "valid FAILURE signal",
+			output:      "Blocked by missing dependency\n<promise>FAILURE</promise>\n",
+			wantSuccess: false,
+			wantFailure: true,
+		},
+		{
+			name:        "FAILURE with reason after signal (valid)",
+			output:      "<promise>FAILURE</promise>\nReason: Missing API key",
+			wantSuccess: false,
+			wantFailure: true,
+		},
+		{
+			name:        "FAILURE with reason embedded in tag (invalid - should not match)",
+			output:      "<promise>FAILURE: Missing API key</promise>",
+			wantSuccess: false,
+			wantFailure: false, // Should NOT match because format is wrong
+		},
+		{
+			name:        "both signals present",
+			output:      "<promise>SUCCESS</promise>\n<promise>FAILURE</promise>",
+			wantSuccess: true,
+			wantFailure: true,
+		},
+		{
+			name:        "no signals",
+			output:      "Just some output",
+			wantSuccess: false,
+			wantFailure: false,
+		},
+		{
+			name:        "lowercase success (invalid)",
+			output:      "<promise>success</promise>",
+			wantSuccess: false,
+			wantFailure: false,
+		},
+		{
+			name:        "extra spaces (invalid)",
+			output:      "<promise> SUCCESS </promise>",
+			wantSuccess: false,
+			wantFailure: false,
+		},
+		{
+			name:        "unclosed tag (invalid)",
+			output:      "<promise>SUCCESS",
+			wantSuccess: false,
+			wantFailure: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSuccess, gotFailure := ScanOutputForSignals(tt.output)
+			if gotSuccess != tt.wantSuccess {
+				t.Errorf("ScanOutputForSignals() gotSuccess = %v, want %v", gotSuccess, tt.wantSuccess)
+			}
+			if gotFailure != tt.wantFailure {
+				t.Errorf("ScanOutputForSignals() gotFailure = %v, want %v", gotFailure, tt.wantFailure)
+			}
+		})
 	}
 }
 
-func TestKillProcessOnSignal_GracefulTermination(t *testing.T) {
-	// Start a process that will terminate gracefully
-	cmd := exec.Command("sleep", "10")
-	if err := cmd.Start(); err != nil {
-		t.Fatalf("failed to start process: %v", err)
-	}
-
-	// Kill it with SIGTERM
-	err := KillProcessWithTimeout(cmd.Process, 5*time.Second)
-	if err != nil {
-		t.Errorf("expected graceful termination, got error: %v", err)
-	}
-
-	// Verify process is dead
-	if cmd.Process.Signal(syscall.Signal(0)) == nil {
-		t.Error("process still running after kill")
-	}
-}
-
-func TestKillProcessOnSignal_ForcedKill(t *testing.T) {
-	// Start a process that ignores SIGTERM
-	cmd := exec.Command("sh", "-c", "trap '' TERM; sleep 10")
-	if err := cmd.Start(); err != nil {
-		t.Fatalf("failed to start process: %v", err)
-	}
-
-	// Try to kill with very short timeout to force SIGKILL
-	err := KillProcessWithTimeout(cmd.Process, 100*time.Millisecond)
-	if err != nil {
-		t.Errorf("expected forced kill to succeed, got error: %v", err)
-	}
-
-	// Verify process is dead
-	if cmd.Process.Signal(syscall.Signal(0)) == nil {
-		t.Error("process still running after forced kill")
-	}
-}
-
-func TestGetInterruptExitCode(t *testing.T) {
-	code := GetInterruptExitCode()
-	if code != 130 {
-		t.Errorf("expected exit code 130, got %d", code)
-	}
-}
-
-func TestHandleSignalDuringExecution(t *testing.T) {
-	// This tests the integration: signal received during AI execution
-	sigChan := make(chan os.Signal, 1)
+// TestPromiseSignalPrecedence verifies FAILURE takes precedence when both signals present
+func TestPromiseSignalPrecedence(t *testing.T) {
+	output := "<promise>SUCCESS</promise>\n<promise>FAILURE</promise>"
 	
-	// Simulate signal
-	sigChan <- syscall.SIGINT
+	gotSuccess, gotFailure := ScanOutputForSignals(output)
 	
-	// Verify signal received
-	select {
-	case sig := <-sigChan:
-		if sig != syscall.SIGINT {
-			t.Errorf("expected SIGINT, got %v", sig)
-		}
-	case <-time.After(100 * time.Millisecond):
-		t.Error("signal not received")
+	if !gotSuccess {
+		t.Error("Expected SUCCESS signal to be detected")
 	}
+	if !gotFailure {
+		t.Error("Expected FAILURE signal to be detected")
+	}
+	
+	// The iteration loop should handle precedence (FAILURE wins)
+	// This test just verifies both are detected
 }

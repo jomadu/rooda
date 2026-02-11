@@ -1,5 +1,7 @@
 # Pick Task
 
+Your task is to select a work item from the available tasks.
+
 Select the most important work item from available tasks.
 
 Consider:

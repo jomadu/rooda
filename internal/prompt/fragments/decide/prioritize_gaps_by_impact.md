@@ -1,5 +1,7 @@
 # Prioritize Gaps by Impact
 
+Your task is to order the gap analysis findings by impact.
+
 Order gap analysis findings by their impact.
 
 Consider:

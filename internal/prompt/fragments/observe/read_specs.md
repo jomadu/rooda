@@ -1,8 +1,8 @@
 # Read Specifications
 
-Load specification files as defined in AGENTS.md.
+You must load specification files as defined in AGENTS.md. Use the file reading tool to access these files.
 
-Read all files matching the specification definition patterns:
-- Extract requirements and acceptance criteria
-- Note cross-references between specs
-- Identify spec structure and organization
+Read all files matching the specification definition patterns and store:
+- Requirements and acceptance criteria
+- Cross-references between specs
+- Spec structure and organization

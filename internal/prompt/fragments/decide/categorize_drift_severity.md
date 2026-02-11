@@ -1,5 +1,7 @@
 # Categorize Drift Severity
 
+Your task is to rank the drift items by severity and impact.
+
 Rank drift items by how critical they are to fix.
 
 Categories:

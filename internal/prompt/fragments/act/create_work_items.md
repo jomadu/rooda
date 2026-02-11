@@ -1,5 +1,7 @@
 # Create Work Items
 
+You must create work items in the work tracking system based on the draft plan.
+
 Import tasks from draft plan into work tracking system.
 
 Actions:

@@ -49,7 +49,7 @@ Error: No AI command configured. Set one of:
 **Solution**:
 ```bash
 # Use CLI flag
-rooda build --ai-cmd-alias kiro-cli
+rooda run build --ai-cmd-alias kiro-cli
 
 # Or set environment variable
 export ROODA_LOOP_AI_CMD_ALIAS=kiro-cli
@@ -67,7 +67,7 @@ EOF
 
 **Error**:
 ```
-Error: Unknown procedure 'my-procedure'. Run 'rooda --list-procedures' to see available procedures.
+Error: Unknown procedure 'my-procedure'. Run 'rooda list' to see available procedures.
 ```
 
 **Cause**: Procedure name doesn't exist in configuration.
@@ -75,10 +75,10 @@ Error: Unknown procedure 'my-procedure'. Run 'rooda --list-procedures' to see av
 **Solution**:
 ```bash
 # List available procedures
-rooda --list-procedures
+rooda list
 
 # Check spelling
-rooda build  # not "rooda Build" or "rooda BUILD"
+rooda run build  # not "rooda Build" or "rooda BUILD"
 
 # If custom procedure, verify it's defined in config
 cat rooda-config.yml
@@ -123,7 +123,7 @@ ls -la prompts/observe_custom.md
 # If config is at /path/to/config.yml, fragments resolve from /path/to/
 
 # Use absolute path if needed
-rooda build --observe /absolute/path/to/prompts/observe_custom.md
+rooda run build --observe /absolute/path/to/prompts/observe_custom.md
 ```
 
 ## Execution Errors
@@ -146,10 +146,10 @@ kiro-cli chat
 which kiro-cli
 
 # Verify AI command alias is correct
-rooda build --ai-cmd "kiro-cli chat" --verbose
+rooda run build --ai-cmd "kiro-cli chat" --verbose
 
 # Check AI command output for errors
-rooda build --ai-cmd-alias kiro-cli --verbose 2>&1 | less
+rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | less
 ```
 
 ### "Iteration timeout exceeded"
@@ -164,7 +164,7 @@ Error: Iteration timeout exceeded (3600s)
 **Solution**:
 ```bash
 # Increase timeout (in seconds)
-rooda build --ai-cmd-alias kiro-cli  # No timeout by default
+rooda run build --ai-cmd-alias kiro-cli  # No timeout by default
 
 # Or set in config
 cat > rooda-config.yml <<EOF
@@ -191,7 +191,7 @@ Error: Failure threshold exceeded (3 consecutive failures)
 **Solution**:
 ```bash
 # Check AI output for errors
-rooda build --ai-cmd-alias kiro-cli --verbose
+rooda run build --ai-cmd-alias kiro-cli --verbose
 
 # Increase failure threshold
 cat > rooda-config.yml <<EOF
@@ -217,10 +217,10 @@ Error: Max iterations reached (5) without success signal
 **Solution**:
 ```bash
 # Increase max iterations
-rooda build --ai-cmd-alias kiro-cli --max-iterations 10
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 10
 
 # Or use unlimited mode
-rooda build --ai-cmd-alias kiro-cli --unlimited
+rooda run build --ai-cmd-alias kiro-cli --unlimited
 
 # Or check if success signal is being emitted
 # Success signal: "ROODA_SUCCESS" in AI output
@@ -318,7 +318,7 @@ Error: Empty prompt generated for phase: observe
 **Solution**:
 ```bash
 # Check procedure definition
-rooda build --help
+rooda run build --help
 
 # Verify fragments exist
 ls -la prompts/
@@ -377,7 +377,7 @@ loop:
 **Solution**:
 ```bash
 # Use faster AI model
-rooda build --ai-cmd "claude --model claude-3-haiku"
+rooda run build --ai-cmd "claude --model claude-3-haiku"
 
 # Reduce context size
 # - Simplify prompts
@@ -396,7 +396,7 @@ EOF
 ### Enable Verbose Output
 
 ```bash
-rooda build --ai-cmd-alias kiro-cli --verbose
+rooda run build --ai-cmd-alias kiro-cli --verbose
 ```
 
 Shows:
@@ -408,7 +408,7 @@ Shows:
 ### Dry Run
 
 ```bash
-rooda build --ai-cmd-alias kiro-cli --dry-run
+rooda run build --ai-cmd-alias kiro-cli --dry-run
 ```
 
 Validates:
@@ -421,10 +421,10 @@ Validates:
 
 ```bash
 # List procedures
-rooda --list-procedures
+rooda list
 
 # Show procedure help
-rooda build --help
+rooda run build --help
 
 # Validate config file
 yq eval . rooda-config.yml
@@ -434,10 +434,10 @@ yq eval . rooda-config.yml
 
 ```bash
 # Run with debug logging
-rooda build --ai-cmd-alias kiro-cli --log-level debug
+rooda run build --ai-cmd-alias kiro-cli --log-level debug
 
 # Save logs to file
-rooda build --ai-cmd-alias kiro-cli --verbose 2>&1 | tee rooda.log
+rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | tee rooda.log
 ```
 
 ## Getting Help
@@ -449,7 +449,7 @@ If you're still stuck:
 3. **File a bug**: [New Issue](https://github.com/jomadu/rooda/issues/new)
 
 Include in bug reports:
-- `rooda --version` output
+- `rooda version` output
 - Full error message
 - Configuration files (sanitize secrets)
 - Steps to reproduce

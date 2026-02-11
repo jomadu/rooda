@@ -1,5 +1,7 @@
 # Identify Affected Specs
 
+Your task is to determine which specification files need changes based on the feature requirements.
+
 Determine which specification files need changes.
 
 Identify:

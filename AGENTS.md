@@ -81,37 +81,32 @@ Stories and bugs are documented in `TASK.md` at project root. Create this file b
 - AI CLI tool (configurable) — default: kiro-cli, can substitute with claude, aider, cursor-agent
 - bd (beads CLI) — issue tracking
 - Go >= 1.24.5 (required for v2 Go implementation)
+- make (optional but recommended) — unified build interface
 
-**Test:**
+**Unified Interface (via Makefile):**
 ```bash
-# v0.1.0 bash: Manual verification (no automated tests)
-./rooda.sh --version
-./rooda.sh --list-procedures
-
-# v2 Go: Automated test suite
-go test ./...                    # Run all tests
-go test -v ./internal/...        # Run with verbose output
+make test    # Run all tests (Go tests)
+make build   # Build Go binary
+make lint    # Run all linters (go vet + shellcheck if available)
+make all     # Run lint, test, and build
+make clean   # Remove build artifacts
 ```
 
-**Build:**
+**Direct Commands (alternative):**
 ```bash
-# v0.1.0 bash: Not required (interpreted)
+# Test
+go test ./...                    # v2 Go tests
+go test -v ./internal/...        # v2 Go tests (verbose)
 
-# v2 Go: Build binary
-go build -o bin/rooda ./cmd/rooda
-# or use build script:
-./scripts/build.sh
+# Build
+go build -o bin/rooda ./cmd/rooda  # v2 Go binary
+
+# Lint
+go vet ./...                     # v2 Go linter
+shellcheck archive/src/rooda.sh  # v0.1.0 bash (if shellcheck installed)
 ```
 
-**Lint:**
-```bash
-# v0.1.0 bash
-shellcheck rooda.sh  # Requires shellcheck installed; brew install shellcheck
-
-# v2 Go
-go vet ./...         # Built-in Go linter
-# golangci-lint run  # Comprehensive linting (not yet configured)
-```
+**Note:** The Makefile provides a unified interface across both implementations. Use `make` commands for consistency.
 
 ## Specification Definition
 
@@ -180,7 +175,7 @@ go vet ./...         # Built-in Go linter
 - All 25 prompt files in `prompts/` exist and are referenced by rooda-config.yml
 - rooda-config.yml parses without errors
 - All 11 v2 specs complete with JTBD structure, acceptance criteria, examples
-- v2 Go binary `./bin/rooda --list-procedures` works with v0.1.0 config format
+- v2 Go binary `./bin/rooda list` works with v0.1.0 config format
 - Config loader supports both v0.1.0 string format and v2 array format (backward compatible)
 - Go test suite exists with 10 test files across internal/ packages
 - `go build -o bin/rooda ./cmd/rooda` succeeds

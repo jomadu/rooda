@@ -1,5 +1,7 @@
 # Compare Detected vs Documented
 
+Your task is to compare what was detected in the repository against what is documented in AGENTS.md.
+
 Compare what was detected in the repository against what is documented in AGENTS.md.
 
 Identify discrepancies:

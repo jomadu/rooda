@@ -1,8 +1,8 @@
 # Read AGENTS.md
 
-Load and parse the AGENTS.md configuration file from the repository root.
+You must load and parse the AGENTS.md configuration file from the repository root. Use the file reading tool to access this file.
 
-Extract:
+Extract and store the following information for later use:
 - Work tracking system configuration
 - Build/test/lint commands
 - Specification and implementation definitions

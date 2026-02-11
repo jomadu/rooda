@@ -1,6 +1,6 @@
 # Query Work Tracking
 
-Fetch ready work items from the work tracking system.
+Your task is to fetch ready work items from the work tracking system. Use the query command specified in AGENTS.md.
 
 Execute the query command from AGENTS.md to retrieve:
 - Available tasks
@@ -8,3 +8,5 @@ Execute the query command from AGENTS.md to retrieve:
 - Task descriptions
 - Task dependencies
 - Task status
+
+Store this information for use in later phases.

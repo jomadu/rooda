@@ -239,7 +239,7 @@ Accumulated knowledge about what works and what doesn't.
 **Verified Working:**
 - `go test ./...` passes all tests
 - `go build -o bin/rooda ./cmd/rooda` succeeds
-- `./bin/rooda --list-procedures` works
+- `./bin/rooda list` works
 
 **Verified Not Working / Missing:**
 - shellcheck not installed on this machine

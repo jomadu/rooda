@@ -1,5 +1,7 @@
 # Understand Feature Requirements
 
+Your task is to analyze the feature requirements and understand what needs to be built.
+
 Parse feature description into detailed requirements.
 
 Extract:

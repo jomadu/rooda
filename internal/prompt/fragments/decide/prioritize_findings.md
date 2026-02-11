@@ -1,5 +1,7 @@
 # Prioritize Findings
 
+Your task is to order the audit findings by priority.
+
 Order audit findings by severity and impact.
 
 Consider:
