@@ -208,10 +208,12 @@ Each iteration's outcome is determined by two independent signals: the AI CLI pr
 
 **Output signals:**
 - `<promise>SUCCESS</promise>` — AI agent declares the procedure's goal is achieved
-  - build procedure: no more ready work items to implement
-  - audit procedures: validated audit report produced
-  - planning procedures: validated draft plan produced  
-  - agents-sync: AGENTS.md synchronized with repository state
+  - **agents-sync**: AGENTS.md synchronized with repository state
+  - **build**: task completed (tests passing, changes committed, work tracking updated)
+  - **publish-plan**: work items created in work tracking system
+  - **audit procedures** (audit-spec, audit-impl, audit-agents): audit report produced
+  - **gap analysis procedures** (audit-spec-to-impl, audit-impl-to-spec): gap report produced
+  - **planning procedures** (draft-plan-*): draft plan produced
 - `<promise>FAILURE</promise>` — AI agent declares it is blocked and cannot make further progress (not a single test failure — the agent has exhausted what it can do)
 
 **Signal placement:** Agents should emit signals at the END of their output, after all work is complete. This ensures signals are preserved even if output is truncated (truncation keeps the most recent output).
