@@ -40,6 +40,7 @@ iteration loops to autonomously build, plan, and maintain software from specific
 
 	// Add subcommands
 	cmd.AddCommand(newListCommand())
+	cmd.AddCommand(newRunCommand())
 
 	return cmd
 }

@@ -35,6 +35,7 @@ const (
 
 func main() {
 	if err := Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(ExitUserError)
 	}
 }
