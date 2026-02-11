@@ -175,7 +175,7 @@ shellcheck archive/src/rooda.sh  # v0.1.0 bash (if shellcheck installed)
 - All 25 prompt files in `prompts/` exist and are referenced by rooda-config.yml
 - rooda-config.yml parses without errors
 - All 11 v2 specs complete with JTBD structure, acceptance criteria, examples
-- v2 Go binary `./bin/rooda --list-procedures` works with v0.1.0 config format
+- v2 Go binary `./bin/rooda list` works with v0.1.0 config format
 - Config loader supports both v0.1.0 string format and v2 array format (backward compatible)
 - Go test suite exists with 10 test files across internal/ packages
 - `go build -o bin/rooda ./cmd/rooda` succeeds

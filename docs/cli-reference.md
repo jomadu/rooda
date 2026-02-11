@@ -3,37 +3,96 @@
 ## Synopsis
 
 ```bash
-rooda [flags] <procedure>
+rooda <command> [flags]
+rooda run <procedure> [flags]
+rooda list
+rooda info <procedure>
+rooda version
 rooda --help
-rooda --version
-rooda --list-procedures
+```
+
+## Commands
+
+### `rooda run <procedure>`
+
+Execute a named OODA loop procedure.
+
+```bash
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 5
+rooda run agents-sync --ai-cmd-alias claude
+```
+
+### `rooda list`
+
+List all available procedures (built-in and custom) with one-line descriptions.
+
+```bash
+rooda list
+```
+
+### `rooda info <procedure>`
+
+Show detailed information about a specific procedure including metadata, description, OODA phases, and configuration.
+
+```bash
+rooda info build
+rooda info agents-sync
+```
+
+### `rooda version`
+
+Display version number, commit SHA, and build date.
+
+```bash
+rooda version
+```
+
+Note: `rooda version` also works (cobra convention).
+
+### `rooda --help`
+
+Display usage summary, available commands, and global flags.
+
+```bash
+rooda --help
+rooda run --help  # Command-specific help
 ```
 
 ## Global Flags
 
-### Information Commands
+These flags are available for all commands:
 
-**`--help`**  
-Display usage summary, global flags, and available procedures.
-
-```bash
-rooda --help
-rooda build --help  # Procedure-specific help
-```
-
-**`--version`**  
-Display version number and build information.
+**`--config <path>`**  
+Specify alternate config file path (default: `./rooda-config.yml`).
 
 ```bash
-rooda --version
+rooda run build --config /path/to/config.yml
 ```
 
-**`--list-procedures`**  
-List all available procedures (built-in and custom) with one-line descriptions.
+**`--verbose` / `-v`**  
+Enable verbose output (sets `show_ai_output=true` and `log_level=debug`).
 
 ```bash
-rooda --list-procedures
+rooda run build -v
 ```
+
+**`--quiet` / `-q`**  
+Suppress all non-error output.
+
+```bash
+rooda run build -q
+```
+
+**`--log-level <level>`**  
+Set log level: `debug`, `info`, `warn`, `error`.
+
+```bash
+rooda run build --log-level debug
+```
+
+## Run Command Flags
+
+These flags are specific to `rooda run <procedure>`:
 
 ### Loop Control
 
@@ -41,16 +100,16 @@ rooda --list-procedures
 Override default max iterations for the procedure. Must be >= 1.
 
 ```bash
-rooda build --max-iterations 10
-rooda build -n 10
+rooda run build --max-iterations 10
+rooda run build -n 10
 ```
 
 **`--unlimited` / `-u`**  
 Set iteration mode to unlimited (runs until success or failure threshold). Overrides `--max-iterations`.
 
 ```bash
-rooda build --unlimited
-rooda build -u
+rooda run build --unlimited
+rooda run build -u
 ```
 
 **`--dry-run` / `-d`**  
@@ -61,8 +120,8 @@ Exit codes:
 - 1 if validation fails
 
 ```bash
-rooda build --dry-run
-rooda build -d
+rooda run build --dry-run
+rooda run build -d
 ```
 
 ### AI Command
@@ -71,16 +130,16 @@ rooda build -d
 Override AI command with direct command string. Takes precedence over `--ai-cmd-alias`.
 
 ```bash
-rooda build --ai-cmd "kiro-cli chat"
-rooda build --ai-cmd "claude --no-cache"
+rooda run build --ai-cmd "kiro-cli chat"
+rooda run build --ai-cmd "claude --no-cache"
 ```
 
 **`--ai-cmd-alias <alias>`**  
 Override AI command using a named alias. Built-in aliases: `kiro-cli`, `claude`, `copilot`, `cursor-agent`.
 
 ```bash
-rooda build --ai-cmd-alias kiro-cli
-rooda build --ai-cmd-alias claude
+rooda run build --ai-cmd-alias kiro-cli
+rooda run build --ai-cmd-alias claude
 ```
 
 ### Context
@@ -92,13 +151,13 @@ File existence heuristic: if value exists as file, read it; otherwise treat as i
 
 ```bash
 # Inline context
-rooda draft-plan-impl-feat --context "Add user authentication"
+rooda run draft-plan-impl-feat --context "Add user authentication"
 
 # File context
-rooda draft-plan-impl-feat --context feature-requirements.md
+rooda run draft-plan-impl-feat --context feature-requirements.md
 
 # Multiple contexts
-rooda build --context "Focus on auth module" --context notes.md
+rooda run build --context "Focus on auth module" --context notes.md
 ```
 
 ### Output Control
@@ -107,23 +166,23 @@ rooda build --context "Focus on auth module" --context notes.md
 Enable verbose output. Sets `show_ai_output=true` and `log_level=debug`.
 
 ```bash
-rooda build --verbose
-rooda build -v
+rooda run build --verbose
+rooda run build -v
 ```
 
 **`--quiet` / `-q`**  
 Suppress all non-error output.
 
 ```bash
-rooda build --quiet
-rooda build -q
+rooda run build --quiet
+rooda run build -q
 ```
 
 **`--log-level <level>`**  
 Set log level. Valid values: `debug`, `info`, `warn`, `error`.
 
 ```bash
-rooda build --log-level debug
+rooda run build --log-level debug
 ```
 
 ### Configuration
@@ -134,7 +193,7 @@ Specify alternate workspace config file path. Overrides `./rooda-config.yml`.
 Fragment paths in CLI overrides resolve relative to this config file's directory.
 
 ```bash
-rooda build --config /path/to/custom-config.yml
+rooda run build --config /path/to/custom-config.yml
 ```
 
 ### Prompt Overrides
@@ -145,34 +204,34 @@ Override OODA phase fragments for this execution. Multiple flags accumulate into
 Override observe phase fragments.
 
 ```bash
-rooda build --observe prompts/observe_custom.md
-rooda build --observe "# Observe\nCustom inline content"
+rooda run build --observe prompts/observe_custom.md
+rooda run build --observe "# Observe\nCustom inline content"
 ```
 
 **`--orient <value>`**  
 Override orient phase fragments.
 
 ```bash
-rooda build --orient prompts/orient_custom.md
+rooda run build --orient prompts/orient_custom.md
 ```
 
 **`--decide <value>`**  
 Override decide phase fragments.
 
 ```bash
-rooda build --decide prompts/decide_custom.md
+rooda run build --decide prompts/decide_custom.md
 ```
 
 **`--act <value>`**  
 Override act phase fragments.
 
 ```bash
-rooda build --act prompts/act_custom.md
+rooda run build --act prompts/act_custom.md
 ```
 
 **Multiple fragments**:
 ```bash
-rooda build \
+rooda run build \
   --observe prompts/observe_specs.md \
   --observe prompts/observe_impl.md \
   --orient prompts/orient_custom.md
@@ -221,23 +280,23 @@ CLI flags have highest precedence and override all other configuration sources:
 
 ```bash
 # Run build procedure with default settings
-rooda build --ai-cmd-alias kiro-cli
+rooda run build --ai-cmd-alias kiro-cli
 
 # Run with limited iterations
-rooda build --ai-cmd-alias kiro-cli --max-iterations 3
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 3
 
 # Run until success or failure threshold
-rooda build --ai-cmd-alias kiro-cli --unlimited
+rooda run build --ai-cmd-alias kiro-cli --unlimited
 ```
 
 ### Dry Run
 
 ```bash
 # Validate configuration and prompts without executing
-rooda build --ai-cmd-alias kiro-cli --dry-run
+rooda run build --ai-cmd-alias kiro-cli --dry-run
 
 # Check exit code
-rooda build --dry-run && echo "Valid" || echo "Invalid"
+rooda run build --dry-run && echo "Valid" || echo "Invalid"
 ```
 
 ### Context Passing
@@ -252,7 +311,7 @@ rooda draft-plan-impl-feat --ai-cmd-alias kiro-cli \
   --context requirements/auth-feature.md
 
 # Multiple contexts
-rooda build --ai-cmd-alias kiro-cli \
+rooda run build --ai-cmd-alias kiro-cli \
   --context "Focus on authentication module" \
   --context notes/auth-implementation.md
 ```
@@ -261,17 +320,17 @@ rooda build --ai-cmd-alias kiro-cli \
 
 ```bash
 # Override single phase
-rooda build --ai-cmd-alias kiro-cli \
+rooda run build --ai-cmd-alias kiro-cli \
   --observe prompts/observe_custom.md
 
 # Override multiple phases
-rooda build --ai-cmd-alias kiro-cli \
+rooda run build --ai-cmd-alias kiro-cli \
   --observe prompts/observe_specs.md \
   --observe prompts/observe_impl.md \
   --orient prompts/orient_custom.md
 
 # Inline content
-rooda build --ai-cmd-alias kiro-cli \
+rooda run build --ai-cmd-alias kiro-cli \
   --observe "# Observe\nRead AGENTS.md and specs/"
 ```
 
@@ -279,20 +338,20 @@ rooda build --ai-cmd-alias kiro-cli \
 
 ```bash
 # See all AI output and debug logs
-rooda build --ai-cmd-alias kiro-cli --verbose
+rooda run build --ai-cmd-alias kiro-cli --verbose
 
 # See configuration provenance
-rooda build --ai-cmd-alias kiro-cli --verbose 2>&1 | grep "Configuration loaded"
+rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | grep "Configuration loaded"
 ```
 
 ### Custom Config
 
 ```bash
 # Use alternate config file
-rooda build --config configs/production.yml --ai-cmd-alias kiro-cli
+rooda run build --config configs/production.yml --ai-cmd-alias kiro-cli
 
 # Fragments resolve relative to config file directory
-rooda build --config /path/to/config.yml \
+rooda run build --config /path/to/config.yml \
   --observe custom-prompts/observe.md
 ```
 

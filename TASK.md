@@ -29,8 +29,8 @@ The Cobra CLI framework (https://github.com/spf13/cobra) is the de facto standar
 **Current CLI:**
 ```bash
 rooda <procedure-name> [flags]
-rooda --version
-rooda --list-procedures
+rooda version
+rooda list
 ```
 
 **Behavior to preserve:**
@@ -151,8 +151,8 @@ cmd/rooda/
 **Old syntax (no longer works):**
 ```bash
 rooda agents-sync --ai-cmd-alias kiro-cli
-rooda --version
-rooda --list-procedures
+rooda version
+rooda list
 ```
 
 **New syntax:**
@@ -164,8 +164,8 @@ rooda list
 
 **Error messages:**
 - If user runs `rooda agents-sync`, show: "Unknown command 'agents-sync'. Did you mean 'rooda run agents-sync'? Run 'rooda help' for usage."
-- If user runs `rooda --version`, show: "Flag --version has been replaced by 'rooda version' command."
-- If user runs `rooda --list-procedures`, show: "Flag --list-procedures has been replaced by 'rooda list' command."
+- If user runs `rooda version`, show: "Flag --version has been replaced by 'rooda version' command."
+- If user runs `rooda list`, show: "Flag --list-procedures has been replaced by 'rooda list' command."
 
 ## Testing Strategy
 

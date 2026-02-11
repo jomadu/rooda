@@ -92,7 +92,7 @@ Override everything. See [CLI Reference](cli-reference.md) for all flags.
 
 **Example**:
 ```bash
-rooda build --ai-cmd-alias kiro-cli --max-iterations 10 --verbose
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 10 --verbose
 ```
 
 ## Configuration Schema
@@ -213,7 +213,7 @@ procedures:
 Use `--verbose` to see where each setting came from:
 
 ```bash
-rooda build --ai-cmd-alias kiro-cli --verbose
+rooda run build --ai-cmd-alias kiro-cli --verbose
 ```
 
 Output includes provenance for each resolved setting:
@@ -239,7 +239,7 @@ Configuration is validated at load time:
 ```bash
 # No config files needed - uses built-in defaults
 # But AI command must be specified
-rooda build --ai-cmd-alias kiro-cli
+rooda run build --ai-cmd-alias kiro-cli
 ```
 
 ### Global Config for Team

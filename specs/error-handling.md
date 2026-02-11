@@ -494,7 +494,7 @@ Exit code: 1
 
 **Output:**
 ```
-[21:00:00.000] ERROR No AI command configured error="must specify AI command via CLI flag (--ai-cmd or --ai-cmd-alias), config file (loop.ai_cmd or loop.ai_cmd_alias), or built-in alias (kiro-cli, claude, copilot, cursor-agent)" suggestion="Example: rooda build --ai-cmd-alias kiro-cli"
+[21:00:00.000] ERROR No AI command configured error="must specify AI command via CLI flag (--ai-cmd or --ai-cmd-alias), config file (loop.ai_cmd or loop.ai_cmd_alias), or built-in alias (kiro-cli, claude, copilot, cursor-agent)" suggestion="Example: rooda run build --ai-cmd-alias kiro-cli"
 Exit code: 1
 ```
 

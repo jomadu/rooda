@@ -17,12 +17,14 @@ The developer wants to invoke rooda procedures with minimal typing, override con
 
 ## Acceptance Criteria
 
-- [ ] `rooda <procedure>` invokes the named procedure with default configuration
-- [ ] `rooda --help` displays usage summary, global flags, and available procedures
-- [ ] `rooda <procedure> --help` displays procedure-specific help (description, OODA phases, iteration limits)
-- [ ] `rooda --list-procedures` lists all available procedures (built-in and custom) with one-line descriptions
-- [ ] `rooda --version` displays version number and build information
-- [ ] Unknown procedure name produces error: "Unknown procedure '<name>'. Run 'rooda --list-procedures' to see available procedures."
+- [ ] `rooda run <procedure>` invokes the named procedure with default configuration
+- [ ] `rooda --help` displays usage summary, available commands, and global flags
+- [ ] `rooda run <procedure> --help` displays procedure-specific help (description, OODA phases, iteration limits)
+- [ ] `rooda list` lists all available procedures (built-in and custom) with one-line descriptions
+- [ ] `rooda info <procedure>` displays detailed procedure information (metadata, description, OODA phases, configuration)
+- [ ] `rooda version` displays version number, commit SHA, and build date
+- [ ] `rooda --version` also works (cobra convention)
+- [ ] Unknown procedure name produces error: "Unknown procedure '<name>'. Run 'rooda list' to see available procedures."
 - [ ] `--max-iterations <n>` overrides default max iterations for the procedure (must be >= 1)
 - [ ] `--unlimited` sets iteration mode to unlimited (overrides `--max-iterations`)
 - [ ] `--dry-run` displays assembled prompt without executing AI CLI
@@ -47,7 +49,7 @@ The developer wants to invoke rooda procedures with minimal typing, override con
 - [ ] Providing any OODA phase flag replaces entire phase array (not appended to config)
 - [ ] Fragment order preserved: processed left-to-right as specified on CLI
 - [ ] OODA phase override fragments validated at config load time (fail fast before execution)
-- [ ] OODA phase validation skipped for --list-procedures and --version (info commands only)
+- [ ] OODA phase validation skipped for `rooda list` and `rooda version` (info commands only)
 - [ ] `--verbose` and `--quiet` are mutually exclusive (error if both provided)
 - [ ] `--max-iterations` and `--unlimited` are mutually exclusive (error if both provided)
 - [ ] Invalid flag values produce clear error messages with expected format
@@ -69,7 +71,8 @@ Parsed command-line arguments before merging with configuration.
 
 ```go
 type CLIArgs struct {
-    ProcedureName      string            // Procedure to execute
+    Command            string            // Command: "run", "list", "info", "version"
+    ProcedureName      string            // Procedure to execute (for "run" and "info" commands)
     MaxIterations      *int              // --max-iterations <n>
     Unlimited          bool              // --unlimited
     DryRun             bool              // --dry-run
@@ -85,10 +88,10 @@ type CLIArgs struct {
     DecideFragments    []string          // --decide <value> (file path or inline, multiple allowed)
     ActFragments       []string          // --act <value> (file path or inline, multiple allowed)
     ShowHelp           bool              // --help
-    ShowVersion        bool              // --version
-    ListProcedures     bool              // --list-procedures
 }
 ```
+
+Note: `--version` is handled by cobra automatically and shows version info.
 
 ### ExitCode
 
@@ -106,35 +109,37 @@ const (
 ### Main CLI Flow
 
 ```
-1. Parse command-line arguments into CLIArgs
-2. If ShowHelp:
-   - If ProcedureName empty: display global help
-   - Else: display procedure-specific help
+1. Parse command-line arguments into command and flags
+2. If command is "version":
+   - Display version, commit SHA, and build date
    - Exit 0
-3. If ShowVersion:
-   - Display version and build info
-   - Exit 0
-4. If ListProcedures:
+3. If command is "list":
    - Load configuration (built-in + global + workspace)
    - List all procedures with descriptions
    - Exit 0
-5. If ProcedureName empty:
-   - Display error: "No procedure specified. Run 'rooda --help' for usage."
-   - Exit 1
-6. Load configuration (built-in + global + workspace + env vars)
-7. Validate ProcedureName exists in configuration
-   - If not: display error with suggestion to run --list-procedures
-   - Exit 1
-8. Merge CLIArgs with configuration (flags override config)
-9. Validate merged configuration (skip validation for --list-procedures and --version)
-   - Check mutually exclusive flags
-   - Validate flag value constraints
-   - Resolve AI command (see configuration.md AI Command Resolution)
-   - If no AI command configured: error with guidance, exit 2
-   - Validate OODA phase override files exist (if provided)
-   - If errors: display clear messages, exit 1 or 2
-10. Execute procedure with merged configuration
-11. Exit with appropriate code based on outcome
+4. If command is "info <procedure>":
+   - Load configuration
+   - Validate procedure exists
+   - Display procedure metadata, description, OODA phases, configuration
+   - Exit 0
+5. If command is "run <procedure>":
+   - Load configuration (built-in + global + workspace + env vars)
+   - Validate procedure exists
+     - If not: display error with suggestion to run 'rooda list'
+     - Exit 1
+   - Merge CLI flags with configuration (flags override config)
+   - Validate merged configuration
+     - Check mutually exclusive flags
+     - Validate flag value constraints
+     - Resolve AI command (see configuration.md AI Command Resolution)
+     - If no AI command configured: error with guidance, exit 2
+     - Validate OODA phase override files exist (if provided)
+     - If errors: display clear messages, exit 1 or 2
+   - Execute procedure with merged configuration
+   - Exit with appropriate code based on outcome
+6. If no command or --help:
+   - Display global help
+   - Exit 0
 ```
 
 ### Flag Precedence Resolution
@@ -187,7 +192,7 @@ Exit code: 1
 
 ```bash
 $ rooda unknown-proc
-Error: Unknown procedure 'unknown-proc'. Run 'rooda --list-procedures' to see available procedures.
+Error: Unknown procedure 'unknown-proc'. Run 'rooda list' to see available procedures.
 ```
 
 Exit code: 1
@@ -195,14 +200,14 @@ Exit code: 1
 ### Mutually Exclusive Flags
 
 ```bash
-$ rooda build --verbose --quiet
+$ rooda run build --verbose --quiet
 Error: --verbose and --quiet are mutually exclusive.
 ```
 
 Exit code: 1
 
 ```bash
-$ rooda build --max-iterations 10 --unlimited
+$ rooda run build --max-iterations 10 --unlimited
 Error: --max-iterations and --unlimited are mutually exclusive.
 ```
 
@@ -211,14 +216,14 @@ Exit code: 1
 ### Invalid Flag Value
 
 ```bash
-$ rooda build --max-iterations 0
+$ rooda run build --max-iterations 0
 Error: --max-iterations must be >= 1.
 ```
 
 Exit code: 1
 
 ```bash
-$ rooda build --log-level invalid
+$ rooda run build --log-level invalid
 Error: Invalid log level 'invalid'. Valid levels: debug, info, warn, error.
 ```
 
@@ -227,7 +232,7 @@ Exit code: 1
 ### Missing AI Command
 
 ```bash
-$ rooda build
+$ rooda run build
 Error: No AI command configured. Set one of:
   - CLI flag: --ai-cmd <command> or --ai-cmd-alias <alias>
   - Environment: ROODA_LOOP_AI_CMD or ROODA_LOOP_AI_CMD_ALIAS
@@ -240,14 +245,14 @@ Exit code: 2
 ### Empty Inline Content
 
 ```bash
-$ rooda build --observe ""
+$ rooda run build --observe ""
 Error: Empty inline content not allowed for --observe flag.
 ```
 
 Exit code: 1
 
 ```bash
-$ rooda build --context ""
+$ rooda run build --context ""
 Error: Empty inline content not allowed for --context flag.
 ```
 
@@ -258,7 +263,7 @@ Exit code: 1
 If user wants inline content "file.md" but a file named "file.md" exists, the file wins (file existence heuristic).
 
 ```bash
-$ rooda build --observe "file.md"
+$ rooda run build --observe "file.md"
 # If file.md exists: uses file content
 # If file.md doesn't exist: uses "file.md" as inline content
 ```
@@ -268,7 +273,7 @@ To force inline content that looks like a filename, ensure the file doesn't exis
 ### Dry-Run Validation Success
 
 ```bash
-$ rooda build --dry-run
+$ rooda run build --dry-run
 [21:00:15.200] INFO Dry-run mode enabled procedure=build
 [21:00:15.201] INFO Configuration validated procedure=build
 [21:00:15.202] INFO Prompt files validated procedure=build
@@ -284,7 +289,7 @@ Exit code: 0
 ### Dry-Run Validation Failure
 
 ```bash
-$ rooda build --dry-run --ai-cmd nonexistent
+$ rooda run build --dry-run --ai-cmd nonexistent
 [21:00:15.200] INFO Dry-run mode enabled procedure=build
 [21:00:15.201] ERROR AI command binary not found path=nonexistent procedure=build
 Error: AI command binary not found: nonexistent
@@ -293,7 +298,7 @@ Error: AI command binary not found: nonexistent
 Exit code: 1
 
 ```bash
-$ rooda build --dry-run --observe missing.md
+$ rooda run build --dry-run --observe missing.md
 [21:00:15.200] INFO Dry-run mode enabled procedure=build
 [21:00:15.201] ERROR Observe file not found path=missing.md procedure=build
 Error: Observe file not found: missing.md
@@ -329,64 +334,64 @@ Exit code: 1
 ### Basic Procedure Invocation
 
 ```bash
-$ rooda build
+$ rooda run build
 # Executes 'build' procedure with default configuration
 ```
 
 ### Override Max Iterations
 
 ```bash
-$ rooda build --max-iterations 10
+$ rooda run build --max-iterations 10
 # Runs build procedure with max 10 iterations
 ```
 
 ### Unlimited Iterations
 
 ```bash
-$ rooda build --unlimited
+$ rooda run build --unlimited
 # Runs build procedure until convergence (no iteration limit)
 ```
 
 ### Dry Run
 
 ```bash
-$ rooda build --dry-run
+$ rooda run build --dry-run
 # Displays assembled prompt without executing AI CLI
 ```
 
 ### Inject Context
 
 ```bash
-$ rooda build --context "Focus on the auth module"
+$ rooda run build --context "Focus on the auth module"
 # Injects inline context into prompt composition
 ```
 
 ```bash
-$ rooda build --context task.md
+$ rooda run build --context task.md
 # Reads context from task.md file and injects into prompt
 ```
 
 ```bash
-$ rooda build --context task.md --context "Additional notes"
+$ rooda run build --context task.md --context "Additional notes"
 # Mixed: file content + inline content (processed in order)
 ```
 
 ### Override AI Command
 
 ```bash
-$ rooda build --ai-cmd "kiro-cli chat"
+$ rooda run build --ai-cmd "kiro-cli chat"
 # Uses direct command string
 ```
 
 ```bash
-$ rooda build --ai-cmd-alias claude
+$ rooda run build --ai-cmd-alias claude
 # Uses 'claude' alias from configuration
 ```
 
 ### Verbose Output
 
 ```bash
-$ rooda build --verbose
+$ rooda run build --verbose
 # Sets show_ai_output=true and log_level=debug
 # Streams AI CLI output and shows debug-level logs
 ```
@@ -394,60 +399,60 @@ $ rooda build --verbose
 ### Override OODA Phase
 
 ```bash
-$ rooda build --observe custom.md
+$ rooda run build --observe custom.md
 # Single file fragment (replaces entire observe phase)
 ```
 
 ```bash
-$ rooda build --observe file1.md --observe file2.md
+$ rooda run build --observe file1.md --observe file2.md
 # Multiple file fragments (replaces entire observe phase)
 ```
 
 ```bash
-$ rooda build --observe "Focus on auth module"
+$ rooda run build --observe "Focus on auth module"
 # Inline content fragment (replaces entire observe phase)
 ```
 
 ```bash
-$ rooda build --observe custom.md --observe "Additional instructions"
+$ rooda run build --observe custom.md --observe "Additional instructions"
 # Mixed: file + inline content (replaces entire observe phase)
 ```
 
 ### Multiple Contexts (Unified Flag)
 
 ```bash
-$ rooda build --context "Focus on auth" --context "Prioritize security"
+$ rooda run build --context "Focus on auth" --context "Prioritize security"
 # Both inline contexts injected into prompt (in order)
 ```
 
 ```bash
-$ rooda build --context task.md --context notes.md
+$ rooda run build --context task.md --context notes.md
 # Both file contents injected into prompt (in order)
 ```
 
 ```bash
-$ rooda build --context task.md --context "Focus on auth" --context notes.md
+$ rooda run build --context task.md --context "Focus on auth" --context notes.md
 # Mixed: file + inline + file (all processed in order)
 ```
 
 ### Procedure Help
 
 ```bash
-$ rooda build --help
+$ rooda run build --help
 # Displays build procedure details
 ```
 
 ### List Procedures
 
 ```bash
-$ rooda --list-procedures
+$ rooda list
 # Lists all available procedures with descriptions
 ```
 
 ### Version
 
 ```bash
-$ rooda --version
+$ rooda version
 # Displays version and build info
 ```
 

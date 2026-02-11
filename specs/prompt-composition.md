@@ -512,10 +512,10 @@ Error: failed to compose observe phase: failed to process template: range can't 
 
 # Works regardless of where rooda is invoked from:
 cd /project/root
-rooda build  # Resolves to /project/root/fragments/custom.md
+rooda run build  # Resolves to /project/root/fragments/custom.md
 
 cd /project/root/src
-rooda build  # Still resolves to /project/root/fragments/custom.md
+rooda run build  # Still resolves to /project/root/fragments/custom.md
 ```
 
 **Rationale:** Config-relative paths ensure reproducibility regardless of invocation directory
@@ -528,7 +528,7 @@ rooda build  # Still resolves to /project/root/fragments/custom.md
 
 **Example:**
 ```bash
-rooda build --context "Focus on the auth module:
+rooda run build --context "Focus on the auth module:
 \`\`\`go
 func Authenticate(token string) error
 \`\`\`"
@@ -648,7 +648,7 @@ procedures:
 
 **Command:**
 ```bash
-rooda build --max-iterations 5
+rooda run build --max-iterations 5
 # Assuming this is iteration 1
 ```
 
@@ -780,7 +780,7 @@ procedures:
 
 **Command:**
 ```bash
-rooda build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow." --max-iterations 10
+rooda run build --context "Focus on the authentication module. The new feature should integrate with the existing OAuth2 flow." --max-iterations 10
 # Assuming this is iteration 3
 ```
 
@@ -858,7 +858,7 @@ procedures:
 
 **Command:**
 ```bash
-rooda build --unlimited
+rooda run build --unlimited
 # Assuming this is iteration 7
 ```
 

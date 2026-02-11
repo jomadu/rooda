@@ -288,7 +288,7 @@ rooda publish-plan --ai-cmd-alias kiro-cli
 
 **Example**:
 ```bash
-rooda build --ai-cmd-alias kiro-cli --max-iterations 5
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 5
 ```
 
 **Input**: Reads ready work from work tracking system per AGENTS.md.
@@ -303,13 +303,13 @@ All procedures support iteration control flags:
 
 ```bash
 # Limit iterations
-rooda build --ai-cmd-alias kiro-cli --max-iterations 3
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 3
 
 # Unlimited iterations (runs until success or failure threshold)
-rooda build --ai-cmd-alias kiro-cli --unlimited
+rooda run build --ai-cmd-alias kiro-cli --unlimited
 
 # Dry run (validate without executing)
-rooda build --ai-cmd-alias kiro-cli --dry-run
+rooda run build --ai-cmd-alias kiro-cli --dry-run
 ```
 
 See [CLI Reference](cli-reference.md) for all flags.

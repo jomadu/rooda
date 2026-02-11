@@ -21,7 +21,7 @@ Enable users to install rooda as a single binary with no external dependencies, 
 - [ ] SHA256 checksums generated for all binaries in checksums.txt
 - [ ] Install script verifies checksums before installation
 - [ ] Install script hosted in GitHub Releases (not main branch)
-- [ ] `rooda --version` reports correct version string embedded at build time
+- [ ] `rooda version` reports correct version string embedded at build time
 - [ ] Default prompts are accessible when no custom prompts provided (embedded via `go:embed`)
 - [ ] Homebrew formula installs binary to standard location and adds to PATH
 - [ ] `curl | sh` installation script downloads correct binary for detected platform
@@ -140,7 +140,7 @@ go install github.com/jomadu/rooda@latest
 
 ### Version Mismatch
 - **Scenario:** Binary reports version but doesn't match git tag
-- **Detection:** CI verifies `rooda --version` output matches `$GITHUB_REF_NAME`
+- **Detection:** CI verifies `rooda version` output matches `$GITHUB_REF_NAME`
 - **Handling:** Release fails if version mismatch detected
 
 ### Homebrew Formula Outdated
@@ -194,7 +194,7 @@ v2.0.0
 
 $ go build -ldflags "-X main.Version=v2.0.0 -X main.CommitSHA=$(git rev-parse HEAD)"
 
-$ ./rooda --version
+$ ./rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -221,7 +221,7 @@ $ brew install rooda
 $ which rooda
 /opt/homebrew/bin/rooda
 
-$ rooda --version
+$ rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -235,7 +235,7 @@ Downloading rooda v2.0.0...
 Installing to /usr/local/bin/rooda...
 Installation complete!
 
-$ rooda --version
+$ rooda version
 rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 ```
 
@@ -246,7 +246,7 @@ rooda v2.0.0 (commit: a1b2c3d4e5f6, built: 2026-02-08T20:00:00Z)
 $ rm -rf ./prompts  # No custom prompts
 $ rm -rf ~/.config/rooda/prompts  # No global prompts
 
-$ rooda build --dry-run
+$ rooda run build --dry-run
 # Observe: Plan, Specs, Implementation
 ...
 # (Prompt assembled from embedded defaults)
@@ -261,10 +261,10 @@ steps:
   - name: Install rooda
     run: |
       curl -fsSL https://github.com/jomadu/rooda/releases/latest/download/install.sh | sh
-      rooda --version
+      rooda version
   
   - name: Run rooda procedure
-    run: rooda build --max-iterations 5
+    run: rooda run build --max-iterations 5
 ```
 
 **Verification:** Installation succeeds in CI environment, binary executes.
@@ -306,7 +306,7 @@ Embedding prompts adds ~50KB (25 files × ~2KB each). Go binaries are statically
 
 ### Version Embedding
 
-Using `-ldflags` to inject version metadata at build time ensures `rooda --version` always reports accurate information. This is critical for debugging ("what version are you running?") and for CI pipelines that verify version consistency.
+Using `-ldflags` to inject version metadata at build time ensures `rooda version` always reports accurate information. This is critical for debugging ("what version are you running?") and for CI pipelines that verify version consistency.
 
 ### Installation Script Security
 

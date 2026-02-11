@@ -756,7 +756,7 @@ function ResolveMaxIterations(config Config, procedureName string, cliFlags CLIF
 
 **Input:**
 ```bash
-rooda build --ai-cmd-alias claude
+rooda run build --ai-cmd-alias claude
 ```
 
 **Config resolution:**
@@ -936,7 +936,7 @@ ai_cmd: aider --yes          (loop.ai_cmd)
 **Input:**
 ```bash
 export ROODA_LOOP_LOG_TIMESTAMP_FORMAT=relative
-rooda build --ai-cmd "kiro-cli chat"
+rooda run build --ai-cmd "kiro-cli chat"
 ```
 
 **Config resolution:**
@@ -962,7 +962,7 @@ loop.ai_cmd: kiro-cli chat           (cli: --ai-cmd)
 **Input:**
 ```bash
 export ROODA_LOOP_DEFAULT_MAX_ITERATIONS=3
-rooda build --max-iterations 1 --ai-cmd "claude-cli --no-interactive"
+rooda run build --max-iterations 1 --ai-cmd "claude-cli --no-interactive"
 ```
 
 **Config resolution:**
@@ -980,7 +980,7 @@ ai_cmd: claude-cli --no-interactive (cli: --ai-cmd)
 
 **Input:**
 ```bash
-rooda build --ai-cmd-alias claude --verbose
+rooda run build --ai-cmd-alias claude --verbose
 ```
 
 **Expected Output (provenance section at startup):**
@@ -1056,7 +1056,7 @@ rooda security-audit
 
 **Input:**
 ```bash
-rooda build --config /path/to/team-config.yml
+rooda run build --config /path/to/team-config.yml
 ```
 
 **Config resolution:**
@@ -1126,7 +1126,7 @@ Config merging (additive) instead of replacement (destructive) is critical for a
 
 **Provenance Tracking:**
 
-Provenance answers the question "where did this value come from?" — essential for debugging configuration issues. When a developer runs `rooda build --dry-run` and sees unexpected settings, provenance immediately shows which file or environment variable set each value.
+Provenance answers the question "where did this value come from?" — essential for debugging configuration issues. When a developer runs `rooda run build --dry-run` and sees unexpected settings, provenance immediately shows which file or environment variable set each value.
 
 **Environment Variable Convention:**
 

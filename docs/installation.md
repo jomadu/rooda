@@ -74,8 +74,8 @@ Or use the build script:
 ## Verify Installation
 
 ```bash
-rooda --version
-rooda --list-procedures
+rooda version
+rooda list
 ```
 
 ## Next Steps

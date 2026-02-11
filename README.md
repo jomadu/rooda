@@ -16,10 +16,10 @@ curl -fsSL https://raw.githubusercontent.com/jomadu/rooda/main/scripts/install.s
 rooda bootstrap --ai-cmd-alias kiro-cli
 
 # List available procedures
-rooda --list-procedures
+rooda list
 
 # Run a procedure
-rooda build --ai-cmd-alias kiro-cli --max-iterations 3
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 3
 ```
 
 ## Installation
@@ -56,7 +56,7 @@ rooda audit-spec --ai-cmd-alias kiro-cli
 
 **Implement from work tracking:**
 ```bash
-rooda build --ai-cmd-alias kiro-cli --max-iterations 5
+rooda run build --ai-cmd-alias kiro-cli --max-iterations 5
 ```
 
 **Plan a feature:**

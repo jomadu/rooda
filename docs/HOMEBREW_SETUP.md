@@ -271,7 +271,7 @@ fi
 
 echo "✓ rooda installed to $INSTALL_DIR/$INSTALL_NAME"
 echo ""
-echo "Run 'rooda --version' to verify installation"
+echo "Run 'rooda version' to verify installation"
 ```
 
 Make it executable:
@@ -304,7 +304,7 @@ Watch the GitHub Actions workflow:
 ```bash
 brew tap jomadu/rooda
 brew install rooda
-rooda --version
+rooda version
 ```
 
 ### Test Direct Installation

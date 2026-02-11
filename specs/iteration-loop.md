@@ -431,7 +431,7 @@ function getStdDev(stats IterationStats) -> time.Duration:
 
 **Input:**
 ```bash
-rooda build --max-iterations 3
+rooda run build --max-iterations 3
 ```
 
 **Expected Output:**
@@ -458,7 +458,7 @@ rooda build --max-iterations 3
 
 **Input:**
 ```bash
-rooda build --max-iterations 2
+rooda run build --max-iterations 2
 ```
 
 **Expected Output:**
@@ -480,7 +480,7 @@ rooda build --max-iterations 2
 
 **Input:**
 ```bash
-rooda build --max-iterations 10
+rooda run build --max-iterations 10
 # AI CLI fails on iterations 4, 5, 6
 ```
 
@@ -513,7 +513,7 @@ rooda build --max-iterations 10
 
 **Input:**
 ```bash
-rooda build --max-iterations 2 --verbose
+rooda run build --max-iterations 2 --verbose
 ```
 
 **Expected Output:**
@@ -551,7 +551,7 @@ I'll execute the OODA loop iteration systematically.
 
 **Input:**
 ```bash
-rooda build --dry-run
+rooda run build --dry-run
 ```
 
 **Expected Output:**
@@ -627,7 +627,7 @@ Execute the actions you decided on. Modify files, run commands, commit changes.
 
 **Input:**
 ```bash
-rooda build --dry-run --context "focus on the auth module, the JWT validation is broken"
+rooda run build --dry-run --context "focus on the auth module, the JWT validation is broken"
 ```
 
 **Expected Output:**
@@ -709,7 +709,7 @@ Execute the actions you decided on. Modify files, run commands, commit changes.
 
 **Input:**
 ```bash
-rooda build --unlimited
+rooda run build --unlimited
 # AI CLI fails once on iteration 3, then succeeds on iteration 4
 ```
 
@@ -732,7 +732,7 @@ rooda build --unlimited
 
 **Input:**
 ```bash
-rooda build --dry-run --ai-cmd-alias claude
+rooda run build --dry-run --ai-cmd-alias claude
 ```
 
 **Expected Output:**
@@ -811,7 +811,7 @@ Execute the actions you decided on. Modify files, run commands, commit changes.
 
 **Input:**
 ```bash
-rooda build --dry-run --ai-cmd nonexistent-cli
+rooda run build --dry-run --ai-cmd nonexistent-cli
 ```
 
 **Expected Output:**

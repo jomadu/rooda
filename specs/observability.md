@@ -217,7 +217,7 @@ $ rooda build
 ### Verbose Mode (AI Output Streaming)
 
 ```
-$ rooda build --verbose
+$ rooda run build --verbose
 [21:00:00.000] INFO Starting loop procedure=build max_iterations=5
 [21:00:00.100] INFO Starting iteration 1/5 procedure=build
 [21:00:00.200] DEBUG Executing AI CLI command="kiro-cli chat --prompt-file /tmp/rooda-prompt-12345.md"
@@ -236,7 +236,7 @@ I'll execute the OODA loop iteration systematically.
 ### Dry-Run Mode (Validation Only)
 
 ```
-$ rooda build --dry-run
+$ rooda run build --dry-run
 [21:00:00.000] INFO Dry-run mode enabled dry_run=true
 [21:00:00.100] INFO Validating configuration...
 [21:00:00.200] INFO Resolved configuration:
@@ -265,7 +265,7 @@ $ rooda build --dry-run
 ### Quiet Mode (Warnings and Errors Only)
 
 ```
-$ rooda build --quiet
+$ rooda run build --quiet
 [21:00:28.500] WARN Iteration 3 exceeded timeout timeout=30s action=killing
 [21:00:28.600] ERROR Loop aborted consecutive_failures=3 threshold=3
 ```
@@ -273,7 +273,7 @@ $ rooda build --quiet
 ### Debug Mode (Detailed Logging)
 
 ```
-$ rooda build --log-level=debug
+$ rooda run build --log-level=debug
 [21:00:00.000] DEBUG Loading configuration file=rooda-config.yml
 [21:00:00.050] DEBUG Merged configuration procedures=15 ai_aliases=3
 [21:00:00.100] DEBUG Resolving procedure name=build
