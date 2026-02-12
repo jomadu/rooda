@@ -1,12 +1,12 @@
 # Study Specifications
 
-You must study specification files as defined in AGENTS.md. Use the file reading tool to access these files.
+You must study specification files per AGENTS.md. Use the file reading tool.
 
-Read all files matching the specification definition patterns. For each spec, extract and understand:
-- Job to be Done (JTBD) - the core problem being solved
-- Acceptance criteria - measurable success conditions
-- Examples - concrete usage scenarios
+Read all files matching spec patterns. For each, extract:
+- Job to be Done (JTBD) - core problem
+- Acceptance criteria - success conditions
+- Examples - usage scenarios
 - Cross-references to other specs
-- Current implementation status (if documented)
+- Implementation status
 
-Remember this information for later analysis phases.
+Remember for later analysis.

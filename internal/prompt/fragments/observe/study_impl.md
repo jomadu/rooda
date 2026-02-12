@@ -1,12 +1,12 @@
 # Study Implementation
 
-You must study implementation files as defined in AGENTS.md. Use the file reading tool to access these files.
+You must study implementation files per AGENTS.md. Use the file reading tool.
 
-Read all files matching the implementation definition patterns. For each file, analyze and understand:
+Read all files matching implementation patterns. For each, analyze:
 - Code structure and organization
-- Key functions, classes, and entry points
+- Key functions, classes, entry points
 - Dependencies and imports
-- Design patterns and architectural decisions
+- Design patterns and architecture
 - Current state and completeness
 
-Remember this information for later analysis phases.
+Remember for later analysis.

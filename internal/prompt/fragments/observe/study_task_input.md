@@ -1,12 +1,12 @@
 # Study Task Input
 
-You must study the task description as defined in AGENTS.md. Use the appropriate tool to access the task input (file reading, API calls, command execution, etc.).
+Study task description per AGENTS.md. Use appropriate tools (file reading, API calls, commands).
 
-Analyze and extract:
-- Task title and description
+Extract:
+- Title and description
 - Requirements and constraints
 - Expected outcomes and success criteria
-- Context and background information
-- Scope boundaries (what's in/out of scope)
+- Context and background
+- Scope boundaries (in/out of scope)
 
-Understand the intent behind the task, not just the literal text. Remember this information for use in later phases.
+Understand intent, not just literal text. Remember for later phases.
