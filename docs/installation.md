@@ -1,12 +1,12 @@
 # Installation
 
-## Quick Install (Recommended)
+## Quick install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jomadu/rooda/main/scripts/install.sh | bash
 ```
 
-This installs the latest release to `/usr/local/bin/rooda` (or `~/.local/bin/rooda` if `/usr/local/bin` is not writable).
+Installs the latest release to `/usr/local/bin/rooda` (or `~/.local/bin/rooda` if you don't have write access).
 
 ## Homebrew (macOS/Linux)
 
@@ -78,10 +78,10 @@ rooda version
 rooda list
 ```
 
-## Next Steps
+## Next steps
 
-1. **Bootstrap your repository**: `rooda bootstrap --ai-cmd-alias kiro-cli`
-2. **Configure AI command**: Set `--ai-cmd-alias` or configure in `~/.config/rooda/rooda-config.yml`
-3. **Run a procedure**: `rooda audit-spec --ai-cmd-alias kiro-cli`
+1. Bootstrap your repository: `rooda bootstrap --ai-cmd-alias kiro-cli`
+2. Configure AI command: Set `--ai-cmd-alias` or add to `~/.config/rooda/rooda-config.yml`
+3. Run a procedure: `rooda audit-spec --ai-cmd-alias kiro-cli`
 
-See [Configuration](configuration.md) for details on setting up AI commands and procedures.
+See [Configuration](configuration.md) for AI command setup and procedure configuration.

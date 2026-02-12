@@ -2,18 +2,18 @@
 
 rooda uses a three-tier configuration system with clear precedence: CLI flags > environment variables > workspace config > global config > built-in defaults.
 
-## Configuration Tiers
+## Configuration tiers
 
-### 1. Built-in Defaults (Lowest Precedence)
+### 1. Built-in defaults (lowest precedence)
 
-Embedded in the binary. Includes:
+Embedded in the binary:
 - 21 procedures with embedded prompt fragments
 - Built-in AI command aliases (`kiro-cli`, `claude`, `copilot`, `cursor-agent`)
 - Default loop settings (5 max iterations, 3 failure threshold, info log level)
 
-No configuration files required to start using rooda.
+You can start using rooda without any config files.
 
-### 2. Global Config
+### 2. Global config
 
 **Location**: `~/.config/rooda/rooda-config.yml` (Unix/macOS) or `%APPDATA%\rooda\rooda-config.yml` (Windows)
 
@@ -33,7 +33,7 @@ ai_cmd_aliases:
   my-ai: "my-custom-ai-tool --flag"
 ```
 
-### 3. Workspace Config
+### 3. Workspace config
 
 **Location**: `./rooda-config.yml` (project root)
 
@@ -66,7 +66,7 @@ procedures:
       - path: "prompts/act_custom.md"
 ```
 
-### 4. Environment Variables
+### 4. Environment variables
 
 **Prefix**: `ROODA_`
 
@@ -86,7 +86,7 @@ export ROODA_LOOP_LOG_LEVEL=debug
 rooda build
 ```
 
-### 5. CLI Flags (Highest Precedence)
+### 5. CLI flags (highest precedence)
 
 Override everything. See [CLI Reference](cli-reference.md) for all flags.
 
@@ -95,9 +95,9 @@ Override everything. See [CLI Reference](cli-reference.md) for all flags.
 rooda run build --ai-cmd-alias kiro-cli --max-iterations 10 --verbose
 ```
 
-## Configuration Schema
+## Configuration schema
 
-### Loop Settings
+### Loop settings
 
 ```yaml
 loop:
@@ -113,7 +113,7 @@ loop:
   ai_cmd_alias: ""                 # Alias name (optional)
 ```
 
-### AI Command Aliases
+### AI command aliases
 
 ```yaml
 ai_cmd_aliases:
@@ -157,7 +157,7 @@ procedures:
     ai_cmd_alias: claude
 ```
 
-**Fragment Actions**:
+**Fragment actions**:
 - `path` - Path to fragment file (relative to config file directory, or embedded resource)
 - `content` - Inline prompt content (alternative to `path`)
 - `parameters` - Template parameters for substitution
@@ -170,9 +170,9 @@ procedures:
 - `ai_cmd` - Direct command string (overrides loop.ai_cmd)
 - `ai_cmd_alias` - Alias name (overrides loop.ai_cmd_alias)
 
-## Precedence Rules
+## Precedence rules
 
-### AI Command Resolution
+### AI command resolution
 
 1. CLI `--ai-cmd` (direct command)
 2. CLI `--ai-cmd-alias` (alias name)
@@ -184,7 +184,7 @@ procedures:
 
 Within any level, `ai_cmd` (direct) takes precedence over `ai_cmd_alias`.
 
-### Iteration Settings
+### Iteration settings
 
 1. CLI `--max-iterations` or `--unlimited`
 2. Environment `ROODA_LOOP_DEFAULT_MAX_ITERATIONS` or `ROODA_LOOP_ITERATION_MODE`
@@ -192,12 +192,9 @@ Within any level, `ai_cmd` (direct) takes precedence over `ai_cmd_alias`.
 4. Loop `default_max_iterations` or `iteration_mode`
 5. Built-in default (5 iterations, max-iterations mode)
 
-### Procedure Merging
+### Procedure merging
 
-- Workspace procedures **merge with** (not replace) built-in procedures
-- Workspace procedure fields override only the specified fields
-- Unspecified fields inherit from built-in procedure
-- This allows customizing individual procedures without redefining everything
+Workspace procedures merge with (not replace) built-in procedures. Workspace procedure fields override only the specified fields. Unspecified fields inherit from the built-in procedure. This lets you customize individual procedures without redefining everything.
 
 **Example**:
 ```yaml
@@ -208,7 +205,7 @@ procedures:
     # All other fields (observe, orient, decide, act) inherit from built-in
 ```
 
-## Provenance Tracking
+## Provenance tracking
 
 Use `--verbose` to see where each setting came from:
 
@@ -234,15 +231,15 @@ Configuration is validated at load time:
 
 ## Examples
 
-### Minimal Setup (Zero Config)
+### Minimal setup (zero config)
 
 ```bash
 # No config files needed - uses built-in defaults
-# But AI command must be specified
+# But you must specify an AI command
 rooda run build --ai-cmd-alias kiro-cli
 ```
 
-### Global Config for Team
+### Global config for team
 
 ```yaml
 # ~/.config/rooda/rooda-config.yml
@@ -255,7 +252,7 @@ loop:
 
 All team members use the same AI command and log settings.
 
-### Project-Specific Overrides
+### Project-specific overrides
 
 ```yaml
 # ./rooda-config.yml
@@ -268,7 +265,7 @@ procedures:
     ai_cmd_alias: claude        # Use different AI for build
 ```
 
-### Custom Procedure
+### Custom procedure
 
 ```yaml
 # ./rooda-config.yml

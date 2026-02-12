@@ -134,7 +134,8 @@ func generatePreamble(procedure config.Procedure, iterCtx *IterationContext) str
 
 	preamble.WriteString("Success Signaling:\n")
 	preamble.WriteString("- When you complete all tasks successfully, output: <promise>SUCCESS</promise>\n")
-	preamble.WriteString("- If you cannot proceed due to blockers, output: <promise>FAILURE: [reason]</promise>\n")
+	preamble.WriteString("- If you cannot proceed due to blockers, output: <promise>FAILURE</promise>\n")
+	preamble.WriteString("- Explanations should come AFTER the signal, not embedded in the tag\n")
 	preamble.WriteString("- The loop orchestrator uses these signals to determine iteration outcome.\n")
 
 	return preamble.String()

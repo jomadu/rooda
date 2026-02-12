@@ -2,7 +2,7 @@
 
 You must update the draft plan file to reflect that tasks have been imported.
 
-Mark tasks in PLAN.md as completed or in progress.
+Mark tasks in draft plan per AGENTS.md (Planning System section) as completed or in progress.
 
 Actions:
 - Update task status markers

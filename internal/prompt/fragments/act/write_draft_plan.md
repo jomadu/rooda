@@ -1,6 +1,6 @@
 # Write Draft Plan
 
-Create draft plan file (PLAN.md) with prioritized tasks. Use file writing tool.
+Create draft plan file per AGENTS.md (Planning System section). Use file writing tool.
 
 Include:
 - Overview and objectives

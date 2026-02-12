@@ -1,10 +1,10 @@
-# AGENTS.md Format
+# AGENTS.md format
 
 AGENTS.md is the operational guide that tells AI agents how to interact with your repository. It documents build/test/lint commands, work tracking system, file patterns, and quality criteria.
 
 ## Purpose
 
-AGENTS.md serves as the interface between AI agents and your project. It answers:
+AGENTS.md is the interface between AI agents and your project. It answers:
 - How do I run tests?
 - How do I build the project?
 - Where are the specs?
@@ -22,7 +22,7 @@ Create AGENTS.md for a new repository:
 rooda run bootstrap --ai-cmd-alias kiro-cli
 ```
 
-This analyzes the repository and generates AGENTS.md with detected:
+Analyzes the repository and generates AGENTS.md with detected:
 - Build system (Makefile, package.json, go.mod, etc.)
 - Test system (go test, npm test, pytest, etc.)
 - Lint system (golangci-lint, eslint, pylint, etc.)
@@ -38,7 +38,7 @@ Update AGENTS.md when repository structure changes:
 rooda run agents-sync --ai-cmd-alias kiro-cli --max-iterations 1
 ```
 
-This detects drift between AGENTS.md and actual repository state, then updates AGENTS.md to fix:
+Detects drift between AGENTS.md and actual repository state, then updates AGENTS.md to fix:
 - Commands that no longer work
 - Paths that no longer exist
 - Patterns that no longer match
@@ -51,15 +51,15 @@ Verify AGENTS.md is accurate:
 rooda run audit-agents --ai-cmd-alias kiro-cli
 ```
 
-This runs all commands and checks all paths, producing an audit report with drift detections.
+Runs all commands and checks all paths, producing an audit report with drift detections.
 
 ## Format
 
 AGENTS.md is structured markdown with specific sections that agents parse.
 
-### Required Sections
+### Required sections
 
-#### Issue Tracking
+#### Issue tracking
 
 Documents the work tracking system.
 
@@ -79,7 +79,7 @@ bd sync               # Sync with git
 \`\`\`
 ```
 
-#### Work Tracking System
+#### Work tracking system
 
 Detailed commands for querying and updating work.
 
@@ -109,7 +109,7 @@ bd create --title "Title" --description "Desc" --priority 2
 \`\`\`
 ```
 
-#### Build/Test/Lint Commands
+#### Build/test/lint commands
 
 How to run quality gates.
 
@@ -139,7 +139,7 @@ go vet ./...         # Built-in Go linter
 \`\`\`
 ```
 
-#### Specification Definition
+#### Specification definition
 
 Where specs live and what format they use.
 
@@ -155,7 +155,7 @@ Where specs live and what format they use.
 **Current state:** v2 Go rewrite specs complete — all 11 specs written with JTBD structure, acceptance criteria, examples.
 ```
 
-#### Implementation Definition
+#### Implementation definition
 
 Where code lives and what patterns to follow.
 
@@ -179,7 +179,7 @@ Where code lives and what patterns to follow.
 - `AGENTS.md`, `PLAN.md`, `TASK.md` — operational files
 ```
 
-#### Quality Criteria
+#### Quality criteria
 
 Pass/fail criteria for specs and implementation.
 
@@ -203,9 +203,9 @@ Pass/fail criteria for specs and implementation.
 - Referenced files or paths don't exist
 ```
 
-### Optional Sections
+### Optional sections
 
-#### Planning System
+#### Planning system
 
 Where draft plans are written and how they're published.
 
@@ -217,7 +217,7 @@ Where draft plans are written and how they're published.
 **Publishing mechanism:** Agent reads `PLAN.md` and runs `bd create` commands to file issues
 ```
 
-#### Story/Bug Input
+#### Story/bug input
 
 Where task input is documented for planning procedures.
 
@@ -227,7 +227,7 @@ Where task input is documented for planning procedures.
 Stories and bugs are documented in `TASK.md` at project root. Create this file before running `draft-plan-story-to-spec` or `draft-plan-bug-to-spec` procedures.
 ```
 
-#### Operational Learnings
+#### Operational learnings
 
 Accumulated knowledge about what works and what doesn't.
 
@@ -250,9 +250,9 @@ Accumulated knowledge about what works and what doesn't.
 - Specs use JTBD format per `specs/README.md`
 ```
 
-## Best Practices
+## Best practices
 
-### Keep Commands Accurate
+### Keep commands accurate
 
 AGENTS.md is the source of truth for how to interact with the repository. If commands change, update AGENTS.md immediately.
 
@@ -261,7 +261,7 @@ AGENTS.md is the source of truth for how to interact with the repository. If com
 rooda run agents-sync --ai-cmd-alias kiro-cli --max-iterations 1
 ```
 
-### Use Inline Rationale
+### Use inline rationale
 
 When documenting non-obvious choices, add brief inline comments:
 
@@ -272,7 +272,7 @@ go test ./...  # Using Go's built-in test runner
 \`\`\`
 ```
 
-### Document Dependencies
+### Document dependencies
 
 List required tools and versions:
 
@@ -283,7 +283,7 @@ List required tools and versions:
 - shellcheck (optional, for linting bash scripts)
 ```
 
-### Exclude Non-Implementation Files
+### Exclude non-implementation files
 
 Be explicit about what's NOT implementation:
 
@@ -295,7 +295,7 @@ Be explicit about what's NOT implementation:
 - `AGENTS.md`, `PLAN.md`, `TASK.md` — operational files
 ```
 
-### Update Operational Learnings
+### Update operational learnings
 
 When you discover something important, update the relevant section inline (don't append diary entries):
 

@@ -1,8 +1,8 @@
 # Troubleshooting
 
-Common errors and solutions when using rooda.
+Common errors and solutions.
 
-## Installation Issues
+## Installation issues
 
 ### "rooda: command not found"
 
@@ -29,7 +29,7 @@ export PATH="$PATH:/usr/local/bin"
 chmod +x /usr/local/bin/rooda
 ```
 
-## Configuration Errors
+## Configuration errors
 
 ### "No AI command configured"
 
@@ -126,7 +126,7 @@ ls -la prompts/observe_custom.md
 rooda run build --observe /absolute/path/to/prompts/observe_custom.md
 ```
 
-## Execution Errors
+## Execution errors
 
 ### "AI CLI command failed with exit code 1"
 
@@ -227,7 +227,7 @@ rooda run build --ai-cmd-alias kiro-cli --unlimited
 # Verify tests pass and emit success signal
 ```
 
-## Work Tracking Issues
+## Work tracking issues
 
 ### "bd: command not found"
 
@@ -264,7 +264,7 @@ rooda draft-plan-impl-feat --ai-cmd-alias kiro-cli --context "Feature X"
 rooda publish-plan --ai-cmd-alias kiro-cli
 ```
 
-## AGENTS.md Issues
+## AGENTS.md issues
 
 ### "AGENTS.md not found"
 
@@ -304,7 +304,7 @@ rooda agents-sync --ai-cmd-alias kiro-cli --max-iterations 1
 vim AGENTS.md
 ```
 
-## Prompt Issues
+## Prompt issues
 
 ### "Empty prompt generated"
 
@@ -352,7 +352,7 @@ procedures:
           project_name: "my-project"
 ```
 
-## Performance Issues
+## Performance issues
 
 ### "AI CLI output too large"
 
@@ -393,7 +393,7 @@ EOF
 
 ## Debugging
 
-### Enable Verbose Output
+### Enable verbose output
 
 ```bash
 rooda run build --ai-cmd-alias kiro-cli --verbose
@@ -405,7 +405,7 @@ Shows:
 - AI CLI output
 - Debug logs
 
-### Dry Run
+### Dry run
 
 ```bash
 rooda run build --ai-cmd-alias kiro-cli --dry-run
@@ -417,7 +417,7 @@ Validates:
 - AI command is found
 - No execution
 
-### Check Configuration
+### Check configuration
 
 ```bash
 # List procedures
@@ -430,7 +430,7 @@ rooda run build --help
 yq eval . rooda-config.yml
 ```
 
-### Check Logs
+### Check logs
 
 ```bash
 # Run with debug logging
@@ -440,13 +440,13 @@ rooda run build --ai-cmd-alias kiro-cli --log-level debug
 rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | tee rooda.log
 ```
 
-## Getting Help
+## Getting help
 
 If you're still stuck:
 
-1. **Check documentation**: [docs/](.)
-2. **Search issues**: [GitHub Issues](https://github.com/jomadu/rooda/issues)
-3. **File a bug**: [New Issue](https://github.com/jomadu/rooda/issues/new)
+1. Check documentation: [docs/](.)
+2. Search issues: [GitHub Issues](https://github.com/jomadu/rooda/issues)
+3. File a bug: [New Issue](https://github.com/jomadu/rooda/issues/new)
 
 Include in bug reports:
 - `rooda version` output

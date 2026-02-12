@@ -1,10 +1,12 @@
 # rooda
 
-AI-powered OODA loop orchestrator for autonomous software development.
+Run AI agents through OODA loops to build software autonomously.
 
 ## What is rooda?
 
-rooda orchestrates AI coding agents through structured OODA (Observe-Orient-Decide-Act) iteration loops to autonomously build, plan, and maintain software from specifications. Point an AI agent at your work, and it iterates toward a solution with fresh context each cycle.
+rooda runs AI coding agents through OODA (Observe-Orient-Decide-Act) loops. Each iteration gives the agent fresh context to work with. Point it at a task, set a max iteration count, and it works toward a solution.
+
+The agent observes your codebase, orients itself to the problem, decides what to do, and acts. Then it does it again with updated context. No massive prompts that lose focus halfway through.
 
 ## Quick Start
 
@@ -28,13 +30,13 @@ See [docs/installation.md](docs/installation.md) for all installation methods (H
 
 ## Core Concepts
 
-**Procedures**: Named OODA workflows (e.g., `build`, `audit-spec`, `draft-plan-impl-feat`). Each procedure defines which prompt fragments to use for each phase.
+**Procedures** - Named OODA workflows like `build`, `audit-spec`, or `draft-plan-impl-feat`. Each procedure defines which prompt fragments to use for each phase.
 
-**OODA Loop**: Observe (gather context) → Orient (analyze) → Decide (plan) → Act (execute). Each iteration runs all four phases with fresh AI context.
+**OODA Loop** - Observe (gather context) → Orient (analyze) → Decide (plan) → Act (execute). Each iteration runs all four phases with fresh AI context.
 
-**AGENTS.md**: Repository operational guide that tells agents how to interact with your project (build commands, test commands, work tracking system, file patterns).
+**AGENTS.md** - A file that tells agents how to interact with your project: build commands, test commands, work tracking system, file patterns.
 
-**Work Tracking**: rooda integrates with beads, GitHub Issues, or file-based systems. The `build` procedure reads tasks and implements them.
+**Work Tracking** - rooda works with beads, GitHub Issues, or file-based systems. The `build` procedure reads tasks and implements them.
 
 ## Configuration
 

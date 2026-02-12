@@ -24,7 +24,7 @@ rooda run agents-sync --ai-cmd-alias claude
 
 ### `rooda list`
 
-List all available procedures (built-in and custom) with one-line descriptions.
+List all available procedures (built-in and custom) with descriptions.
 
 ```bash
 rooda list
@@ -32,7 +32,7 @@ rooda list
 
 ### `rooda info <procedure>`
 
-Show detailed information about a specific procedure including metadata, description, OODA phases, and configuration.
+Show detailed information about a specific procedure: metadata, description, OODA phases, and configuration.
 
 ```bash
 rooda info build
@@ -58,9 +58,9 @@ rooda --help
 rooda run --help  # Command-specific help
 ```
 
-## Global Flags
+## Global flags
 
-These flags are available for all commands:
+Available for all commands:
 
 **`--config <path>`**  
 Specify alternate config file path (default: `./rooda-config.yml`).
@@ -90,11 +90,11 @@ Set log level: `debug`, `info`, `warn`, `error`.
 rooda run build --log-level debug
 ```
 
-## Run Command Flags
+## Run command flags
 
-These flags are specific to `rooda run <procedure>`:
+Specific to `rooda run <procedure>`:
 
-### Loop Control
+### Loop control
 
 **`--max-iterations <n>` / `-n <n>`**  
 Override default max iterations for the procedure. Must be >= 1.
@@ -124,7 +124,7 @@ rooda run build --dry-run
 rooda run build -d
 ```
 
-### AI Command
+### AI command
 
 **`--ai-cmd <command>`**  
 Override AI command with direct command string. Takes precedence over `--ai-cmd-alias`.
@@ -160,7 +160,7 @@ rooda run draft-plan-impl-feat --context feature-requirements.md
 rooda run build --context "Focus on auth module" --context notes.md
 ```
 
-### Output Control
+### Output control
 
 **`--verbose` / `-v`**  
 Enable verbose output. Sets `show_ai_output=true` and `log_level=debug`.
@@ -196,7 +196,7 @@ Fragment paths in CLI overrides resolve relative to this config file's directory
 rooda run build --config /path/to/custom-config.yml
 ```
 
-### Prompt Overrides
+### Prompt overrides
 
 Override OODA phase fragments for this execution. Multiple flags accumulate into fragment array. Replaces entire phase array (not appended to config).
 
@@ -237,7 +237,7 @@ rooda run build \
   --orient prompts/orient_custom.md
 ```
 
-## Exit Codes
+## Exit codes
 
 | Code | Meaning | Examples |
 |------|---------|----------|
@@ -247,7 +247,7 @@ rooda run build \
 | 3 | Execution error | AI CLI failure, iteration timeout |
 | 130 | Interrupted | User pressed Ctrl+C (SIGINT) |
 
-## Flag Precedence
+## Flag precedence
 
 CLI flags have highest precedence and override all other configuration sources:
 
@@ -257,13 +257,13 @@ CLI flags have highest precedence and override all other configuration sources:
 4. Global config (`~/.config/rooda/rooda-config.yml`)
 5. Built-in defaults (lowest)
 
-## Mutually Exclusive Flags
+## Mutually exclusive flags
 
 - `--verbose` and `--quiet` cannot be used together
 - `--max-iterations` and `--unlimited` cannot be used together
 - `--ai-cmd` takes precedence over `--ai-cmd-alias` when both provided
 
-## Short Flags
+## Short flags
 
 | Short | Long | Description |
 |-------|------|-------------|
@@ -276,7 +276,7 @@ CLI flags have highest precedence and override all other configuration sources:
 
 ## Examples
 
-### Basic Execution
+### Basic execution
 
 ```bash
 # Run build procedure with default settings
@@ -289,7 +289,7 @@ rooda run build --ai-cmd-alias kiro-cli --max-iterations 3
 rooda run build --ai-cmd-alias kiro-cli --unlimited
 ```
 
-### Dry Run
+### Dry run
 
 ```bash
 # Validate configuration and prompts without executing
@@ -299,7 +299,7 @@ rooda run build --ai-cmd-alias kiro-cli --dry-run
 rooda run build --dry-run && echo "Valid" || echo "Invalid"
 ```
 
-### Context Passing
+### Context passing
 
 ```bash
 # Inline context
@@ -316,7 +316,7 @@ rooda run build --ai-cmd-alias kiro-cli \
   --context notes/auth-implementation.md
 ```
 
-### Prompt Overrides
+### Prompt overrides
 
 ```bash
 # Override single phase
@@ -334,7 +334,7 @@ rooda run build --ai-cmd-alias kiro-cli \
   --observe "# Observe\nRead AGENTS.md and specs/"
 ```
 
-### Verbose Output
+### Verbose output
 
 ```bash
 # See all AI output and debug logs
@@ -344,7 +344,7 @@ rooda run build --ai-cmd-alias kiro-cli --verbose
 rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | grep "Configuration loaded"
 ```
 
-### Custom Config
+### Custom config
 
 ```bash
 # Use alternate config file
@@ -355,7 +355,7 @@ rooda run build --config /path/to/config.yml \
   --observe custom-prompts/observe.md
 ```
 
-## Environment Variables
+## Environment variables
 
 All `ROODA_*` environment variables can be used instead of flags:
 
@@ -375,7 +375,7 @@ rooda build
 
 See [Configuration](configuration.md) for all environment variables.
 
-## See Also
+## See also
 
 - [Procedures](procedures.md) - All built-in procedures
 - [Configuration](configuration.md) - Three-tier config system

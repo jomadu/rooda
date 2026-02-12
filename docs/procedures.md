@@ -2,13 +2,13 @@
 
 rooda includes 21 built-in procedures organized by job type. Each procedure is an OODA loop workflow composed from reusable prompt fragments.
 
-## Bootstrap & Sync
+## Bootstrap and sync
 
 ### bootstrap
 
 **Job**: Analyze repository and create/update AGENTS.md operational guide.
 
-**When to use**: First time setting up rooda in a repository, or when project structure changes significantly.
+**When to use**: First time setting up rooda in a repository, or when project structure changes.
 
 **Example**:
 ```bash
@@ -30,7 +30,7 @@ rooda agents-sync --ai-cmd-alias kiro-cli --max-iterations 1
 
 **Output**: Updates AGENTS.md to fix drifted commands and paths.
 
-## Audit Procedures
+## Audit procedures
 
 ### audit-spec
 
@@ -97,7 +97,7 @@ rooda audit-impl-to-spec --ai-cmd-alias kiro-cli
 
 **Output**: Gap analysis report listing undocumented features.
 
-## Planning Procedures
+## Planning procedures
 
 All planning procedures write to `PLAN.md` at project root. Use `publish-plan` to import the plan into your work tracking system.
 
@@ -278,7 +278,7 @@ rooda publish-plan --ai-cmd-alias kiro-cli
 
 **Output**: Creates issues in work tracking system (beads, GitHub Issues, etc.).
 
-## Build Procedure
+## Build procedure
 
 ### build
 
@@ -297,7 +297,7 @@ rooda run build --ai-cmd-alias kiro-cli --max-iterations 5
 
 **Note**: This is the only procedure that modifies specs and implementation files based on work tracking tasks.
 
-## Iteration Control
+## Iteration control
 
 All procedures support iteration control flags:
 
