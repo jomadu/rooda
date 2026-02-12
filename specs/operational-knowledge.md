@@ -374,16 +374,16 @@ No bad execution occurs — verification catches the issue before attempting the
 ## Implementation Mapping
 
 **Source files:**
-- `internal/agents/parser.go` — Parse AGENTS.md into AgentsMD struct
-- `internal/agents/verifier.go` — Empirical verification of AGENTS.md claims
-- `internal/agents/updater.go` — In-place updates to AGENTS.md with rationale
-- `internal/agents/bootstrap.go` — Bootstrap workflow for first-run case
-- `internal/agents/drift.go` — Drift detection logic
+- Fragment files define agent behavior (see `internal/prompt/fragments/`)
+- No Go code needed - agents read AGENTS.md as markdown text in their context
+- Agents bootstrap, verify, and update AGENTS.md through prompt-guided behavior
 
 **Related specs:**
 - `agents-md-format.md` — AGENTS.md schema
 - `procedures.md` — All procedures use this read-verify-update lifecycle
 - `iteration-loop.md` — AGENTS.md may be updated across iterations
+
+**Architectural Note:** The read-verify-update lifecycle is implemented entirely through prompt fragments that guide AI agent behavior, not through Go code. The orchestrator simply loads AGENTS.md content into the agent's context; the agent handles parsing, verification, and updates based on prompt instructions.
 
 ## Examples
 

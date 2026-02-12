@@ -21,6 +21,18 @@ The developer wants to define what should be built (specs), point an AI agent at
 
 Prompts are composed from reusable fragments — small, focused markdown files organized by OODA phase. Each procedure defines which fragments to use for each phase, enabling high reusability across the 16 built-in procedures.
 
+## Architectural Principle: Prompt-Driven Behavior
+
+**The Go binary is minimal by design.** It orchestrates the loop (load config, assemble prompts, invoke AI CLI, track iterations) but does not implement agent behavior. Agent behavior — parsing AGENTS.md, detecting drift, bootstrapping repositories, verifying commands, updating documentation — is implemented entirely through prompt fragments that guide the AI agent.
+
+This architecture keeps the orchestrator simple and testable while leveraging the AI's natural language understanding for complex tasks like:
+- Parsing markdown structure (AGENTS.md sections)
+- Detecting semantic drift (documented vs actual behavior)
+- Generating contextual updates (inline rationale comments)
+- Bootstrapping from repository analysis (heuristic detection)
+
+The orchestrator provides infrastructure (config loading, prompt composition, iteration control); the prompts provide intelligence (what to observe, how to orient, what to decide, how to act).
+
 ## Related Jobs
 
 - **Sync the agent-project interface** — analyze a repository and create or update the operational guide (AGENTS.md) so agents can interact with the project effectively. Works whether AGENTS.md exists or not — creates from scratch on first run, reconciles with actual repo state on subsequent runs. This is a direct-action procedure (not planning) because AGENTS.md must exist before any planning procedure can run (chicken-and-egg: plans need AGENTS.md to know where plans live).

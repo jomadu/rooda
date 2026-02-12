@@ -433,9 +433,7 @@ See `operational-knowledge.md` for the read-verify-update lifecycle that uses th
 - `operational-knowledge.md` — Runtime behavior for reading/verifying/updating AGENTS.md (includes bootstrap and validation algorithms)
 - `procedures.md` — Built-in procedures that consume AGENTS.md
 
-**Implementation files (v2 Go):**
-- `internal/agents/schema.go` — AGENTS.md schema definition
-- `internal/agents/parser.go` — Markdown parsing for AGENTS.md sections
+**Architectural Note:** AGENTS.md parsing, validation, and updates are implemented through prompt fragments that guide AI agent behavior, not through Go code. The schema defined here is consumed by agents through their context, not parsed into Go structs.
 
 ## Examples
 
