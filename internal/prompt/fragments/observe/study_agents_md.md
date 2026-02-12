@@ -2,7 +2,7 @@
 
 You must study and parse the AGENTS.md configuration file from the repository root. Use the file reading tool to access this file.
 
-**If AGENTS.md doesn't exist:** Signal FAILURE - repository needs bootstrap procedure first.
+**If AGENTS.md doesn't exist:** Note this fact - the repository needs bootstrap procedure first.
 
 **Extract information for all 10 required topics** (search flexibly - exact section names/formats may vary):
 
