@@ -1,31 +1,18 @@
 # Study AGENTS.md
 
-You must study and parse the AGENTS.md configuration file from the repository root. Use the file reading tool to access this file.
+You must read AGENTS.md from repository root. Use the file reading tool. If missing, note bootstrap needed.
 
-**If AGENTS.md doesn't exist:** Note this fact - the repository needs bootstrap procedure first.
+Extract 10 topics:
 
-**Extract information for all 10 required topics** (search flexibly - exact section names/formats may vary):
+1. **Work Tracking** - name, commands (query/update/close/create)
+2. **Quick Reference** - command summary
+3. **Task Input** - location, format
+4. **Planning System** - draft plan location, publishing
+5. **Build/Test/Lint** - dependencies, commands
+6. **Specification** - location, format, state
+7. **Implementation** - location, patterns, excludes
+8. **Audit Output** - location, format
+9. **Quality Criteria** - specs, implementation, refactoring triggers
+10. **Operational Learnings** - verification date, working/not working, rationale
 
-1. **Work Tracking System** - system name, onboarding, query/update/close/create commands
-2. **Quick Reference** - cross-section command summary
-3. **Task Input** - location and format of task documentation
-4. **Planning System** - draft plan location, publishing mechanism
-5. **Build/Test/Lint Commands** - dependencies, test/build/lint commands
-6. **Specification Definition** - location, format, exclude patterns, current state
-7. **Implementation Definition** - location, patterns, exclude paths
-8. **Audit Output** - location pattern, format
-9. **Quality Criteria** - for specs, for implementation, refactoring triggers
-10. **Operational Learnings** - last verification date, verified working/not working, rationale
-
-**Parsing approach:**
-- Search for topic names in headers (any level), bold text, or plain text
-- Extract commands from code blocks or inline code
-- Extract paths/patterns from any format (bold labels, plain text, lists)
-- Infer missing information from context when possible
-
-**Validate:**
-- All 10 required topics covered (if missing, note which for error reporting)
-- Commands are identifiable and extractable
-- File paths/patterns are present
-
-**Remember extracted information** for use in Orient/Decide/Act phases - you'll reference these commands, paths, and criteria throughout the loop iteration.
+Validate all topics present. Remember information for later phases.
