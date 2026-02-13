@@ -26,7 +26,7 @@ rooda run build --ai-cmd-alias kiro-cli --max-iterations 3
 
 ## Installation
 
-See [docs/installation.md](docs/installation.md) for all installation methods (Homebrew, direct download, build from source).
+See [docs/installation.md](docs/installation.md) for all installation methods (direct download, build from source).
 
 ## Core Concepts
 
