@@ -362,7 +362,6 @@ Automatically verify code quality on pull requests and publish release artifacts
 2. **Release builds** — Cross-compile binaries for all platforms when version tag is pushed
 3. **Checksum generation** — Generate SHA256 checksums for all release binaries
 4. **GitHub Release** — Publish binaries, checksums, and install script to GitHub Releases
-5. **Homebrew formula update** — Automatically update Homebrew tap with new version and checksums
 
 ### Acceptance Criteria
 
@@ -374,8 +373,6 @@ Automatically verify code quality on pull requests and publish release artifacts
 - [ ] Release workflow embeds version metadata using `-ldflags`
 - [ ] Release workflow generates checksums.txt with SHA256 for all binaries
 - [ ] Release workflow creates GitHub Release with all binaries, checksums, and install script
-- [ ] Release workflow updates Homebrew formula with new version and SHA256s
-- [ ] Homebrew formula update uses HOMEBREW_TAP_TOKEN secret for authentication
 
 ### Workflows
 
@@ -402,11 +399,8 @@ Automatically verify code quality on pull requests and publish release artifacts
 3. Cross-compile binaries for all platforms with version metadata
 4. Generate SHA256 checksums
 5. Create GitHub Release with artifacts
-6. Clone Homebrew tap repository
-7. Update rooda.rb formula with new version and checksums
-8. Commit and push formula update
 
-**Purpose:** Automate release process. Ensures consistent builds and immediate availability via Homebrew.
+**Purpose:** Automate release process. Ensures consistent builds.
 
 ### Branch Protection Setup
 
@@ -484,73 +478,18 @@ $ git push origin v2.1.0
 # Creating GitHub Release...
 ✓ Release v2.1.0 published
 
-# Updating Homebrew formula...
-✓ jomadu/homebrew-rooda updated
-
 # Users can now install:
 $ brew upgrade rooda
 ==> Upgrading rooda 2.0.0 -> 2.1.0
 ```
 
-**Verification:** GitHub Release created with all artifacts, Homebrew formula updated, users can install new version.
-
-#### Example 4: Homebrew Formula Update
-```ruby
-# Before (v2.0.0)
-class Rooda < Formula
-  desc "OODA loop orchestrator for AI coding agents"
-  homepage "https://github.com/jomadu/rooda"
-  version "v2.0.0"
-  
-  on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/jomadu/rooda/releases/download/v2.0.0/rooda-darwin-arm64"
-      sha256 "abc123..."
-    else
-      url "https://github.com/jomadu/rooda/releases/download/v2.0.0/rooda-darwin-amd64"
-      sha256 "def456..."
-    end
-  end
-  # ...
-end
-
-# After (v2.1.0) - automatically updated by release workflow
-class Rooda < Formula
-  desc "OODA loop orchestrator for AI coding agents"
-  homepage "https://github.com/jomadu/rooda"
-  version "v2.1.0"
-  
-  on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/jomadu/rooda/releases/download/v2.1.0/rooda-darwin-arm64"
-      sha256 "xyz789..."
-    else
-      url "https://github.com/jomadu/rooda/releases/download/v2.1.0/rooda-darwin-amd64"
-      sha256 "uvw012..."
-    end
-  end
-  # ...
-end
-```
-
-**Verification:** Formula version and checksums updated automatically, no manual intervention required.
-
-### Dependencies
-
-- GitHub Actions (CI/CD platform)
-- HOMEBREW_TAP_TOKEN secret (GitHub personal access token with repo + workflow scopes)
-- jomadu/homebrew-rooda repository (Homebrew tap)
-- softprops/action-gh-release action (GitHub Release creation)
+**Verification:** GitHub Release created with all artifacts, users can install new version.
 
 ### Notes
 
 #### Why Separate CI and Release Workflows?
 
 CI runs on every PR and main push to catch issues early. Release runs only on version tags to avoid unnecessary builds. This separation keeps CI fast (no cross-compilation) while ensuring releases are comprehensive (all platforms).
-
-#### Why Update Homebrew Formula Automatically?
-
-Manual formula updates are error-prone (typos in SHA256, version mismatches). Automating this step ensures Homebrew users get new versions immediately after release without maintainer intervention.
 
 #### Branch Protection Enforcement
 
