@@ -167,7 +167,6 @@ go vet ./...                     # Run linter
 - `./bin/rooda list` shows all 16 procedures available
 
 **Verified Not Working / Missing:**
-- No CI/CD pipeline configured
 - Fragment files not yet verified — all 16 procedures defined but fragment file existence not confirmed
 
 **Why These Definitions:**
