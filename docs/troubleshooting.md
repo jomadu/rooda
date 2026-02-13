@@ -440,6 +440,50 @@ rooda run build --ai-cmd-alias kiro-cli --log-level debug
 rooda run build --ai-cmd-alias kiro-cli --verbose 2>&1 | tee rooda.log
 ```
 
+## Repository Configuration
+
+### Setting up branch protection
+
+**Purpose**: Prevent merging pull requests that fail CI checks.
+
+**Who**: Repository maintainers with admin access.
+
+**Prerequisites**: CI workflow must be configured (`.github/workflows/ci.yml`).
+
+**Steps**:
+
+1. Navigate to repository settings:
+   - Go to `https://github.com/<owner>/<repo>/settings/branches`
+   - Or: Repository → Settings → Branches
+
+2. Add branch protection rule:
+   - Click "Add branch protection rule"
+   - Branch name pattern: `main` (or your default branch)
+
+3. Enable required status checks:
+   - Check "Require status checks to pass before merging"
+   - Check "Require branches to be up to date before merging"
+   - Search for and select: `ci` (the job name from ci.yml)
+
+4. Optional recommended settings:
+   - "Require a pull request before merging"
+   - "Require approvals" (set count as needed)
+   - "Dismiss stale pull request approvals when new commits are pushed"
+
+5. Save changes:
+   - Click "Create" or "Save changes"
+
+**Verification**:
+```bash
+# Create a test PR that fails CI
+# Verify GitHub blocks the merge with message:
+# "Required status check 'ci' has not run"
+```
+
+**Reference**: [GitHub Branch Protection Documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
+
+**Note**: This is repository configuration, not code. Each repository maintainer must enable this manually in GitHub settings.
+
 ## Getting help
 
 If you're still stuck:
