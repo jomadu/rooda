@@ -1,1 +1,0 @@
-we need the github ci to build the artifacts so that we can't merge a pr without green builds
